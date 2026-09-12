@@ -16,6 +16,7 @@ import { getCase, getDecision, getNegotiation, getRecommendation } from '../serv
 import type { CaseDocument, RecommendationResponse, SourceReference } from '../types';
 import { useAsync } from '../hooks/useAsync';
 import { money, percent, shortDate } from '../lib/format';
+import { markCaseAsViewed } from '../lib/caseProgress';
 import { Badge, ErrorState, LoadingState, Notice, Provenance } from '../components/ui';
 import { DocumentsPanel, DocumentViewer, EvidencePanel } from '../components/Evidence';
 import { DecisionActions, NegotiationPanel } from '../components/DecisionActions';
@@ -130,6 +131,9 @@ export default function WorkspacePage() {
     window.addEventListener('policy:data-changed', resetFeedback);
     return () => window.removeEventListener('policy:data-changed', resetFeedback);
   }, []);
+  useEffect(() => {
+    if (data?.caseDetail.case_id) markCaseAsViewed(data.caseDetail.case_id);
+  }, [data?.caseDetail.case_id]);
   if (loading && !data) return <LoadingState />;
   if (error)
     return (

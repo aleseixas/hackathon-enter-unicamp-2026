@@ -1347,8 +1347,11 @@ svg {
   border-radius: 50%;
   background: #a2a891;
 }
-.status-aguardando_decisao > span {
+.status-novo > span {
   background: #c19d54;
+}
+.status-visualizado > span {
+  background: #8b9bb4;
 }
 .status-em_negociacao > span {
   background: #a18356;

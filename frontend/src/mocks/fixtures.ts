@@ -66,14 +66,6 @@ interface CaseFixture {
   missing: string[];
 }
 
-const overrideReasonLabels = {
-  NOVA_EVIDENCIA: 'Nova evidencia',
-  ESTRATEGIA_PROCESSUAL: 'Estrategia processual',
-  INFORMACAO_NAO_CONSIDERADA: 'Informacao nao considerada',
-  POLITICA_INADEQUADA: 'Politica inadequada',
-  OUTRO: 'Outro',
-} as const;
-
 const caseFixtures: CaseFixture[] = [
   {
     id: 'caso-1',

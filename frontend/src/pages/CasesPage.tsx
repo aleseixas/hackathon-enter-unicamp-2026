@@ -16,14 +16,25 @@ import { getCases } from '../services/api';
 import { useAsync } from '../hooks/useAsync';
 import { Badge, ErrorState, LoadingState } from '../components/ui';
 import { money } from '../lib/format';
+import { getLawyerCaseState, getViewedCaseIds, type LawyerCaseState } from '../lib/caseProgress';
 
-const tabs = [
+const tabs: { id: 'all' | LawyerCaseState; label: string }[] = [
   { id: 'all', label: 'Todos os processos' },
-  { id: 'AGUARDANDO_DECISAO', label: 'Aguardando decisão' },
-  { id: 'EM_NEGOCIACAO', label: 'Em negociação' },
+  { id: 'NOVO', label: 'Novos' },
+  { id: 'VISUALIZADO', label: 'Visualizados' },
   { id: 'DECISAO_REGISTRADA', label: 'Decisão registrada' },
+  { id: 'EM_NEGOCIACAO', label: 'Em negociação' },
   { id: 'CONCLUIDO', label: 'Concluídos' },
 ];
+
+const statePresentation: Record<LawyerCaseState, { label: string; cta: string }> = {
+  NOVO: { label: 'Novo', cta: 'Analisar agora' },
+  VISUALIZADO: { label: 'Visualizado', cta: 'Continuar análise' },
+  DECISAO_REGISTRADA: { label: 'Decisão registrada', cta: 'Ver decisão' },
+  EM_NEGOCIACAO: { label: 'Em negociação', cta: 'Continuar negociação' },
+  CONCLUIDO: { label: 'Concluído', cta: 'Ver processo' },
+};
+
 export default function CasesPage({ mine = false }: { mine?: boolean }) {
   const { data: cases, loading, error, reload } = useAsync(getCases);
   const [query, setQuery] = useState('');
@@ -35,20 +46,25 @@ export default function CasesPage({ mine = false }: { mine?: boolean }) {
     () => (cases || []).filter((item) => !mine || item.assigned_to_me),
     [cases, mine],
   );
-  const filtered = useMemo(
-    () =>
-      available.filter(
-        (item) =>
-          (tab === 'all' || item.status === tab) &&
-          (uf === 'all' || item.uf === uf) &&
-          (recommendation === 'all' || item.recommendation === recommendation) &&
-          `${item.plaintiff} ${item.case_number} ${item.city} ${item.uf}`
-            .toLocaleLowerCase('pt-BR')
-            .includes(query.toLocaleLowerCase('pt-BR')),
-      ),
-    [available, tab, uf, recommendation, query],
+  const viewedCaseIds = getViewedCaseIds();
+  const caseStates = new Map(
+    available.map((item) => [
+      item.case_id,
+      getLawyerCaseState(item.case_id, item.status, viewedCaseIds),
+    ]),
   );
-  const nextCase = available.find((item) => item.status === 'AGUARDANDO_DECISAO');
+  const filtered = available.filter(
+    (item) =>
+      (tab === 'all' || caseStates.get(item.case_id) === tab) &&
+      (uf === 'all' || item.uf === uf) &&
+      (recommendation === 'all' || item.recommendation === recommendation) &&
+      `${item.plaintiff} ${item.case_number} ${item.city} ${item.uf}`
+        .toLocaleLowerCase('pt-BR')
+        .includes(query.toLocaleLowerCase('pt-BR')),
+  );
+  const nextCase =
+    available.find((item) => caseStates.get(item.case_id) === 'NOVO') ??
+    available.find((item) => caseStates.get(item.case_id) === 'VISUALIZADO');
   if (loading && !cases) return <LoadingState />;
   if (error) return <ErrorState message={error} onRetry={reload} />;
   return (
@@ -180,9 +196,9 @@ export default function CasesPage({ mine = false }: { mine?: boolean }) {
               aria-pressed={tab === item.id}
             >
               {item.label}
-              {item.id === 'AGUARDANDO_DECISAO' && (
+              {item.id === 'NOVO' && (
                 <span>
-                  {available.filter((item) => item.status === 'AGUARDANDO_DECISAO').length}
+                  {available.filter((item) => caseStates.get(item.case_id) === 'NOVO').length}
                 </span>
               )}
             </button>
@@ -265,59 +281,56 @@ export default function CasesPage({ mine = false }: { mine?: boolean }) {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((item) => (
-                <tr
-                  key={item.case_id}
-                  className={item.status === 'AGUARDANDO_DECISAO' ? 'case-needs-action' : undefined}
-                >
-                  <td>
-                    <Link className="case-person" to={`/processos/${item.case_id}`}>
-                      {item.plaintiff}
-                      <ArrowUpRight size={13} />
-                    </Link>
-                    <span className="case-number">{item.case_number}</span>
-                    <span className="case-city">
-                      {item.city} <span>·</span> {item.uf}
-                    </span>
-                  </td>
-                  <td className="money-cell">
-                    <span className="mobile-cell-label">Valor da causa</span>
-                    {money(item.claim_value, true)}
-                  </td>
-                  <td>
-                    <span className="mobile-cell-label">Risco</span>
-                    <Badge value={item.risk_level} />
-                  </td>
-                  <td>
-                    <span className="mobile-cell-label">Recomendação</span>
-                    <Badge value={item.recommendation} />
-                  </td>
-                  <td>
-                    <span className="mobile-cell-label">Situação</span>
-                    <span className={`case-status status-${item.status.toLowerCase()}`}>
-                      <span />
-                      {
-                        {
-                          AGUARDANDO_DECISAO: 'Aguardando decisão',
-                          EM_NEGOCIACAO: 'Em negociação',
-                          DECISAO_REGISTRADA: 'Decisão registrada',
-                          CONCLUIDO: 'Concluído',
-                        }[item.status]
-                      }
-                    </span>
-                  </td>
-                  <td>
-                    <Link
-                      className="open-case"
-                      to={`/processos/${item.case_id}`}
-                      aria-label={`Abrir processo de ${item.plaintiff}`}
-                    >
-                      {item.status === 'AGUARDANDO_DECISAO' ? 'Analisar agora' : 'Ver processo'}
-                      <ArrowRight size={16} />
-                    </Link>
-                  </td>
-                </tr>
-              ))}
+              {filtered.map((item) => {
+                const state = caseStates.get(item.case_id) ?? 'NOVO';
+                const presentation = statePresentation[state];
+                return (
+                  <tr
+                    key={item.case_id}
+                    className={state === 'NOVO' ? 'case-needs-action' : undefined}
+                  >
+                    <td>
+                      <Link className="case-person" to={`/processos/${item.case_id}`}>
+                        {item.plaintiff}
+                        <ArrowUpRight size={13} />
+                      </Link>
+                      <span className="case-number">{item.case_number}</span>
+                      <span className="case-city">
+                        {item.city} <span>·</span> {item.uf}
+                      </span>
+                    </td>
+                    <td className="money-cell">
+                      <span className="mobile-cell-label">Valor da causa</span>
+                      {money(item.claim_value, true)}
+                    </td>
+                    <td>
+                      <span className="mobile-cell-label">Risco</span>
+                      <Badge value={item.risk_level} />
+                    </td>
+                    <td>
+                      <span className="mobile-cell-label">Recomendação</span>
+                      <Badge value={item.recommendation} />
+                    </td>
+                    <td>
+                      <span className="mobile-cell-label">Situação</span>
+                      <span className={`case-status status-${state.toLowerCase()}`}>
+                        <span />
+                        {presentation.label}
+                      </span>
+                    </td>
+                    <td>
+                      <Link
+                        className="open-case"
+                        to={`/processos/${item.case_id}`}
+                        aria-label={`${presentation.cta}: processo de ${item.plaintiff}`}
+                      >
+                        {presentation.cta}
+                        <ArrowRight size={16} />
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

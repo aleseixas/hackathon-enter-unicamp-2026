@@ -21,11 +21,18 @@ export default function LoginPage() {
   };
   return (
     <div className="login-page">
-      <div className="login-story">
-        <header>
-          <Brand />
+      <header className="login-header">
+        <Brand />
+        <div className="login-header-meta">
           <span className="login-edition">ENTER × UNICAMP</span>
-        </header>
+          <span className="pill-neutral">
+            <span className="demo-indicator" />
+            Ambiente de demonstração
+          </span>
+        </div>
+      </header>
+      <main className="login-composition">
+        <section className="login-story">
         <div className="login-story-content">
           <div className="eyebrow">
             <span className="accent-square" />
@@ -53,29 +60,19 @@ export default function LoginPage() {
               <Check size={14} /> 3. Registre sua decisão
             </span>
           </div>
-        </div>
-        <div className="login-proof">
-          <div className="proof-icon">
-            <ShieldCheck size={24} />
+          <div className="login-proof">
+            <div className="proof-icon">
+              <ShieldCheck size={24} />
+            </div>
+            <div>
+              <strong>O que sustenta uma boa decisão?</strong>
+              <p>Os fatos certos. A fonte acessível. A política à vista.</p>
+            </div>
+            <ArrowUpRight size={23} />
           </div>
-          <div>
-            <strong>O que sustenta uma boa decisão?</strong>
-            <p>Os fatos certos. A fonte acessível. A política à vista.</p>
-          </div>
-          <ArrowUpRight size={23} />
         </div>
-        <footer>
-          <span>UM NOVO OLHAR PARA O CONTENCIOSO.</span>
-          <span>2026</span>
-        </footer>
-      </div>
-      <div className="login-access">
-        <div className="login-access-top">
-          <span className="pill-neutral">
-            <span className="demo-indicator" />
-            Ambiente de demonstração
-          </span>
-        </div>
+        </section>
+        <section className="login-access">
         <div className="login-access-content">
           <div className="access-icon">
             <Fingerprint size={27} strokeWidth={1.4} />
@@ -116,11 +113,14 @@ export default function LoginPage() {
             </p>
           </div>
         </div>
-        <footer>
-          <span>BANCO UNICAMP</span>
-          <span>Protótipo para o Hackathon Enter × Unicamp</span>
-        </footer>
-      </div>
+        </section>
+      </main>
+      <footer className="login-footer">
+        <span>UM NOVO OLHAR PARA O CONTENCIOSO.</span>
+        <span>BANCO UNICAMP</span>
+        <span>Protótipo para o Hackathon Enter × Unicamp</span>
+        <span>2026</span>
+      </footer>
     </div>
   );
 }

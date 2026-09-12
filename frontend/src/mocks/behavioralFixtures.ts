@@ -3,7 +3,6 @@ import type {
   AdminDecisionRow,
   CaseDetail,
   DecisionRecord,
-  NegotiationRecord,
   RecommendationResponse,
 } from '../types';
 import {

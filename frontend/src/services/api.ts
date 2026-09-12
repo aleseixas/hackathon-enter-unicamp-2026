@@ -407,7 +407,9 @@ function saveDecision(
     recommendation: recommendation.recommendation,
     decision: input.decision,
     is_override: isOverride,
-    simulated_override_reason: isOverride ? override?.reason?.toLowerCase() : undefined,
+    ...(isOverride
+      ? { simulated_override_reason: override?.reason?.toLocaleLowerCase('pt-BR') }
+      : {}),
     simulated_decision_explanation: isOverride
       ? `Override registrado para ${caseDetail.lawyer_profile_label?.toLocaleLowerCase('pt-BR') ?? 'perfil sintetico'} em um caso com confianca ${recommendation.confidence_band?.toLocaleLowerCase('pt-BR') ?? 'indefinida'}.`
       : `Decisao aderente registrada para ${caseDetail.lawyer_profile_label?.toLocaleLowerCase('pt-BR') ?? 'perfil sintetico'}, preservando a recomendacao original.`,
