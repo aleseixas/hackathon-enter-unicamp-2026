@@ -1,54 +1,143 @@
-# Enter Policy · Hackathon Enter × Unicamp 2026
+# Enter Policy
 
-Repositório da equipe para o Hackathon Enter na Unicamp.
+**Hackathon Enter × Unicamp 2026 · Política de acordos com inteligência**
 
-## Visão geral
+Protótipo de uma mesa de decisão para contencioso bancário. A experiência reúne recomendação, evidências rastreáveis, decisão do advogado, negociação e monitoramento administrativo em um fluxo demonstrativo.
 
-Este projeto entrega o frontend de uma mesa de trabalho demonstrativa para analise de processos bancarios, consulta de evidencias e registro de decisoes sobre acordos, alem de um gerador Python de dados sinteticos de aderencia.
+## Links rápidos
 
-O protótipo foi construído com React, TypeScript e Vite. Ele expõe dois perfis demonstrativos:
+- [Desafio oficial](https://www.hackathon.getenter.ai/desafio)
+- [Guia de instalação](SETUP.md)
+- [Roteiro completo do frontend](frontend/README.md)
+- [Agente de testes de usabilidade](usability-agent/README.md)
 
-- **Advogado** para analisar casos, confrontar evidências, registrar decisão e negociar.
-- **Administrativo** para acompanhar aderência, efetividade e registros consolidados.
+---
 
-Nao ha backend, banco de dados, execucao de modelo ou motor de politica neste repositorio. Os casos, documentos, indicadores e valores iniciais sao ficticios. A camada comportamental do frontend reutiliza dados sinteticos explicaveis para aderencia e efetividade.
+## O problema
 
-## Execução
+O Banco Unicamp recebe aproximadamente **15 mil processos novos por mês**. Cerca de **5 mil** envolvem consumidores que afirmam não reconhecer a contratação de um empréstimo.
 
-Entre na pasta do frontend e rode:
+Em cada processo, o advogado externo precisa decidir entre defender o banco judicialmente ou propor um acordo. Essa decisão exige consulta rápida aos autos e subsídios, aplicação consistente da política e registro do resultado para que o banco acompanhe aderência e efetividade.
 
-```sh
+## A solução
+
+O **Enter Policy** organiza essa jornada em três frentes:
+
+- **Mesa do advogado** — apresenta a recomendação **ACORDO**, **DEFESA** ou **REVISAR**, risco estimado, valor da causa, motivos e ponto de atenção. O advogado consulta evidências com documento e página de origem, segue a recomendação ou registra uma divergência justificada.
+- **Visão administrativa** — acompanha decisões, aderência, negociações e indicadores de efetividade em dashboards construídos sobre uma camada demonstrativa de dados comportamentais.
+- **Agente de usabilidade** — usa Playwright e um modelo multimodal da OpenAI para simular um advogado externo sem treinamento. O agente enxerga apenas a tela, executa seis tarefas e gera relatórios Markdown e JSON.
+
+Uma camada Python complementar gera dados sintéticos e explicáveis de comportamento dos advogados a partir da base disponibilizada para o desafio. O frontend funciona sem backend e usa mocks locais por padrão.
+
+---
+
+## Como executar
+
+### Pré-requisitos
+
+- **Node.js 22.12 ou superior**
+- **npm**
+
+### Frontend
+
+```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
-Depois abra a URL indicada pelo Vite no terminal.
+Abra a URL indicada pelo Vite, normalmente `http://127.0.0.1:5173`.
 
-## Comandos úteis
+O modo demonstrativo não exige chave, banco de dados ou serviço externo. Consulte o [guia de instalação](SETUP.md) para executar também o gerador de dados e o agente de usabilidade.
 
-Dentro de `frontend`:
-
-| Comando | Finalidade |
-| --- | --- |
-| `npm run dev` | Inicia o servidor de desenvolvimento. |
-| `npm run build` | Verifica os tipos e gera a aplicação em `dist`. |
-| `npm run lint` | Executa o Oxlint. |
-| `npm run test` | Executa os testes automatizados. |
-| `npm run preview` | Disponibiliza localmente o build já gerado. |
-
-## Documentação
-
-- [Guia do frontend](frontend/README.md)
-- [Contrato de integração](frontend/docs/frontend-api.md)
-- [Link do desafio](https://www.hackathon.getenter.ai/desafio)
-
-## Estrutura
+### Rotas principais
 
 ```text
-frontend/   # aplicação frontend completa
+/                         seleção de perfil
+/minha-fila               processos atribuídos ao advogado
+/processos                lista completa de processos
+/processos/:caseId        análise, decisão e negociação
+/admin/overview           visão administrativa
+/admin/adherence          monitoramento de aderência
+/admin/effectiveness      monitoramento de efetividade
+/admin/decisions          registro de decisões
 ```
 
-## Observações
+---
 
-O estado da demo é persistido localmente no navegador. Para um serviço real, ajuste `VITE_API_BASE_URL` em `frontend/.env.local`.
+## Estrutura do repositório
+
+```text
+frontend/                 aplicação React e experiência dos dois perfis
+  ├─ src/pages/           login, fila, processo e dashboards
+  ├─ src/components/      decisões, evidências e estrutura da aplicação
+  ├─ src/mocks/           casos e indicadores demonstrativos
+  ├─ src/services/        contrato de API e persistência local
+  └─ docs/                contrato para integração futura
+usability-agent/          agente screen-only de avaliação de UX
+  ├─ prompts/             papel e critérios do advogado simulado
+  ├─ tests/               contratos, validações e testes do runner
+  ├─ reports/             relatórios gerados, ignorados pelo Git
+  └─ screenshots/         evidências visuais, ignoradas pelo Git
+src/                      gerador Python da camada comportamental
+data/                     snapshot agregado e saídas locais ignoradas
+docs/                     documentação do modelo e materiais do projeto
+SETUP.md                  instalação, execução e solução de problemas
+```
+
+## Stack
+
+**Frontend** · React 19 · TypeScript 6 · Vite 8 · React Router · Radix UI · Lucide
+
+**Dados demonstrativos** · Python 3.10+ · biblioteca padrão · XLSX · JSON · CSV
+
+**Avaliação de UX** · Python · Playwright · OpenAI Responses API · visão · Structured Outputs
+
+**Qualidade** · Vitest · Testing Library · Oxlint · TypeScript
+
+---
+
+## Testes
+
+### Frontend
+
+```bash
+cd frontend
+npm run lint
+npm run build
+npm test
+```
+
+### Agente de usabilidade
+
+```bash
+cd usability-agent
+python -m unittest discover -s tests -v
+python run_test.py --dry-run
+```
+
+O dry-run valida os seis contratos de tarefa, a normalização das notas, o isolamento dos contextos e o fluxo obrigatório de negociação sem consumir a API da OpenAI.
+
+---
+
+## Documentação adicional
+
+- [`frontend/README.md`](frontend/README.md) — roteiro da demonstração e comportamento dos mocks.
+- [`frontend/docs/frontend-api.md`](frontend/docs/frontend-api.md) — contrato de integração futura.
+- [`usability-agent/README.md`](usability-agent/README.md) — configuração, execução e formato dos relatórios de UX.
+- [`docs/behavioral_adherence_model.md`](docs/behavioral_adherence_model.md) — geração da camada sintética de aderência.
+- [`SETUP.md`](SETUP.md) — instalação detalhada e solução de problemas.
+
+## Requisitos do desafio no protótipo
+
+| # | Requisito | Implementação demonstrativa |
+| --- | --- | --- |
+| 1 | Regra de decisão | Recomendações explicáveis nos mocks e no gerador comportamental |
+| 2 | Sugestão de valor | Faixa de acordo exibida nos casos recomendados para acordo |
+| 3 | Acesso à recomendação | Workspace do advogado com risco, motivos e evidências rastreáveis |
+| 4 | Monitoramento de aderência | Dashboard administrativo de aderência e divergências |
+| 5 | Monitoramento de efetividade | Dashboard administrativo de negociação, resultado e economia simulada |
+
+## Escopo atual
+
+Este repositório entrega um **protótipo demonstrativo**. Não há autenticação de servidor, backend de produção, banco de dados, leitura real de documentos ou execução online de uma política de decisão. Casos, nomes, documentos e valores da interface são fictícios; decisões feitas durante a demonstração ficam no navegador.

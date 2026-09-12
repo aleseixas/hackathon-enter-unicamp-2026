@@ -1,5 +1,8 @@
 # Ambiente e dependências
 .env
+.env.*
+!.env.example
+!**/.env.example
 *.env.local
 *.env.*.local
 
@@ -7,6 +10,7 @@
 data/*.csv
 data/subsidios/
 data/processos_exemplo/
+data/local/
 
 # Dependências de pacotes
 node_modules/
@@ -20,6 +24,26 @@ dist/
 build/
 .next/
 .nuxt/
+
+# Caches e cobertura Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Caches e artefatos TypeScript/Vite
+*.tsbuildinfo
+.vite/
+vite.config.*.timestamp-*
+
+# Playwright
+playwright-report/
+test-results/
+blob-report/
+.playwright/
 
 # Outputs e artefatos
 *.log
