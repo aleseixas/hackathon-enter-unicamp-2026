@@ -165,6 +165,7 @@ export function DecisionActions({
       <Modal
         open={modal !== null}
         onClose={close}
+        className="workflow-modal"
         title={modal === 'override' ? 'Divergir da recomendação' : 'Confirmar decisão'}
         description={
           modal === 'override'
@@ -417,6 +418,7 @@ export function NegotiationPanel({
       <Modal
         open={open}
         onClose={close}
+        className="workflow-modal"
         title={negotiation ? 'Atualizar negociação' : 'Registrar proposta'}
         description="Registre os valores e o retorno da parte para acompanhar este acordo."
       >

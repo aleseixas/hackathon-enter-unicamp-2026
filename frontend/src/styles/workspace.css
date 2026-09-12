@@ -399,6 +399,149 @@
   color: #596849;
   font-weight: 550;
 }
+
+.modal.workflow-modal {
+  width: clamp(560px, 44vw, 660px);
+  border-radius: 16px;
+}
+
+.workflow-modal .modal-header {
+  gap: 18px;
+  padding: 28px 30px 24px;
+}
+
+.workflow-modal .modal-title {
+  font-size: clamp(23px, 1.45vw, 28px);
+  font-weight: 650;
+  letter-spacing: -0.7px;
+}
+
+.workflow-modal .modal-description {
+  max-width: 50ch;
+  margin-top: 9px;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.workflow-modal .modal-body {
+  padding: 28px 30px;
+}
+
+.workflow-modal .form-grid {
+  gap: 21px;
+}
+
+.workflow-modal .field {
+  gap: 10px;
+  font-size: 16px;
+}
+
+.workflow-modal .field-help,
+.workflow-modal .field-error {
+  font-size: 14px;
+}
+
+.workflow-modal .input,
+.workflow-modal .select,
+.workflow-modal .textarea {
+  min-height: 54px;
+  padding: 14px 15px;
+  border-radius: 9px;
+  font-size: 16px;
+}
+
+.workflow-modal .textarea {
+  min-height: 112px;
+}
+
+.workflow-modal .confirmation-summary {
+  padding: 19px 20px;
+  border-radius: 10px;
+}
+
+.workflow-modal .confirmation-summary > div {
+  gap: 16px;
+  font-size: 15px;
+}
+
+.workflow-modal .confirmation-summary .badge {
+  padding: 6px 9px;
+  font-size: 14px;
+}
+
+.workflow-modal .notice {
+  gap: 11px;
+  padding: 16px 17px;
+  border-radius: 9px;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.workflow-modal .modal-footer {
+  gap: 13px;
+  padding: 20px 30px;
+}
+
+.workflow-modal .modal-footer .button {
+  min-height: 52px;
+  padding: 13px 22px;
+  font-size: 16px;
+}
+
+@media (max-width: 640px) {
+  .modal.workflow-modal {
+    width: calc(100vw - 24px);
+    max-width: none;
+  }
+
+  .workflow-modal .modal-header,
+  .workflow-modal .modal-body {
+    padding-right: 22px;
+    padding-left: 22px;
+  }
+
+  .workflow-modal .modal-footer {
+    padding: 18px 22px;
+  }
+}
+
+@media (max-height: 700px) {
+  .workflow-modal .modal-header {
+    padding: 20px 24px 16px;
+  }
+
+  .workflow-modal .modal-description {
+    margin-top: 5px;
+  }
+
+  .workflow-modal .modal-body {
+    padding: 18px 24px;
+  }
+
+  .workflow-modal .form-grid {
+    gap: 14px;
+  }
+
+  .workflow-modal .textarea {
+    min-height: 82px;
+  }
+
+  .workflow-modal .confirmation-summary {
+    padding: 14px 16px;
+  }
+
+  .workflow-modal .notice {
+    padding: 12px 14px;
+  }
+
+  .workflow-modal .modal-footer {
+    padding: 14px 24px;
+  }
+
+  .workflow-modal .modal-footer .button {
+    min-height: 48px;
+  }
+}
 .decision-receipt {
   background: #f4f7ee;
   border: 1px solid #e1e8d5;
