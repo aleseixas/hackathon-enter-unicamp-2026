@@ -73,6 +73,10 @@ export interface CaseSummary {
   lawyer_name: string;
   firm_name: string;
   assigned_to_me: boolean;
+  lawyer_profile_label?: string;
+  lawyer_profile_description?: string;
+  office_cluster?: string;
+  adherence_base?: number;
 }
 export interface CaseDetail extends CaseSummary {
   subject: string;
@@ -97,6 +101,11 @@ export interface RecommendationResponse {
   model_version: string;
   generated_at: string;
   demo_data: boolean;
+  confidence_score?: number;
+  confidence_band?: string;
+  subsidy_count?: number;
+  critical_subsidy_count?: number;
+  completeness_band?: string;
 }
 export interface LawyerDecisionInput {
   case_id: string;
@@ -118,6 +127,10 @@ export interface DecisionRecord {
   notes?: string;
   policy_version: string;
   created_at: string;
+  simulated_override_reason?: string;
+  simulated_decision_explanation?: string;
+  follow_probability?: number;
+  decision_minutes?: number;
 }
 export interface NegotiationInput {
   case_id: string;
@@ -148,6 +161,17 @@ export interface AdminDecisionRow {
   created_at: string;
   is_local?: boolean;
   justification?: string;
+  lawyer_profile_label?: string;
+  lawyer_profile_description?: string;
+  confidence_score?: number | null;
+  confidence_band?: string | null;
+  subsidy_count?: number | null;
+  critical_subsidy_count?: number | null;
+  completeness_band?: string | null;
+  follow_probability?: number | null;
+  decision_minutes?: number | null;
+  decision_explanation?: string;
+  override_reason_label?: string | null;
 }
 export interface AdminDashboard {
   demo_data: boolean;

@@ -4,14 +4,14 @@ Repositório da equipe para o Hackathon Enter na Unicamp.
 
 ## Visão geral
 
-Este projeto entrega somente o frontend de uma mesa de trabalho demonstrativa para análise de processos bancários, consulta de evidências e registro de decisões sobre acordos.
+Este projeto entrega o frontend de uma mesa de trabalho demonstrativa para analise de processos bancarios, consulta de evidencias e registro de decisoes sobre acordos, alem de um gerador Python de dados sinteticos de aderencia.
 
 O protótipo foi construído com React, TypeScript e Vite. Ele expõe dois perfis demonstrativos:
 
 - **Advogado** para analisar casos, confrontar evidências, registrar decisão e negociar.
 - **Administrativo** para acompanhar aderência, efetividade e registros consolidados.
 
-Não há backend, banco de dados, execução de modelo ou motor de política neste repositório. Os casos, documentos, indicadores e valores iniciais são fictícios.
+Nao ha backend, banco de dados, execucao de modelo ou motor de politica neste repositorio. Os casos, documentos, indicadores e valores iniciais sao ficticios. A camada comportamental do frontend reutiliza dados sinteticos explicaveis para aderencia e efetividade.
 
 ## Execução
 

@@ -2238,3 +2238,1131 @@ textarea:focus-visible {
     font-size: 11px;
   }
 }
+
+/* Comfortable enterprise scale for desktop and large displays. */
+@media (min-width: 701px) {
+  :root {
+    --sidebar-width: clamp(232px, calc(200px + 2.3vw), 264px);
+    --page-gutter: clamp(28px, 2.5vw, 64px);
+    --text-regular: clamp(14px, calc(13.35px + 0.05vw), 15.5px);
+    --text-comfortable: clamp(15px, calc(14.25px + 0.06vw), 16.5px);
+    --text-small: clamp(12px, calc(11.5px + 0.04vw), 13.5px);
+    --space-card: clamp(22px, 1.55vw, 34px);
+  }
+
+  body {
+    font-size: var(--text-comfortable);
+  }
+
+  .app-sidebar {
+    width: var(--sidebar-width);
+    padding: clamp(27px, 2vw, 36px) clamp(16px, 1.15vw, 22px) 0;
+  }
+
+  .app-main {
+    margin-left: var(--sidebar-width);
+  }
+
+  .sidebar-brand {
+    padding-inline: 8px;
+    padding-bottom: clamp(30px, 2vw, 40px);
+  }
+
+  .organization {
+    min-height: clamp(62px, 4.4vw, 72px);
+    padding: 12px 11px;
+    gap: 11px;
+  }
+
+  .organization-icon {
+    width: 38px;
+    height: 40px;
+  }
+
+  .organization strong,
+  .organization div > span,
+  .sidebar-demo strong,
+  .sidebar-demo p,
+  .sidebar-version,
+  .sidebar-profile strong,
+  .sidebar-profile div > span,
+  .help-link {
+    font-size: var(--text-small);
+  }
+
+  .nav-section-label {
+    margin-top: clamp(31px, 2.2vw, 42px);
+    font-size: var(--text-small);
+  }
+
+  .nav-item {
+    min-height: clamp(48px, 3.5vw, 56px);
+    padding: 12px 13px;
+    gap: 11px;
+    font-size: var(--text-regular);
+  }
+
+  .sidebar-demo {
+    padding: 15px 13px;
+  }
+
+  .avatar {
+    width: 34px;
+    height: 34px;
+    font-size: 12px;
+  }
+
+  .topbar {
+    height: clamp(68px, 4.7vw, 76px);
+  }
+
+  .breadcrumbs,
+  .topbar-help,
+  .topbar-context,
+  .app-footer {
+    font-size: var(--text-small);
+  }
+
+  .topbar-help {
+    min-height: 44px;
+    padding-inline: 15px;
+  }
+
+  .main-content {
+    padding: clamp(30px, 2.4vw, 56px) var(--page-gutter) clamp(44px, 3.2vw, 72px);
+  }
+
+  .page-header {
+    margin-bottom: clamp(30px, 2.1vw, 42px);
+  }
+
+  .page-title {
+    font-size: clamp(38px, 2.65vw, 54px);
+    line-height: 1.12;
+  }
+
+  .page-description {
+    max-width: 70ch;
+    margin-top: 12px;
+    font-size: var(--text-comfortable);
+    line-height: 1.65;
+  }
+
+  .eyebrow,
+  .quick-start-label {
+    font-size: clamp(11px, calc(10.55px + 0.035vw), 12px);
+  }
+
+  .panel-heading {
+    padding: clamp(21px, 1.5vw, 30px) var(--space-card);
+  }
+
+  .panel-heading h2,
+  .panel-heading h3 {
+    font-size: clamp(16px, calc(15.2px + 0.06vw), 18px);
+  }
+
+  .button {
+    min-height: clamp(48px, 3.2vw, 54px);
+    padding: 13px clamp(18px, 1.25vw, 24px);
+    border-radius: 9px;
+    font-size: var(--text-regular);
+  }
+
+  .icon-button {
+    width: 46px;
+    height: 46px;
+  }
+
+  .input,
+  .select,
+  .textarea,
+  .search-input {
+    min-height: 50px;
+    font-size: var(--text-regular);
+  }
+
+  .search-input input,
+  .field,
+  .modal-description,
+  .guide-steps p,
+  .empty-state p,
+  .loading-state {
+    font-size: var(--text-regular);
+  }
+
+  .field-help,
+  .field-error,
+  .badge {
+    font-size: var(--text-small);
+  }
+
+  .badge {
+    padding: 6px 9px;
+  }
+
+  .quick-start {
+    grid-template-columns: minmax(310px, 1.1fr) minmax(430px, 1fr) auto;
+    gap: clamp(28px, 2vw, 44px);
+    margin-bottom: clamp(27px, 2vw, 38px);
+    padding: var(--space-card);
+  }
+
+  .quick-start-icon {
+    width: 52px;
+    height: 52px;
+  }
+
+  .quick-start h2 {
+    font-size: clamp(20px, 1.35vw, 25px);
+  }
+
+  .quick-start-heading p,
+  .quick-start-steps li {
+    font-size: var(--text-regular);
+  }
+
+  .quick-start-steps li > span {
+    width: 31px;
+    height: 31px;
+    font-size: var(--text-small);
+  }
+
+  .quick-start-button {
+    min-height: 56px;
+  }
+
+  .queue-summary {
+    margin-bottom: clamp(29px, 2vw, 40px);
+    padding-block: clamp(24px, 1.7vw, 34px);
+  }
+
+  .queue-summary > div {
+    gap: clamp(14px, 1vw, 20px);
+    padding-inline: clamp(20px, 1.6vw, 36px);
+  }
+
+  .queue-icon {
+    width: clamp(42px, 3vw, 50px);
+    height: clamp(42px, 3vw, 50px);
+  }
+
+  .queue-summary section > span {
+    font-size: var(--text-regular);
+  }
+
+  .queue-summary section > strong {
+    margin-top: 8px;
+    font-size: clamp(30px, 2.1vw, 42px);
+  }
+
+  .case-list-heading {
+    padding: var(--space-card);
+  }
+
+  .case-list-heading h2 {
+    font-size: clamp(20px, 1.35vw, 24px);
+  }
+
+  .case-list-heading p,
+  .table-count,
+  .case-tabs button,
+  .table-footer,
+  .cases-bottom-note {
+    font-size: var(--text-regular);
+  }
+
+  .case-tabs {
+    padding-inline: var(--space-card);
+  }
+
+  .case-tabs button {
+    min-height: 54px;
+  }
+
+  .table-toolbar {
+    gap: 15px;
+    padding: clamp(19px, 1.35vw, 27px) var(--space-card);
+  }
+
+  .table-toolbar > .button {
+    min-height: 48px;
+    font-size: var(--text-regular);
+  }
+
+  .cases-table th {
+    padding: clamp(15px, 1vw, 20px) clamp(16px, 1vw, 22px);
+    font-size: var(--text-small);
+  }
+
+  .cases-table td {
+    padding: clamp(22px, 1.6vw, 30px) clamp(16px, 1vw, 22px);
+    font-size: var(--text-comfortable);
+  }
+
+  .cases-table th:first-child,
+  .cases-table td:first-child {
+    padding-left: var(--space-card);
+  }
+
+  .cases-table th:last-child,
+  .cases-table td:last-child {
+    padding-right: var(--space-card);
+  }
+
+  .case-person {
+    font-size: var(--text-comfortable);
+  }
+
+  .case-number,
+  .case-city,
+  .case-status,
+  .money-cell,
+  .open-case {
+    font-size: var(--text-regular);
+  }
+
+  .open-case {
+    min-height: 48px;
+    padding: 12px 16px;
+  }
+
+  .table-footer {
+    padding: 18px var(--space-card);
+  }
+
+  .workspace-header {
+    margin-bottom: clamp(26px, 1.8vw, 36px);
+  }
+
+  .workspace-title-row h1 {
+    font-size: clamp(34px, 2.35vw, 48px);
+  }
+
+  .workspace-case-reference,
+  .workspace-meta,
+  .back-link {
+    font-size: var(--text-regular);
+  }
+
+  .workspace-decision-overview {
+    gap: clamp(22px, 1.65vw, 34px);
+    margin-bottom: clamp(24px, 1.8vw, 36px);
+  }
+
+  .case-context-brief {
+    padding: var(--space-card);
+  }
+
+  .case-context-brief h2 {
+    font-size: clamp(27px, 1.8vw, 40px);
+  }
+
+  .case-context-brief > p,
+  .recommendation-subtitle,
+  .recommendation-rationale p,
+  .missing-evidence li,
+  .decision-actions > p {
+    font-size: var(--text-regular);
+  }
+
+  .recommendation-card {
+    padding: var(--space-card);
+  }
+
+  .recommendation-eyebrow {
+    font-size: var(--text-small);
+  }
+
+  .recommendation-title h2 {
+    font-size: clamp(36px, 2.55vw, 50px);
+  }
+
+  .recommendation-key-facts {
+    margin-top: 21px;
+  }
+
+  .recommendation-key-facts > div {
+    padding: clamp(14px, 1vw, 20px);
+  }
+
+  .recommendation-key-facts span {
+    font-size: var(--text-small);
+  }
+
+  .recommendation-key-facts strong {
+    font-size: clamp(22px, 1.55vw, 30px);
+  }
+
+  .recommendation-card .recommendation-rationale,
+  .recommendation-card .decision-actions {
+    padding-inline: var(--space-card);
+  }
+
+  .recommendation-rationale h3,
+  .missing-evidence h3 {
+    font-size: clamp(15px, 1.05vw, 18px);
+  }
+
+  .recommendation-rationale li,
+  .recommendation-rationale p {
+    padding-block: 9px;
+  }
+
+  .recommendation-card .missing-evidence {
+    margin-inline: var(--space-card);
+    padding: clamp(17px, 1.2vw, 23px);
+  }
+
+  .workspace-content-tabs button {
+    min-height: 52px;
+    padding-inline: 19px;
+    font-size: var(--text-regular);
+  }
+
+  .workspace-tab-content {
+    padding-top: clamp(22px, 1.6vw, 32px);
+  }
+
+  .documents-panel .panel-heading,
+  .analysis-heading,
+  .case-details-body {
+    padding: var(--space-card);
+  }
+
+  .document-item,
+  .evidence-card,
+  .contradiction-card,
+  .next-evidence {
+    padding: clamp(19px, 1.35vw, 28px);
+  }
+
+  .document-item strong,
+  .evidence-card h3,
+  .contradiction-card h3,
+  .next-evidence h3 {
+    font-size: clamp(16px, 1.1vw, 19px);
+  }
+
+  .document-item span,
+  .document-item small,
+  .evidence-card > p,
+  .contradiction-card > p,
+  .next-evidence > p,
+  .analysis-footnote,
+  .source-button {
+    font-size: var(--text-regular);
+  }
+
+  .analysis-tabs > button {
+    min-height: 52px;
+    font-size: var(--text-regular);
+  }
+
+  .source-button {
+    min-height: 42px;
+    padding: 9px 12px;
+  }
+
+  .admin-page-header {
+    margin-bottom: clamp(30px, 2.2vw, 46px);
+  }
+
+  .admin-page-header h1 {
+    font-size: clamp(38px, 2.65vw, 54px);
+  }
+
+  .admin-page-header p,
+  .admin-panel-description,
+  .admin-table-heading p,
+  .admin-metric-top,
+  .admin-metric-hint {
+    font-size: var(--text-regular);
+  }
+
+  .admin-metrics {
+    gap: clamp(16px, 1.2vw, 24px);
+    margin-bottom: clamp(26px, 1.9vw, 38px);
+  }
+
+  .admin-metric {
+    padding: var(--space-card);
+  }
+
+  .admin-metric-value {
+    margin-top: clamp(20px, 1.45vw, 28px);
+    font-size: clamp(34px, 2.45vw, 48px);
+  }
+
+  .admin-panel {
+    padding: var(--space-card);
+  }
+
+  .admin-panel h2,
+  .admin-table-heading h2 {
+    font-size: clamp(17px, 1.2vw, 21px);
+  }
+
+  .admin-table-heading {
+    padding: var(--space-card);
+  }
+
+  .admin-table-filters .field > span,
+  .admin-table-filters .input,
+  .admin-table-filters .select,
+  .admin-table,
+  .admin-case-button,
+  .admin-adherence,
+  .admin-table-footer {
+    font-size: var(--text-regular);
+  }
+
+  .admin-table th {
+    padding: clamp(15px, 1.05vw, 20px) clamp(16px, 1.1vw, 23px);
+    font-size: var(--text-small);
+  }
+
+  .admin-table td {
+    padding: clamp(21px, 1.5vw, 29px) clamp(16px, 1.1vw, 23px);
+  }
+
+  .admin-table th:first-child,
+  .admin-table td:first-child {
+    padding-left: var(--space-card);
+  }
+
+  .admin-table th:last-child,
+  .admin-table td:last-child {
+    padding-right: var(--space-card);
+  }
+}
+
+@media (min-width: 2200px) {
+  .evidence-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .documents-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .workspace-decision-overview {
+    grid-template-columns: minmax(0, 1.05fr) minmax(560px, 0.8fr);
+  }
+}
+
+/* Unified login composition. */
+.login-page {
+  width: 100%;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  padding: 0;
+  background:
+    radial-gradient(circle at 22% 34%, #ffae351b, transparent 31rem),
+    radial-gradient(circle at 76% 42%, #ffffff08, transparent 27rem), #020202;
+}
+
+.login-header,
+.login-composition,
+.login-footer {
+  width: 100%;
+  margin-inline: auto;
+}
+
+.login-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: clamp(22px, 2.6vh, 32px) clamp(32px, 3.4vw, 72px) 0;
+}
+
+.login-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.login-composition {
+  display: grid;
+  grid-template-columns: minmax(0, 3.3fr) minmax(540px, 1.9fr);
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  min-height: 0;
+}
+
+.login-story,
+.login-access {
+  min-width: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+
+.login-story {
+  display: grid;
+  place-items: center start;
+  overflow: visible;
+  padding: 18px clamp(32px, 2.5vw, 52px);
+}
+
+.login-story-content,
+.login-access-content {
+  align-self: center;
+  margin: 0;
+  padding: 0;
+}
+
+.login-story-content {
+  width: min(100%, clamp(900px, 58vw, 1120px));
+  display: block;
+}
+
+.login-proof {
+  width: min(100%, 720px);
+  margin: 30px 0 0;
+}
+
+.login-access {
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  padding: 28px clamp(48px, 4vw, 84px);
+  background: #05050580;
+  border: 0;
+  border-left: 1px solid var(--line-soft);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.login-access-content {
+  width: min(100%, clamp(520px, 32vw, 1000px));
+}
+
+.login-access .access-icon {
+  margin-bottom: 24px;
+}
+
+.login-footer {
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  color: #777;
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  padding: 10px clamp(32px, 3.4vw, 72px) 12px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.login-footer > span:nth-child(2) {
+  margin-left: auto;
+}
+
+@media (max-width: 1200px) {
+  .login-composition {
+    grid-template-columns: minmax(0, 1.1fr) minmax(410px, 0.9fr);
+  }
+
+  .login-story,
+  .login-access {
+    padding: 44px;
+  }
+}
+
+@media (max-width: 900px) {
+  .login-page {
+    grid-template-rows: auto auto auto;
+  }
+
+  .login-header-meta .login-edition {
+    display: none;
+  }
+
+  .login-composition {
+    width: min(100%, 720px);
+    grid-template-columns: minmax(0, 1fr);
+    gap: 34px;
+    padding: 48px 24px;
+  }
+
+  .login-access {
+    width: min(100%, 520px);
+    justify-self: center;
+    padding: 34px;
+    border: 1px solid #303030;
+    border-radius: 16px;
+  }
+
+  .login-footer {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 700px) {
+  .login-page {
+    padding: 0;
+  }
+
+  .login-header-meta .pill-neutral {
+    display: none;
+  }
+
+  .login-composition {
+    padding: 40px 24px 32px;
+  }
+
+  .login-story {
+    padding: 0;
+  }
+
+  .login-proof {
+    display: flex;
+    margin-top: 24px;
+  }
+
+  .login-access {
+    padding: 26px 22px;
+  }
+
+  .login-footer {
+    gap: 8px 16px;
+  }
+
+  .login-footer > span:nth-child(2) {
+    margin-left: 0;
+  }
+
+  .login-footer > span:nth-child(3) {
+    display: none;
+  }
+}
+
+@media (min-width: 901px) {
+  .login-story-content > .eyebrow,
+  .login-access-content > .eyebrow {
+    font-size: clamp(16px, 1vw, 19px);
+  }
+
+  .login-story h1 {
+    font-size: clamp(88px, 6vw, 118px);
+    line-height: 0.96;
+  }
+
+  .login-story-content > p {
+    margin-top: 28px;
+    font-size: clamp(22px, 1.4vw, 27px);
+    line-height: 1.7;
+  }
+
+  .login-story-content > p .desktop-only {
+    display: none;
+  }
+
+  .login-principles {
+    margin-top: 28px;
+    gap: 16px;
+    max-width: none;
+    width: 100%;
+  }
+
+  .login-principles > span {
+    min-height: 62px;
+    padding: 16px 19px;
+    font-size: clamp(18px, 1.12vw, 22px);
+  }
+
+  .login-proof {
+    width: 100%;
+    max-width: none;
+    min-height: 96px;
+    margin-top: 24px;
+    padding: 20px 24px;
+  }
+
+  .login-proof strong {
+    font-size: clamp(19px, 1.2vw, 23px);
+  }
+
+  .login-proof p {
+    font-size: clamp(17px, 1.05vw, 20px);
+  }
+
+  .proof-icon {
+    width: 66px;
+    height: 66px;
+  }
+
+  .access-icon {
+    width: 84px;
+    height: 84px;
+  }
+
+  .login-access h2 {
+    margin-top: 22px;
+    font-size: clamp(62px, 4.1vw, 82px);
+    line-height: 1.03;
+  }
+
+  .login-intro {
+    margin-top: 20px;
+    margin-bottom: 32px;
+    font-size: clamp(20px, 1.3vw, 25px);
+    line-height: 1.7;
+  }
+
+  .login-access .role-card {
+    min-height: 128px;
+    padding: 23px 26px;
+    gap: 23px;
+  }
+
+  .login-access .role-icon {
+    width: 78px;
+    height: 78px;
+  }
+
+  .login-access .role-copy strong {
+    font-size: clamp(22px, 1.35vw, 26px);
+  }
+
+  .login-access .role-copy > span {
+    margin-top: 9px;
+    font-size: clamp(18px, 1.12vw, 22px);
+    line-height: 1.45;
+  }
+
+  .login-note {
+    margin-top: 20px;
+  }
+
+  .login-note p {
+    font-size: clamp(16px, 0.98vw, 19px);
+    line-height: 1.7;
+  }
+
+  .login-header .brand-logo {
+    height: clamp(36px, 2.2vw, 44px);
+  }
+
+  .login-header .brand-module,
+  .login-header-meta,
+  .login-footer {
+    font-size: clamp(14px, 0.9vw, 17px);
+  }
+}
+
+/* Larger reading scale for lawyer and administrative workspaces. */
+@media (min-width: 901px) {
+  .app-shell {
+    --text-regular: clamp(18px, 1.15vw, 22px);
+    --text-comfortable: clamp(19px, 1.25vw, 24px);
+    --text-small: clamp(16px, 0.98vw, 19px);
+    font-size: var(--text-comfortable);
+  }
+
+  .app-shell .organization strong,
+  .app-shell .organization div > span,
+  .app-shell .sidebar-demo strong,
+  .app-shell .sidebar-demo p,
+  .app-shell .sidebar-version,
+  .app-shell .sidebar-profile strong,
+  .app-shell .sidebar-profile div > span,
+  .app-shell .help-link,
+  .app-shell .nav-section-label,
+  .app-shell .breadcrumbs,
+  .app-shell .topbar-help,
+  .app-shell .topbar-context,
+  .app-shell .app-footer {
+    font-size: var(--text-small);
+  }
+
+  .app-shell .nav-item {
+    min-height: 60px;
+    font-size: clamp(18px, 1.08vw, 21px);
+  }
+
+  .app-shell .page-title,
+  .app-shell .admin-page-header h1 {
+    font-size: clamp(56px, 3.8vw, 76px);
+  }
+
+  .app-shell .page-description,
+  .app-shell .admin-page-header p {
+    font-size: var(--text-comfortable);
+  }
+
+  .app-shell .panel-heading h2,
+  .app-shell .panel-heading h3,
+  .app-shell .case-list-heading h2,
+  .app-shell .admin-panel h2,
+  .app-shell .admin-table-heading h2 {
+    font-size: clamp(22px, 1.45vw, 28px);
+  }
+
+  .app-shell .button,
+  .app-shell .open-case {
+    min-height: 60px;
+    font-size: clamp(18px, 1.08vw, 21px);
+  }
+
+  .app-shell .badge,
+  .app-shell .table-count {
+    font-size: clamp(15px, 0.9vw, 18px);
+  }
+
+  .app-shell .quick-start h2 {
+    font-size: clamp(27px, 1.75vw, 34px);
+  }
+
+  .app-shell .quick-start-heading p,
+  .app-shell .quick-start-steps li,
+  .app-shell .queue-summary section > span,
+  .app-shell .case-list-heading p,
+  .app-shell .case-tabs button,
+  .app-shell .table-footer,
+  .app-shell .cases-bottom-note {
+    font-size: var(--text-regular);
+  }
+
+  .app-shell .queue-summary section > strong {
+    font-size: clamp(46px, 3.1vw, 62px);
+  }
+
+  .app-shell .case-tabs button {
+    min-height: 64px;
+  }
+
+  .app-shell .search-input input,
+  .app-shell .input,
+  .app-shell .select,
+  .app-shell .textarea,
+  .app-shell .field {
+    font-size: var(--text-regular);
+  }
+
+  .app-shell .cases-table th,
+  .app-shell .admin-table th {
+    font-size: var(--text-small);
+  }
+
+  .app-shell .cases-table td,
+  .app-shell .case-person,
+  .app-shell .admin-table,
+  .app-shell .admin-case-button,
+  .app-shell .admin-adherence,
+  .app-shell .admin-table-footer {
+    font-size: var(--text-comfortable);
+  }
+
+  .app-shell .case-number,
+  .app-shell .case-city,
+  .app-shell .case-status,
+  .app-shell .money-cell {
+    font-size: var(--text-regular);
+  }
+
+  .app-shell .workspace-title-row h1 {
+    font-size: clamp(56px, 3.6vw, 72px);
+  }
+
+  .app-shell .workspace-case-reference,
+  .app-shell .workspace-meta,
+  .app-shell .back-link,
+  .app-shell .case-context-brief > p,
+  .app-shell .recommendation-subtitle,
+  .app-shell .recommendation-rationale p,
+  .app-shell .missing-evidence li,
+  .app-shell .decision-actions > p,
+  .app-shell .document-item span,
+  .app-shell .document-item small,
+  .app-shell .evidence-card > p,
+  .app-shell .contradiction-card > p,
+  .app-shell .next-evidence > p,
+  .app-shell .analysis-footnote,
+  .app-shell .source-button {
+    font-size: var(--text-regular);
+  }
+
+  .app-shell .case-context-brief h2 {
+    font-size: clamp(42px, 2.7vw, 54px);
+  }
+
+  .app-shell .recommendation-title h2 {
+    font-size: clamp(58px, 3.9vw, 78px);
+  }
+
+  .app-shell .recommendation-key-facts strong {
+    font-size: clamp(34px, 2.25vw, 45px);
+  }
+
+  .app-shell .recommendation-rationale h3,
+  .app-shell .missing-evidence h3,
+  .app-shell .document-item strong,
+  .app-shell .evidence-card h3,
+  .app-shell .contradiction-card h3,
+  .app-shell .next-evidence h3 {
+    font-size: clamp(21px, 1.4vw, 27px);
+  }
+
+  .app-shell .workspace-content-tabs button,
+  .app-shell .analysis-tabs > button {
+    min-height: 64px;
+    font-size: var(--text-regular);
+  }
+
+  .app-shell .admin-metric-top,
+  .app-shell .admin-metric-hint,
+  .app-shell .admin-panel-description,
+  .app-shell .admin-table-heading p,
+  .app-shell .admin-table-filters .field > span,
+  .app-shell .admin-table-filters .input,
+  .app-shell .admin-table-filters .select {
+    font-size: var(--text-regular);
+  }
+
+  .app-shell .admin-metric-value {
+    font-size: clamp(50px, 3.5vw, 70px);
+  }
+}
+
+/* Remove redundant subtitles from authenticated screens. */
+.app-shell .page-description,
+.app-shell .quick-start-heading p,
+.app-shell .case-list-heading p,
+.app-shell .admin-panel-description,
+.app-shell .admin-table-heading p,
+.app-shell .workspace-section-heading p,
+.app-shell .analysis-heading > p {
+  display: none;
+}
+
+@media (min-width: 901px) {
+  .admin-chart-grid,
+  .admin-bottom-grid {
+    gap: clamp(24px, 1.6vw, 32px);
+  }
+
+  .admin-chart-grid .admin-panel,
+  .admin-bottom-grid .admin-panel {
+    padding: clamp(30px, 2vw, 40px);
+  }
+
+  .admin-chart-grid .admin-panel h2,
+  .admin-bottom-grid .admin-panel h2 {
+    font-size: clamp(26px, 1.7vw, 34px);
+  }
+
+  .admin-section-kicker,
+  .admin-chart-legend {
+    font-size: clamp(15px, 0.95vw, 18px);
+  }
+
+  .admin-distribution {
+    padding-top: 38px;
+  }
+
+  .admin-distribution-total {
+    height: clamp(44px, 3vw, 56px);
+  }
+
+  .admin-distribution-rows {
+    margin-top: 28px;
+  }
+
+  .admin-distribution-row {
+    gap: 13px;
+    padding: 16px 0;
+    font-size: clamp(17px, 1.08vw, 21px);
+  }
+
+  .admin-distribution-row strong,
+  .admin-distribution-percent {
+    font-size: clamp(17px, 1.08vw, 21px);
+  }
+
+  .admin-distribution-percent {
+    width: 64px;
+  }
+
+  .admin-chart-dot {
+    width: 11px;
+    height: 11px;
+  }
+
+  .admin-evolution {
+    height: clamp(290px, 19vw, 370px);
+    margin-top: 36px;
+    padding-top: 28px;
+  }
+
+  .admin-evolution-grid {
+    bottom: 40px;
+  }
+
+  .admin-evolution-bars {
+    height: calc(100% - 42px);
+    gap: 8px;
+  }
+
+  .admin-evolution-bar-wrap {
+    width: min(38%, 38px);
+  }
+
+  .admin-evolution-bar-wrap > span,
+  .admin-evolution-label {
+    font-size: clamp(15px, 0.95vw, 18px);
+  }
+
+  .admin-evolution-label {
+    padding-top: 17px;
+  }
+
+  .admin-reasons {
+    gap: 27px;
+    margin-top: 34px;
+  }
+
+  .admin-reason > div:first-child,
+  .admin-reason small {
+    font-size: clamp(17px, 1.08vw, 21px);
+  }
+
+  .admin-reason-track {
+    height: 9px;
+  }
+
+  .admin-text-link {
+    font-size: clamp(16px, 1vw, 19px);
+  }
+
+  .admin-recent-list {
+    margin-top: 24px;
+  }
+
+  .admin-recent-row {
+    gap: 17px;
+    padding: 18px 0;
+  }
+
+  .admin-activity-icon {
+    width: 46px;
+    height: 46px;
+  }
+
+  .admin-recent-content {
+    gap: 7px;
+  }
+
+  .admin-recent-content > strong,
+  .admin-recent-content > span {
+    font-size: clamp(17px, 1.08vw, 21px);
+  }
+
+  .admin-local-label {
+    font-size: clamp(15px, 0.92vw, 18px);
+  }
+}

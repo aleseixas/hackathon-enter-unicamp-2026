@@ -28,8 +28,36 @@ OPENAI_API_KEY=sua_chave_aqui
 ## Execução
 
 ```bash
-# Adicione aqui como rodar a solução
+python src/synthetic_adherence.py
 ```
+
+O comando acima:
+
+- le o arquivo `Hackaton_Enter_Base_Candidatos.xlsx`
+- gera uma camada operacional sintetica de aderencia
+- exporta `data/synthetic_adherence.csv`
+- exporta `data/synthetic_adherence_summary.json`
+
+Opcoes uteis:
+
+```bash
+python src/synthetic_adherence.py --limit 500
+python src/synthetic_adherence.py --seed 7
+```
+
+## Frontend
+
+Para abrir a interface principal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+O frontend usa os mocks comportamentais em `frontend/src/mocks/behavioralFixtures.ts`, alinhados com os perfis sinteticos de advogado e com os indicadores de aderencia e efetividade.
+
+`src/adherence_dashboard.py` nao e mais a interface recomendada; ele ficou somente como placeholder desativado.
 
 ## Dados
 

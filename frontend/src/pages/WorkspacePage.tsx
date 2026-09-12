@@ -16,6 +16,7 @@ import { getCase, getDecision, getNegotiation, getRecommendation } from '../serv
 import type { CaseDocument, RecommendationResponse, SourceReference } from '../types';
 import { useAsync } from '../hooks/useAsync';
 import { money, percent, shortDate } from '../lib/format';
+import { markCaseAsViewed } from '../lib/caseProgress';
 import { Badge, ErrorState, LoadingState, Notice, Provenance } from '../components/ui';
 import { DocumentsPanel, DocumentViewer, EvidencePanel } from '../components/Evidence';
 import { DecisionActions, NegotiationPanel } from '../components/DecisionActions';
@@ -130,6 +131,9 @@ export default function WorkspacePage() {
     window.addEventListener('policy:data-changed', resetFeedback);
     return () => window.removeEventListener('policy:data-changed', resetFeedback);
   }, []);
+  useEffect(() => {
+    if (data?.caseDetail.case_id) markCaseAsViewed(data.caseDetail.case_id);
+  }, [data?.caseDetail.case_id]);
   if (loading && !data) return <LoadingState />;
   if (error)
     return (
@@ -278,10 +282,48 @@ export default function WorkspacePage() {
                     <dd>{money(recommendation.expected_defense_cost)}</dd>
                   </div>
                 )}
+                {recommendation.confidence_score !== undefined && (
+                  <div>
+                    <dt>Confianca da recomendacao</dt>
+                    <dd>{percent(recommendation.confidence_score)}</dd>
+                  </div>
+                )}
+                {recommendation.subsidy_count !== undefined && (
+                  <div>
+                    <dt>Subsidios considerados</dt>
+                    <dd>
+                      {recommendation.subsidy_count}
+                      {recommendation.critical_subsidy_count !== undefined
+                        ? ` (${recommendation.critical_subsidy_count} criticos)`
+                        : ''}
+                    </dd>
+                  </div>
+                )}
+                {recommendation.completeness_band && (
+                  <div>
+                    <dt>Completude documental</dt>
+                    <dd>{recommendation.completeness_band}</dd>
+                  </div>
+                )}
+                {caseDetail.lawyer_profile_label && (
+                  <div>
+                    <dt>Perfil sintetico</dt>
+                    <dd>{caseDetail.lawyer_profile_label}</dd>
+                  </div>
+                )}
               </dl>
               <div className="recommendation-provenance">
                 <Provenance policy={recommendation.policy_version} model={recommendation.model_version} />
               </div>
+              {caseDetail.lawyer_profile_description && (
+                <div className="decision-authority">
+                  <ShieldCheck size={16} />
+                  <p>
+                    Perfil comportamental da demo: <strong>{caseDetail.lawyer_profile_label}</strong>.{' '}
+                    {caseDetail.lawyer_profile_description}
+                  </p>
+                </div>
+              )}
               <div className="decision-authority">
                 <ShieldCheck size={16} />
                 <p>

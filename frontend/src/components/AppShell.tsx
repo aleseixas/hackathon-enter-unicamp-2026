@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { useSession } from '../hooks/session';
 import { initials } from '../lib/format';
-import { demoCases } from '../mocks/fixtures';
+import { demoCases } from '../mocks/behavioralFixtures';
 import { isMockMode, resetDemoData } from '../services/api';
 import { Brand, Button, Modal, Notice } from './ui';
 

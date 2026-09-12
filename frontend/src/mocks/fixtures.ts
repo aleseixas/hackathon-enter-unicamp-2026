@@ -45,7 +45,16 @@ interface CaseFixture {
   status: CaseStatus;
   lawyer: string;
   firm: string;
+  lawyerProfileLabel: string;
+  lawyerProfileDescription: string;
+  officeCluster: string;
+  adherenceBase: number;
   assigned: boolean;
+  confidenceScore: number;
+  confidenceBand: string;
+  subsidyCount: number;
+  criticalSubsidyCount: number;
+  completenessBand: string;
   summary: string;
   allegation: string;
   contract: string;
@@ -72,9 +81,18 @@ const caseFixtures: CaseFixture[] = [
     defense: 1932,
     settlement: null,
     status: 'AGUARDANDO_DECISAO',
-    lawyer: 'Ana Carolina Lima',
-    firm: 'Lima & Associados',
+    lawyer: 'Marina Azevedo',
+    firm: 'Prado Tavares',
+    lawyerProfileLabel: 'Guardia da politica',
+    lawyerProfileDescription: 'Segue a politica de forma disciplinada e diverge pouco.',
+    officeCluster: 'alto desempenho',
+    adherenceBase: 0.91,
     assigned: true,
+    confidenceScore: 0.88,
+    confidenceBand: 'Alta',
+    subsidyCount: 5,
+    criticalSubsidyCount: 3,
+    completenessBand: 'Alta',
     summary:
       'Contestação de contratação de crédito consignado. O conjunto demonstrativo contém contrato, crédito ao titular e registros de assinatura e face; a análise humana permanece necessária.',
     allegation:
@@ -119,9 +137,18 @@ const caseFixtures: CaseFixture[] = [
     defense: 7560,
     settlement: { opening: 4500, target: 5200, ceiling: 6500 },
     status: 'AGUARDANDO_DECISAO',
-    lawyer: 'Ana Carolina Lima',
-    firm: 'Lima & Associados',
+    lawyer: 'Marina Azevedo',
+    firm: 'Prado Tavares',
+    lawyerProfileLabel: 'Guardia da politica',
+    lawyerProfileDescription: 'Segue a politica de forma disciplinada e diverge pouco.',
+    officeCluster: 'alto desempenho',
+    adherenceBase: 0.91,
     assigned: true,
+    confidenceScore: 0.59,
+    confidenceBand: 'Baixa',
+    subsidyCount: 4,
+    criticalSubsidyCount: 2,
+    completenessBand: 'Media',
     summary:
       'O autor nega a contratação e afirma não possuir conta na Caixa. A consulta BACEN do cenário atribui a conta ao tomador, mas faltam comprovação independente do crédito e prova de vida.',
     allegation:
@@ -168,9 +195,18 @@ const caseFixtures: CaseFixture[] = [
     defense: null,
     settlement: null,
     status: 'AGUARDANDO_DECISAO',
-    lawyer: 'Ana Carolina Lima',
-    firm: 'Lima & Associados',
+    lawyer: 'Marina Azevedo',
+    firm: 'Prado Tavares',
+    lawyerProfileLabel: 'Guardia da politica',
+    lawyerProfileDescription: 'Segue a politica de forma disciplinada e diverge pouco.',
+    officeCluster: 'alto desempenho',
+    adherenceBase: 0.91,
     assigned: true,
+    confidenceScore: 0.48,
+    confidenceBand: 'Baixa',
+    subsidyCount: 2,
+    criticalSubsidyCount: 0,
+    completenessBand: 'Baixa',
     summary:
       'Documentação insuficiente para sustentar uma orientação conclusiva. O contrato integral não foi incluído e os registros de liberação e pagamentos estão inconclusivos.',
     allegation:
@@ -214,9 +250,18 @@ const caseFixtures: CaseFixture[] = [
     defense: 2232,
     settlement: null,
     status: 'DECISAO_REGISTRADA',
-    lawyer: 'Rafael Mendes',
-    firm: 'Mendes Advocacia',
+    lawyer: 'Gustavo Ribeiro',
+    firm: 'Costa Ribeiro',
+    lawyerProfileLabel: 'Orientado a meta',
+    lawyerProfileDescription: 'Busca throughput e tende a seguir o fluxo padrao da politica.',
+    officeCluster: 'alto desempenho',
+    adherenceBase: 0.9,
     assigned: false,
+    confidenceScore: 0.81,
+    confidenceBand: 'Media',
+    subsidyCount: 6,
+    criticalSubsidyCount: 3,
+    completenessBand: 'Alta',
     summary:
       'Contestação de empréstimo pessoal com contrato, registro de identificação e comprovante de crédito presentes no cenário demonstrativo.',
     allegation: 'O autor afirma não reconhecer o empréstimo e solicita a suspensão das cobranças.',
@@ -255,9 +300,18 @@ const caseFixtures: CaseFixture[] = [
     defense: 6566,
     settlement: { opening: 3800, target: 4600, ceiling: 5800 },
     status: 'EM_NEGOCIACAO',
-    lawyer: 'Ana Carolina Lima',
-    firm: 'Lima & Associados',
+    lawyer: 'Bianca Prado',
+    firm: 'Silva Moura',
+    lawyerProfileLabel: 'Pragmatica negociadora',
+    lawyerProfileDescription: 'Tem vies negociador e aceita acordo com mais facilidade.',
+    officeCluster: 'desempenho medio',
+    adherenceBase: 0.83,
     assigned: true,
+    confidenceScore: 0.61,
+    confidenceBand: 'Baixa',
+    subsidyCount: 4,
+    criticalSubsidyCount: 2,
+    completenessBand: 'Media',
     summary:
       'Formalização digital questionada. Os registros demonstrativos de identificação estão incompletos e uma proposta de acordo aguarda retorno.',
     allegation:
@@ -302,9 +356,18 @@ const caseFixtures: CaseFixture[] = [
     defense: 5120,
     settlement: { opening: 3000, target: 3800, ceiling: 4800 },
     status: 'CONCLUIDO',
-    lawyer: 'Camila Rocha',
-    firm: 'Rocha & Vieira',
+    lawyer: 'Eduardo Bastos',
+    firm: 'Almeida Rocha',
+    lawyerProfileLabel: 'Fechador de acordo',
+    lawyerProfileDescription: 'Tem apetite alto por acordo e busca encerrar casos cedo.',
+    officeCluster: 'alto desempenho',
+    adherenceBase: 0.88,
     assigned: false,
+    confidenceScore: 0.58,
+    confidenceBand: 'Baixa',
+    subsidyCount: 4,
+    criticalSubsidyCount: 1,
+    completenessBand: 'Media',
     summary:
       'O cenário registra acordo aceito após contestação da formalização. Os valores e a conclusão são dados de demonstração.',
     allegation: 'O autor alega descontos não reconhecidos e questiona a contratação por telefone.',
@@ -342,9 +405,18 @@ const caseFixtures: CaseFixture[] = [
     defense: 6720,
     settlement: { opening: 4000, target: 5000, ceiling: 6200 },
     status: 'DECISAO_REGISTRADA',
-    lawyer: 'Rafael Mendes',
-    firm: 'Mendes Advocacia',
+    lawyer: 'Fernanda Lima',
+    firm: 'Nogueira Bastos',
+    lawyerProfileLabel: 'Independente',
+    lawyerProfileDescription: 'Tem alta autonomia e diverge mais da recomendacao automatica.',
+    officeCluster: 'autonomia alta',
+    adherenceBase: 0.63,
     assigned: false,
+    confidenceScore: 0.55,
+    confidenceBand: 'Baixa',
+    subsidyCount: 5,
+    criticalSubsidyCount: 3,
+    completenessBand: 'Alta',
     summary:
       'Recomendação demonstrativa de acordo com divergência registrada pelo advogado. A escolha humana de defesa não altera a recomendação original.',
     allegation:
@@ -384,9 +456,18 @@ const caseFixtures: CaseFixture[] = [
     defense: null,
     settlement: null,
     status: 'DECISAO_REGISTRADA',
-    lawyer: 'Camila Rocha',
-    firm: 'Rocha & Vieira',
+    lawyer: 'Rafael Moura',
+    firm: 'Duarte Fontes',
+    lawyerProfileLabel: 'Cauteloso com baixa confianca',
+    lawyerProfileDescription: 'Confia no modelo quando a confianca e alta, mas revisa casos cinzentos.',
+    officeCluster: 'autonomia alta',
+    adherenceBase: 0.66,
     assigned: false,
+    confidenceScore: 0.46,
+    confidenceBand: 'Baixa',
+    subsidyCount: 3,
+    criticalSubsidyCount: 1,
+    completenessBand: 'Media',
     summary:
       'Revisão documental registrada. O contrato está parcial e a conta de destino não foi identificada de maneira suficiente.',
     allegation:
@@ -504,6 +585,10 @@ export const demoCases: CaseDetail[] = caseFixtures.map((fixture) => ({
   lawyer_name: fixture.lawyer,
   firm_name: fixture.firm,
   assigned_to_me: fixture.assigned,
+  lawyer_profile_label: fixture.lawyerProfileLabel,
+  lawyer_profile_description: fixture.lawyerProfileDescription,
+  office_cluster: fixture.officeCluster,
+  adherence_base: fixture.adherenceBase,
   subject: 'Contestação de contratação bancária',
   summary: fixture.summary,
   documents: documentsFor(fixture),
@@ -650,6 +735,11 @@ export const demoRecommendations: Record<string, RecommendationResponse> = Objec
       model_version: DEMO_MODEL_VERSION,
       generated_at: DEMO_GENERATED_AT,
       demo_data: true,
+      confidence_score: fixture.confidenceScore,
+      confidence_band: fixture.confidenceBand,
+      subsidy_count: fixture.subsidyCount,
+      critical_subsidy_count: fixture.criticalSubsidyCount,
+      completeness_band: fixture.completenessBand,
     },
   ]),
 );

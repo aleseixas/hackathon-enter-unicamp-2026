@@ -45,6 +45,12 @@ const normalize = (value: string) =>
     .toLocaleLowerCase('pt-BR')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '');
+const humanizeToken = (value: string) =>
+  value
+    .split('_')
+    .filter(Boolean)
+    .map((part) => part[0]!.toUpperCase() + part.slice(1).toLocaleLowerCase('pt-BR'))
+    .join(' ');
 const emptyFilters: TableFilters = {
   search: '',
   lawyer: '',
@@ -535,12 +541,59 @@ function DecisionTable({ rows }: { rows: AdminDecisionRow[] }) {
                             <span className="admin-section-kicker">CONTEXTO DO REGISTRO</span>
                             <p>
                               {row.justification ||
+                                row.decision_explanation ||
                                 (row.adherent
                                   ? 'A decisão registrada acompanha a recomendação da política.'
                                   : 'Não há justificativa disponível neste registro.')}
                             </p>
                           </div>
                           <dl>
+                            {row.lawyer_profile_label && (
+                              <div>
+                                <dt>Perfil</dt>
+                                <dd>{row.lawyer_profile_label}</dd>
+                              </div>
+                            )}
+                            {row.confidence_band && (
+                              <div>
+                                <dt>Confianca</dt>
+                                <dd>
+                                  {row.confidence_band}
+                                  {row.confidence_score != null
+                                    ? ` (${percent(row.confidence_score)})`
+                                    : ''}
+                                </dd>
+                              </div>
+                            )}
+                            {row.completeness_band && (
+                              <div>
+                                <dt>Completude</dt>
+                                <dd>
+                                  {row.completeness_band}
+                                  {row.subsidy_count != null
+                                    ? ` · ${row.subsidy_count} subsidios`
+                                    : ''}
+                                </dd>
+                              </div>
+                            )}
+                            {row.override_reason_label && (
+                              <div>
+                                <dt>Motivo do override</dt>
+                                <dd>{humanizeToken(row.override_reason_label)}</dd>
+                              </div>
+                            )}
+                            {row.follow_probability != null && (
+                              <div>
+                                <dt>Probabilidade de seguir</dt>
+                                <dd>{percent(row.follow_probability)}</dd>
+                              </div>
+                            )}
+                            {row.decision_minutes != null && (
+                              <div>
+                                <dt>Tempo de decisao</dt>
+                                <dd>{count(row.decision_minutes)} min</dd>
+                              </div>
+                            )}
                             <div>
                               <dt>Registrado em</dt>
                               <dd>{shortDate(row.created_at)}</dd>

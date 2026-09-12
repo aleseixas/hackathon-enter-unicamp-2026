@@ -29,7 +29,13 @@ function renderApp() {
 
 async function openLawyerCase(user: User, plaintiff: string) {
   await user.click(screen.getByRole('button', { name: /Entrar como Advogado/ }));
-  await user.click(await screen.findByRole('link', { name: `Abrir processo de ${plaintiff}` }));
+  await user.click(
+    await screen.findByRole('link', {
+      name: new RegExp(
+        `^(Analisar agora|Continuar análise|Ver decisão|Continuar negociação|Ver processo): processo de ${plaintiff}$`,
+      ),
+    }),
+  );
   await screen.findByRole('heading', { name: plaintiff, level: 1 });
 }
 
@@ -242,7 +248,9 @@ describe('application business flows', () => {
     const navigation = screen.getByRole('navigation', { name: 'Navegação principal' });
     await user.click(within(navigation).getByRole('link', { name: 'Todos os processos' }));
     await user.click(
-      await screen.findByRole('link', { name: 'Abrir processo de José Carlos Oliveira' }),
+      await screen.findByRole('link', {
+        name: /^(Analisar agora|Continuar análise|Ver decisão): processo de José Carlos Oliveira$/,
+      }),
     );
     await user.click(await screen.findByRole('button', { name: 'Divergir da recomendação' }));
     dialog = screen.getByRole('dialog', { name: 'Divergir da recomendação' });
@@ -312,5 +320,58 @@ describe('application business flows', () => {
     await user.click(screen.getByRole('button', { name: 'Seguir recomendação' }));
     dialog = screen.getByRole('dialog', { name: 'Confirmar decisão' });
     expect(within(dialog).getByRole('textbox', { name: /Observação/ })).toHaveValue('');
+  });
+
+  it('shows whether each case was opened and uses the CTA that matches its current state', async () => {
+    const user = userEvent.setup();
+    renderApp();
+    await user.click(screen.getByRole('button', { name: /Entrar como Advogado/ }));
+
+    let mariaRow = await screen.findByRole('row', { name: /Maria Aparecida Santos/ });
+    expect(within(mariaRow).getByText('Novo')).toBeInTheDocument();
+    await user.click(
+      within(mariaRow).getByRole('link', {
+        name: 'Analisar agora: processo de Maria Aparecida Santos',
+      }),
+    );
+    await screen.findByRole('heading', { name: 'Maria Aparecida Santos', level: 1 });
+
+    await user.click(screen.getByText('Minha fila', { selector: 'a.back-link' }));
+    mariaRow = await screen.findByRole('row', { name: /Maria Aparecida Santos/ });
+    expect(within(mariaRow).getByText('Visualizado')).toBeInTheDocument();
+    await user.click(
+      within(mariaRow).getByRole('link', {
+        name: 'Continuar análise: processo de Maria Aparecida Santos',
+      }),
+    );
+    await screen.findByRole('heading', { name: 'Maria Aparecida Santos', level: 1 });
+
+    await followRecommendation(user);
+    await user.click(screen.getByText('Minha fila', { selector: 'a.back-link' }));
+    mariaRow = await screen.findByRole('row', { name: /Maria Aparecida Santos/ });
+    expect(within(mariaRow).getByText('Decisão registrada')).toBeInTheDocument();
+    expect(
+      within(mariaRow).getByRole('link', {
+        name: 'Ver decisão: processo de Maria Aparecida Santos',
+      }),
+    ).toBeInTheDocument();
+
+    const negotiationRow = screen.getByRole('row', { name: /Luciana Martins Ferreira/ });
+    expect(within(negotiationRow).getByText('Em negociação')).toBeInTheDocument();
+    expect(
+      within(negotiationRow).getByRole('link', {
+        name: 'Continuar negociação: processo de Luciana Martins Ferreira',
+      }),
+    ).toBeInTheDocument();
+
+    const navigation = screen.getByRole('navigation', { name: 'Navegação principal' });
+    await user.click(within(navigation).getByRole('link', { name: 'Todos os processos' }));
+    const completedRow = await screen.findByRole('row', { name: /Roberto Alves Souza/ });
+    expect(within(completedRow).getByText('Concluído')).toBeInTheDocument();
+    expect(
+      within(completedRow).getByRole('link', {
+        name: 'Ver processo: processo de Roberto Alves Souza',
+      }),
+    ).toBeInTheDocument();
   });
 });

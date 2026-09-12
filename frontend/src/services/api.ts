@@ -20,7 +20,7 @@ import {
   demoNegotiations,
   demoRecommendations,
   DEMO_GENERATED_AT,
-} from '../mocks/fixtures';
+} from '../mocks/behavioralFixtures';
 
 const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? '').trim().replace(/\/+$/, '');
 export const isMockMode = apiBaseUrl.length === 0;
@@ -282,6 +282,10 @@ function summaryFrom(detail: CaseDetail): CaseSummary {
     lawyer_name: detail.lawyer_name,
     firm_name: detail.firm_name,
     assigned_to_me: detail.assigned_to_me,
+    lawyer_profile_label: detail.lawyer_profile_label,
+    lawyer_profile_description: detail.lawyer_profile_description,
+    office_cluster: detail.office_cluster,
+    adherence_base: detail.adherence_base,
   };
 }
 
@@ -383,7 +387,7 @@ function saveDecision(
   input: LawyerDecisionInput,
   override?: Pick<OverrideInput, 'reason' | 'justification'>,
 ): DecisionRecord {
-  requireCase(input.case_id);
+  const caseDetail = requireCase(input.case_id);
   const recommendation = demoRecommendations[input.case_id];
   const isOverride = input.decision !== recommendation.recommendation;
   if (isOverride && !override)
@@ -403,6 +407,19 @@ function saveDecision(
     recommendation: recommendation.recommendation,
     decision: input.decision,
     is_override: isOverride,
+    ...(isOverride
+      ? { simulated_override_reason: override?.reason?.toLocaleLowerCase('pt-BR') }
+      : {}),
+    simulated_decision_explanation: isOverride
+      ? `Override registrado para ${caseDetail.lawyer_profile_label?.toLocaleLowerCase('pt-BR') ?? 'perfil sintetico'} em um caso com confianca ${recommendation.confidence_band?.toLocaleLowerCase('pt-BR') ?? 'indefinida'}.`
+      : `Decisao aderente registrada para ${caseDetail.lawyer_profile_label?.toLocaleLowerCase('pt-BR') ?? 'perfil sintetico'}, preservando a recomendacao original.`,
+    follow_probability:
+      recommendation.confidence_score == null
+        ? undefined
+        : Number((0.35 + recommendation.confidence_score * 0.5).toFixed(4)),
+    decision_minutes:
+      (recommendation.subsidy_count ?? 0) * 8 +
+      (recommendation.confidence_band === 'Baixa' ? 28 : recommendation.confidence_band === 'Media' ? 16 : 8),
     ...(input.notes ? { notes: input.notes } : {}),
     ...override,
     policy_version: recommendation.policy_version,
@@ -516,6 +533,17 @@ export async function getAdminDashboard(): Promise<AdminDashboard> {
       status: negotiation?.status ?? 'DECISAO_REGISTRADA',
       created_at: decision.created_at,
       is_local: true,
+      lawyer_profile_label: caseDetail.lawyer_profile_label,
+      lawyer_profile_description: caseDetail.lawyer_profile_description,
+      confidence_score: demoRecommendations[caseId].confidence_score ?? null,
+      confidence_band: demoRecommendations[caseId].confidence_band ?? null,
+      subsidy_count: demoRecommendations[caseId].subsidy_count ?? null,
+      critical_subsidy_count: demoRecommendations[caseId].critical_subsidy_count ?? null,
+      completeness_band: demoRecommendations[caseId].completeness_band ?? null,
+      follow_probability: decision.follow_probability ?? null,
+      decision_minutes: decision.decision_minutes ?? null,
+      decision_explanation: decision.simulated_decision_explanation,
+      override_reason_label: decision.reason ?? null,
       ...(decision.justification ? { justification: decision.justification } : {}),
     };
     rows.set(caseId, row);
