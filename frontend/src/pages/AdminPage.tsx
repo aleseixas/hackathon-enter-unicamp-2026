@@ -770,6 +770,47 @@ function Effectiveness({ data }: { data: AdminDashboard }) {
   const simulation = data.historical_simulation;
   return (
     <>
+      <MetricGrid
+        items={[
+          {
+            label: 'Economia estimada',
+            value: money(metrics.estimated_savings, true),
+            hint: 'Diferenca entre judicializacao e politica de acordos',
+            icon: CircleDollarSign,
+            accent: true,
+          },
+          {
+            label: 'Reducao de custo',
+            value: percent(metrics.estimated_savings_rate),
+            hint: 'Percentual economizado sobre o cenario-base',
+            icon: ArrowDownLeft,
+          },
+          {
+            label: 'Custo sem politica',
+            value: money(metrics.baseline_cost, true),
+            hint: 'Cenario-base de judicializacao',
+            icon: Layers3,
+          },
+          {
+            label: 'Custo com politica',
+            value: money(metrics.projected_cost, true),
+            hint: 'Custo projetado apos acordos',
+            icon: Activity,
+          },
+          {
+            label: 'Valor total fechado',
+            value: money(metrics.total_closed_value, true),
+            hint: 'Soma dos acordos aceitos no cenario',
+            icon: CheckCheck,
+          },
+          {
+            label: 'Defesa evitada',
+            value: money(metrics.avoided_defense_cost, true),
+            hint: 'Custo potencial de defesa poupado',
+            icon: ShieldCheck,
+          },
+        ]}
+      />
       <div className="admin-subsection-heading">
         <div>
           <span className="admin-section-kicker">RESULTADOS DA OPERAÇÃO</span>
@@ -824,6 +865,46 @@ function Effectiveness({ data }: { data: AdminDashboard }) {
         <strong>{money(metrics.projected_cost, true)}</strong>
         <span className="admin-operational-scope">Cenário de demonstração</span>
       </div>
+      <MetricGrid
+        items={[
+          {
+            label: 'Propostas de acordo',
+            value: count(metrics.agreement_proposals),
+            hint: 'Casos que avancaram para tentativa de acordo',
+            icon: ArrowUpRight,
+          },
+          {
+            label: 'Casos encerrados',
+            value: count(metrics.closed_cases),
+            hint: 'Aceitos ou recusados no periodo',
+            icon: CheckCheck,
+          },
+          {
+            label: 'Contrapropostas',
+            value: count(metrics.counteroffers),
+            hint: 'Retornos com outro valor',
+            icon: GitBranch,
+          },
+          {
+            label: 'Propostas recusadas',
+            value: count(metrics.rejected),
+            hint: 'Acordos que nao fecharam',
+            icon: X,
+          },
+          {
+            label: 'Ticket medio ofertado',
+            value: money(metrics.average_offered_value, true),
+            hint: 'Valor medio por proposta',
+            icon: ArrowUpRight,
+          },
+          {
+            label: 'Ticket medio fechado',
+            value: money(metrics.average_closed_value, true),
+            hint: 'Valor medio por acordo aceito',
+            icon: CircleDollarSign,
+          },
+        ]}
+      />
       <section className="admin-simulation" aria-labelledby="simulation-heading">
         <div className="admin-simulation-heading">
           <div>
@@ -847,6 +928,7 @@ function Effectiveness({ data }: { data: AdminDashboard }) {
           <div className="admin-simulation-saving">
             <span>Economia estimada</span>
             <strong>{money(simulation.estimated_savings, true)}</strong>
+            <small>{percent(metrics.estimated_savings_rate)} de reducao no custo</small>
             <small>Estimativa da simulação</small>
           </div>
         </div>
