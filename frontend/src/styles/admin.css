@@ -466,6 +466,197 @@
   gap: 20px;
   margin-bottom: 24px;
 }
+.admin-adherence-highlights {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: -2px 0 24px;
+}
+.admin-highlight-card {
+  padding: 18px 18px 17px;
+  border: 1px solid #eadfc9;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fcf7ee 0%, #f7f1e5 100%);
+}
+.admin-highlight-rank {
+  color: #8c7348;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.admin-highlight-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  color: #35362f;
+}
+.admin-highlight-head strong {
+  font-size: 14px;
+  font-weight: 550;
+  line-height: 1.4;
+}
+.admin-highlight-head svg {
+  flex-shrink: 0;
+  color: #9d7634;
+}
+.admin-highlight-value {
+  margin: 16px 0 8px;
+  font-size: clamp(26px, 2.2vw, 34px);
+  font-weight: 520;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: #2f302a;
+  font-variant-numeric: tabular-nums;
+}
+.admin-highlight-card p {
+  margin: 0;
+  color: #6f6758;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.admin-profile-list,
+.admin-firm-list,
+.admin-model-points {
+  display: flex;
+  flex-direction: column;
+}
+.admin-profile-list,
+.admin-firm-list {
+  gap: 14px;
+  margin-top: 26px;
+}
+.admin-model-points {
+  gap: 12px;
+  margin-top: 24px;
+}
+.admin-profile-card {
+  padding: 16px 17px;
+  border: 1px solid #ebe8df;
+  border-radius: 10px;
+  background: #fcfbf8;
+}
+.admin-profile-card-top,
+.admin-firm-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+.admin-profile-card-top > div,
+.admin-firm-top > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.admin-profile-card strong,
+.admin-firm-top strong {
+  font-size: 13px;
+  font-weight: 550;
+  color: #30332d;
+}
+.admin-profile-card-top > div > span,
+.admin-firm-top > div > span {
+  font-size: 12px;
+  color: #7c7b72;
+}
+.admin-profile-rate {
+  font-size: 12px;
+  color: #8c6625;
+  white-space: nowrap;
+}
+.admin-profile-card p {
+  margin: 10px 0 12px;
+  color: #6f6e66;
+  font-size: 12px;
+  line-height: 1.65;
+}
+.admin-profile-meta,
+.admin-firm-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  color: #595b53;
+  font-size: 12px;
+}
+.admin-profile-track,
+.admin-firm-track {
+  height: 6px;
+  border-radius: 999px;
+  background: #efeee8;
+  overflow: hidden;
+  margin-top: 12px;
+}
+.admin-profile-track > span,
+.admin-firm-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #edb460 0%, #bf8940 100%);
+}
+.admin-firm-row {
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f0eee8;
+}
+.admin-firm-row:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.admin-firm-stats {
+  margin-top: 10px;
+}
+.admin-firm-signal {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 550;
+  white-space: nowrap;
+}
+.admin-firm-signal.is-positive {
+  background: #edf5eb;
+  color: #486443;
+}
+.admin-firm-signal.is-warning {
+  background: #fbf0e2;
+  color: #91682a;
+}
+.admin-firm-signal.is-neutral {
+  background: #f3f2ec;
+  color: #67695f;
+}
+.admin-model-point {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: #5e6058;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.admin-model-point svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #87652a;
+}
+.admin-model-highlight {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 22px;
+  padding: 14px;
+  border-radius: 8px;
+  background: #f5efe3;
+  color: #6f5e3d;
+  font-size: 12px;
+  line-height: 1.65;
+}
+.admin-model-highlight strong {
+  font-weight: 550;
+}
 .admin-governance-card {
   padding: 27px;
   border: 1px solid #e3e1d8;
@@ -1127,6 +1318,13 @@
   .admin-adherence-grid {
     grid-template-columns: minmax(0, 1fr);
   }
+  .admin-adherence-highlights {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .admin-profile-card-top,
+  .admin-firm-top {
+    flex-direction: column;
+  }
   .admin-effectiveness-timeline {
     height: 232px;
   }
@@ -1290,6 +1488,10 @@
   }
   .admin-panel {
     padding: 20px 17px;
+  }
+  .admin-profile-meta,
+  .admin-firm-stats {
+    gap: 6px 12px;
   }
   .admin-effectiveness-period {
     min-width: 58px;
