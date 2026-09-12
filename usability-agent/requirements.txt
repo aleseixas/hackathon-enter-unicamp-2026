@@ -1,0 +1,2 @@
+openai>=1.60.0,<2
+playwright>=1.50.0,<2
