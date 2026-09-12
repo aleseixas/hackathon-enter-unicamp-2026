@@ -10,7 +10,7 @@ afterEach(() => cleanup());
 
 it('identifies an unavailable source page and only displays a different page after explicit selection', async () => {
   const user = userEvent.setup();
-  const document = demoCases[0].documents[0];
+  const document = demoCases.find((item) => item.case_id === 'caso-1')!.documents[0];
   render(<DocumentViewer document={document} initialPage={7} onClose={() => undefined} />);
 
   const dialog = screen.getByRole('dialog', { name: document.name });

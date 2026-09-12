@@ -21,13 +21,13 @@ beforeEach(async () => {
 });
 
 describe('demonstration API', () => {
-  it('provides eight cases and evidence whose sources resolve to actual MOCK pages', async () => {
+  it('provides ten cases and evidence whose sources resolve to a preview or attached PDF', async () => {
     const cases = await getCases();
-    expect(cases).toHaveLength(8);
+    expect(cases).toHaveLength(10);
     const recommendations = await Promise.all(cases.map((item) => getRecommendation(item.case_id)));
     for (const recommendation of recommendations) {
       expect(recommendation.demo_data).toBe(true);
-      expect(recommendation.documents).toHaveLength(7);
+      expect(recommendation.documents.length).toBeGreaterThan(0);
       expect(recommendation.next_best_evidence?.simulation?.outcome).toContain('SIMULAÇÃO');
       const sources = [
         ...recommendation.evidence.map((item) => item.source),
@@ -38,25 +38,56 @@ describe('demonstration API', () => {
       ];
       for (const source of sources) {
         const document = recommendation.documents.find((item) => item.id === source.document_id);
-        const page = document?.demo_pages?.find((item) => item.page === source.page);
-        expect(page).toBeDefined();
+        expect(document).toBeDefined();
         expect(document?.name).toBe(source.document_name);
-        expect(page?.paragraphs).toContain(source.excerpt);
-        expect(source.origin).toContain('MOCK');
+        expect(source.page).toBeGreaterThanOrEqual(1);
+        expect(source.page).toBeLessThanOrEqual(document?.page_count ?? 0);
+        if (document?.url) {
+          expect(document.url).toMatch(/\.pdf$/);
+          expect(source.origin).toContain('PDF');
+        } else {
+          const page = document?.demo_pages?.find((item) => item.page === source.page);
+          expect(page).toBeDefined();
+          expect(page?.paragraphs).toContain(source.excerpt);
+          expect(source.origin).toContain('MOCK');
+        }
       }
       for (const document of recommendation.documents) {
-        expect(document.page_count).toBe(document.demo_pages?.length ?? 0);
-        if (document.status === 'AUSENTE') expect(document.demo_pages).toBeUndefined();
+        if (document.url) expect(document.page_count).toBeGreaterThan(0);
+        else expect(document.page_count).toBe(document.demo_pages?.length ?? 0);
+        if (document.status === 'AUSENTE') {
+          expect(document.demo_pages).toBeUndefined();
+          expect(document.url).toBeUndefined();
+        }
       }
     }
-    expect(recommendations[0].loss_probability).toBe(0.23);
-    expect(recommendations[1]).toMatchObject({
+    expect(recommendations.find((item) => item.case_id === 'caso-1')?.loss_probability).toBe(0.23);
+    expect(recommendations.find((item) => item.case_id === 'caso-2')).toMatchObject({
       loss_probability: 0.72,
       expected_condemnation: 10500,
       expected_defense_cost: 7560,
       settlement: { opening: 4500, target: 5200, ceiling: 6500 },
     });
-    expect(recommendations[2].loss_probability).toBeNull();
+    expect(recommendations.find((item) => item.case_id === 'caso-3')?.loss_probability).toBeNull();
+
+    expect(cases.find((item) => item.case_id === 'caso-anexo-01')).toMatchObject({
+      case_number: '0801234-56.2024.8.10.0001',
+      plaintiff: 'Maria das Graças Silva Pereira',
+      uf: 'MA',
+      recommendation: 'DEFESA',
+    });
+    expect(cases.find((item) => item.case_id === 'caso-anexo-02')).toMatchObject({
+      case_number: '0654321-09.2024.8.04.0001',
+      plaintiff: 'José Raimundo Oliveira Costa',
+      uf: 'AM',
+      recommendation: 'ACORDO',
+    });
+    expect(
+      recommendations.find((item) => item.case_id === 'caso-anexo-01')?.documents,
+    ).toHaveLength(7);
+    expect(
+      recommendations.find((item) => item.case_id === 'caso-anexo-02')?.documents,
+    ).toHaveLength(4);
   });
 
   it('returns independent document objects and preserves local decisions and accepted agreements', async () => {

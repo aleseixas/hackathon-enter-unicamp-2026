@@ -2,7 +2,7 @@
 
 Aplicação demonstrativa do Hackathon Enter × Unicamp 2026 para consultar processos, confrontar evidências e registrar decisões sobre acordos. Desenvolvida com React, TypeScript, Vite, React Router, Radix UI e Lucide.
 
-O perfil **Advogado** reúne lista de processos, fila atribuída, análise documental, decisão e negociação. O perfil **Administrativo** reúne visão geral, aderência, efetividade e tabela de decisões. Os perfis são uma navegação de demonstração, sem autenticação ou autorização de servidor.
+O perfil **Advogado** separa os processos em **Para analisar** e **Enviados**, além de reunir análise documental, decisão e negociação. O perfil **Administrativo** reúne visão geral, aderência, efetividade e tabela de decisões. Os perfis são uma navegação de demonstração, sem autenticação ou autorização de servidor.
 
 ## Requisitos e execução
 
@@ -28,7 +28,7 @@ Abra a URL indicada pelo Vite no terminal. O modo mock funciona sem arquivo de a
 
 ## Roteiro da experiência
 
-1. Na entrada, escolha **Advogado**. A lista contém oito casos fictícios, com sete categorias documentais por caso. Os casos 1–3 começam aguardando decisão; os demais incluem registros iniciais para explorar situações posteriores do fluxo.
+1. Na entrada, escolha **Advogado**. **Para analisar** mostra somente casos ainda sem decisão; **Enviados** reúne decisões registradas, negociações e conclusões. A demonstração contém dez casos fictícios. Dois deles reproduzem os dossiês `0801234-56.2024.8.10.0001` e `0654321-09.2024.8.04.0001`, com os PDFs fornecidos e referências por página. Os casos 1–3 e os dois dossiês começam aguardando decisão; os demais incluem registros iniciais para explorar situações posteriores do fluxo.
 2. Abra **Maria Aparecida Santos (`caso-1`)**. A causa é de R$ 20.000, com recomendação demonstrativa de **defesa** e risco de perda de **23%**. Consulte os indicadores simulados de assinatura (**91%**) e face (**97,3%**), abra suas fontes e confira a página. Registre a confirmação da recomendação. Uma escolha diferente exige motivo e justificativa.
 3. Abra **José Carlos Oliveira (`caso-2`)**. A causa é de R$ 25.000, com recomendação demonstrativa de **acordo** e risco de perda de **72%**. Em contradições, confronte a alegação de não possuir conta na Caixa com a atribuição ao tomador na consulta BACEN MOCK. Essa consulta não resolve as lacunas de comprovação independente do crédito e de liveness.
 4. No caso 2, confira a faixa de **R$ 4.500 / R$ 5.200 / R$ 6.500** para abertura, alvo e teto. Os valores de condenação e custo esperado de defesa, **R$ 10.500 / R$ 7.560**, já vêm da fixture. Confirme a decisão de acordo e registre uma negociação. Para demonstrar uma conclusão, informe proposta de R$ 4.500, situação aceita e valor final de R$ 5.200. Pendência, recusa e contraproposta também têm estados próprios.
@@ -48,9 +48,9 @@ Uma decisão de acordo coloca o caso em negociação; um aceite o conclui. Decis
 
 Todos os casos, nomes, números processuais, documentos e valores iniciais são fictícios. Recomendações e números são fornecidos por mock ou API; o frontend não calcula risco, custos, limites de acordo ou economia e não executa uma política de decisão.
 
-As sete categorias documentais têm estados **Presente**, **Ausente** ou **Inconclusivo**. As fixtures usam `demo_pages`, com campos e texto por página. São prévias textuais MOCK legíveis; não há criação, leitura ou extração de PDFs. Evidências e contradições apontam para o documento e a página correspondentes, com origem demonstrativa explícita.
+Os casos originais usam sete categorias documentais com estados **Presente**, **Ausente** ou **Inconclusivo** e prévias textuais `demo_pages`. Os dois dossiês adicionais preservam os 7 e 4 PDFs recebidos em `public/demo-cases`. Evidências e contradições apontam para o documento e a página correspondentes, com origem demonstrativa explícita.
 
-Para documentos reais disponibilizados futuramente pela API em `CaseDocument.url`, o visualizador usa um `iframe` e acrescenta a página ao fragmento da URL, como `#page=2`. O comportamento de PDFs depende do visualizador do navegador e da permissão de incorporação do servidor de origem. A URL também pode ser aberta separadamente.
+Para documentos disponibilizados em `CaseDocument.url`, inclusive os dois dossiês de exemplo, o visualizador usa um `iframe` e acrescenta a página ao fragmento da URL, como `#page=2`. O comportamento de PDFs depende do visualizador do navegador e da permissão de incorporação do servidor de origem. A URL também pode ser aberta separadamente.
 
 Os indicadores agregados e graficos administrativos representam um cenario sintetico maior e nao sao totais da tabela visivel. Registros locais atualizam a tabela e seu estado, sem recalcular KPIs financeiros. A simulacao historica permanece separada e nao representa economia realizada.
 

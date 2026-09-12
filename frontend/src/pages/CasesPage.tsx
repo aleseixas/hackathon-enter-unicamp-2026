@@ -15,17 +15,15 @@ import { money } from '../lib/format';
 import { getLawyerCaseState, getViewedCaseIds, type LawyerCaseState } from '../lib/caseProgress';
 import type { CaseSummary, DecisionRecord, NegotiationRecord } from '../types';
 
-type ListMode = 'queue' | 'history';
+type ListMode = 'queue' | 'sent';
 type CaseWithWorkflow = CaseSummary & {
   decision: DecisionRecord | null;
   negotiation: NegotiationRecord | null;
 };
 
-const historyTabs: { id: 'all' | LawyerCaseState; label: string }[] = [
+const sentTabs: { id: 'all' | LawyerCaseState; label: string }[] = [
   { id: 'all', label: 'Todos' },
-  { id: 'NOVO', label: 'Novos' },
-  { id: 'VISUALIZADO', label: 'Visualizados' },
-  { id: 'DECISAO_REGISTRADA', label: 'Decisão registrada' },
+  { id: 'DECISAO_REGISTRADA', label: 'Decisões registradas' },
   { id: 'EM_NEGOCIACAO', label: 'Em negociação' },
   { id: 'CONCLUIDO', label: 'Concluídos' },
 ];
@@ -47,18 +45,18 @@ function needsLawyerAction(item: CaseWithWorkflow) {
   );
 }
 
+function wasSentByLawyer(item: CaseWithWorkflow) {
+  return item.decision !== null || item.status !== 'AGUARDANDO_DECISAO';
+}
+
 function presentationFor(item: CaseWithWorkflow, state: LawyerCaseState) {
-  if (
-    state === 'DECISAO_REGISTRADA' &&
-    item.decision?.decision === 'ACORDO' &&
-    !item.negotiation
-  ) {
+  if (state === 'DECISAO_REGISTRADA' && item.decision?.decision === 'ACORDO' && !item.negotiation) {
     return { label: 'Decisão registrada', cta: 'Registrar proposta' };
   }
   return statePresentation[state];
 }
 
-export default function CasesPage({ mode = 'history' }: { mode?: ListMode }) {
+export default function CasesPage({ mode = 'sent' }: { mode?: ListMode }) {
   const loader = useCallback(async () => {
     const cases = await getCases();
     return Promise.all(
@@ -79,10 +77,7 @@ export default function CasesPage({ mode = 'history' }: { mode?: ListMode }) {
   const [showFilters, setShowFilters] = useState(false);
   const isQueue = mode === 'queue';
   const viewedCaseIds = getViewedCaseIds();
-  const source = useMemo(
-    () => (cases || []).filter((item) => item.assigned_to_me),
-    [cases],
-  );
+  const source = useMemo(() => (cases || []).filter((item) => item.assigned_to_me), [cases]);
   const caseStates = new Map(
     source.map((item) => [
       item.case_id,
@@ -90,7 +85,8 @@ export default function CasesPage({ mode = 'history' }: { mode?: ListMode }) {
     ]),
   );
   const available = useMemo(
-    () => (isQueue ? source.filter(needsLawyerAction) : source),
+    () =>
+      isQueue ? source.filter((item) => !wasSentByLawyer(item)) : source.filter(wasSentByLawyer),
     [isQueue, source],
   );
   const filtered = available.filter(
@@ -108,8 +104,8 @@ export default function CasesPage({ mode = 'history' }: { mode?: ListMode }) {
     available.find((item) => item.status === 'EM_NEGOCIACAO') ??
     available[0];
   const newCount = available.filter((item) => caseStates.get(item.case_id) === 'NOVO').length;
-  const negotiationCount = available.filter(
-    (item) => item.status === 'EM_NEGOCIACAO' || item.decision?.decision === 'ACORDO',
+  const viewedCount = available.filter(
+    (item) => caseStates.get(item.case_id) === 'VISUALIZADO',
   ).length;
 
   if (loading && !cases) return <LoadingState />;
@@ -123,14 +119,14 @@ export default function CasesPage({ mode = 'history' }: { mode?: ListMode }) {
   }
 
   return (
-    <div className={`cases-page page-enter ${isQueue ? 'is-action-queue' : 'is-history'}`}>
+    <div className={`cases-page page-enter ${isQueue ? 'is-action-queue' : 'is-sent'}`}>
       <div className="page-header lawyer-list-header">
         <div>
           <div className="eyebrow">
             <span className="accent-square" />
             MESA DO ADVOGADO
           </div>
-          <h1 className="page-title">{isQueue ? 'Minha fila' : 'Meus processos'}</h1>
+          <h1 className="page-title">{isQueue ? 'Para analisar' : 'Enviados'}</h1>
         </div>
         <div className="header-meta">
           <Badge value="DEMO" />
@@ -146,11 +142,16 @@ export default function CasesPage({ mode = 'history' }: { mode?: ListMode }) {
           <div className="queue-focus-copy">
             <span className="queue-focus-label">PRÓXIMA AÇÃO</span>
             <h2 id="queue-focus-title">
-              {available.length} {available.length === 1 ? 'caso precisa' : 'casos precisam'} da sua ação
+              {available.length}{' '}
+              {available.length === 1 ? 'processo aguarda' : 'processos aguardam'} sua análise
             </h2>
             <div className="queue-focus-summary">
-              <span>{newCount} {newCount === 1 ? 'novo' : 'novos'}</span>
-              <span>{negotiationCount} em fluxo de acordo</span>
+              <span>
+                {newCount} {newCount === 1 ? 'ainda não visto' : 'ainda não vistos'}
+              </span>
+              <span>
+                {viewedCount} {viewedCount === 1 ? 'análise iniciada' : 'análises iniciadas'}
+              </span>
             </div>
           </div>
           <div className="queue-focus-case">
@@ -161,6 +162,7 @@ export default function CasesPage({ mode = 'history' }: { mode?: ListMode }) {
           <Link
             className="button accent queue-focus-button"
             to={`/processos/${nextCase.case_id}`}
+            state={{ caseList: '/minha-fila' }}
             aria-label={`Próxima ação: ${presentationFor(nextCase, caseStates.get(nextCase.case_id) ?? 'NOVO').cta} no processo de ${nextCase.plaintiff}`}
           >
             {presentationFor(nextCase, caseStates.get(nextCase.case_id) ?? 'NOVO').cta}
@@ -172,7 +174,7 @@ export default function CasesPage({ mode = 'history' }: { mode?: ListMode }) {
       <section className="panel case-list-panel">
         <div className="case-list-heading">
           <div>
-            <h2>{isQueue ? 'Casos que exigem sua ação' : 'Histórico de processos'}</h2>
+            <h2>{isQueue ? 'Ainda não vistos e em análise' : 'Decisões e negociações enviadas'}</h2>
           </div>
           <span className="table-count">
             {available.length} {available.length === 1 ? 'processo' : 'processos'}
@@ -180,7 +182,7 @@ export default function CasesPage({ mode = 'history' }: { mode?: ListMode }) {
         </div>
         {!isQueue && (
           <div className="case-tabs" aria-label="Filtrar por situação">
-            {historyTabs.map((item) => (
+            {sentTabs.map((item) => (
               <button
                 key={item.id}
                 onClick={() => setTab(item.id)}
@@ -189,7 +191,9 @@ export default function CasesPage({ mode = 'history' }: { mode?: ListMode }) {
               >
                 {item.label}
                 {item.id !== 'all' && (
-                  <span>{available.filter((row) => caseStates.get(row.case_id) === item.id).length}</span>
+                  <span>
+                    {available.filter((row) => caseStates.get(row.case_id) === item.id).length}
+                  </span>
                 )}
               </button>
             ))}
@@ -205,7 +209,9 @@ export default function CasesPage({ mode = 'history' }: { mode?: ListMode }) {
               aria-label="Buscar processos"
             />
             {query && (
-              <button onClick={() => setQuery('')} aria-label="Limpar busca">×</button>
+              <button onClick={() => setQuery('')} aria-label="Limpar busca">
+                ×
+              </button>
             )}
           </label>
           <button
@@ -242,7 +248,9 @@ export default function CasesPage({ mode = 'history' }: { mode?: ListMode }) {
                 <option value="REVISAR">Revisar</option>
               </select>
             </label>
-            <button className="button ghost" onClick={clearFilters}>Limpar filtros</button>
+            <button className="button ghost" onClick={clearFilters}>
+              Limpar filtros
+            </button>
           </div>
         )}
         <div className="table-scroll">
@@ -254,7 +262,9 @@ export default function CasesPage({ mode = 'history' }: { mode?: ListMode }) {
                 <th>Risco</th>
                 <th>Recomendação</th>
                 <th>Situação</th>
-                <th><span className="sr-only">Ação</span></th>
+                <th>
+                  <span className="sr-only">Ação</span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -262,31 +272,52 @@ export default function CasesPage({ mode = 'history' }: { mode?: ListMode }) {
                 const state = caseStates.get(item.case_id) ?? 'NOVO';
                 const presentation = presentationFor(item, state);
                 return (
-                  <tr key={item.case_id} className={needsLawyerAction(item) ? 'case-needs-action' : undefined}>
+                  <tr
+                    key={item.case_id}
+                    className={needsLawyerAction(item) ? 'case-needs-action' : undefined}
+                  >
                     <td>
-                      <Link className="case-person" to={`/processos/${item.case_id}`}>
-                        {item.plaintiff}<ArrowUpRight size={15} />
+                      <Link
+                        className="case-person"
+                        to={`/processos/${item.case_id}`}
+                        state={{ caseList: isQueue ? '/minha-fila' : '/processos' }}
+                      >
+                        {item.plaintiff}
+                        <ArrowUpRight size={15} />
                       </Link>
                       <span className="case-number">{item.case_number}</span>
-                      <span className="case-city">{item.city} <span>·</span> {item.uf}</span>
+                      <span className="case-city">
+                        {item.city} <span>·</span> {item.uf}
+                      </span>
                     </td>
                     <td className="money-cell">
                       <span className="mobile-cell-label">Valor da causa</span>
                       {money(item.claim_value, true)}
                     </td>
-                    <td><span className="mobile-cell-label">Risco</span><Badge value={item.risk_level} /></td>
-                    <td><span className="mobile-cell-label">Recomendação</span><Badge value={item.recommendation} /></td>
+                    <td>
+                      <span className="mobile-cell-label">Risco</span>
+                      <Badge value={item.risk_level} />
+                    </td>
+                    <td>
+                      <span className="mobile-cell-label">Recomendação</span>
+                      <Badge value={item.recommendation} />
+                    </td>
                     <td>
                       <span className="mobile-cell-label">Situação</span>
-                      <span className={`case-status status-${state.toLowerCase()}`}><span />{presentation.label}</span>
+                      <span className={`case-status status-${state.toLowerCase()}`}>
+                        <span />
+                        {presentation.label}
+                      </span>
                     </td>
                     <td>
                       <Link
                         className="open-case"
                         to={`/processos/${item.case_id}`}
+                        state={{ caseList: isQueue ? '/minha-fila' : '/processos' }}
                         aria-label={`${presentation.cta}: processo de ${item.plaintiff}`}
                       >
-                        {presentation.cta}<ArrowRight size={17} />
+                        {presentation.cta}
+                        <ArrowRight size={17} />
                       </Link>
                     </td>
                   </tr>
@@ -296,22 +327,38 @@ export default function CasesPage({ mode = 'history' }: { mode?: ListMode }) {
           </table>
         </div>
         {filtered.length === 0 && (
-          <div className={`empty-state ${isQueue && available.length === 0 ? 'queue-complete' : ''}`}>
+          <div
+            className={`empty-state ${isQueue && available.length === 0 ? 'queue-complete' : ''}`}
+          >
             {isQueue && available.length === 0 ? <CheckCheck size={34} /> : <Search size={28} />}
-            <h3>{isQueue && available.length === 0 ? 'Sua fila está em dia' : 'Nenhum processo encontrado'}</h3>
+            <h3>
+              {isQueue && available.length === 0
+                ? 'Nenhum processo para analisar'
+                : !isQueue && available.length === 0
+                  ? 'Nenhum processo enviado'
+                  : 'Nenhum processo encontrado'}
+            </h3>
             <p>
               {isQueue && available.length === 0
-                ? 'Nenhum caso exige sua ação agora. Consulte o histórico em Meus processos.'
-                : 'Experimente outro nome ou ajuste os filtros.'}
+                ? 'Quando uma decisão for registrada, o caso aparecerá em Enviados.'
+                : !isQueue && available.length === 0
+                  ? 'As decisões registradas e negociações aparecerão aqui.'
+                  : 'Experimente outro nome ou ajuste os filtros.'}
             </p>
             {available.length > 0 && (
-              <button className="button secondary" onClick={clearFilters}>Limpar filtros</button>
+              <button className="button secondary" onClick={clearFilters}>
+                Limpar filtros
+              </button>
             )}
           </div>
         )}
         <div className="table-footer">
-          <span>{filtered.length} de {available.length} processos</span>
-          <span><CheckCheck size={14} /> Cada ação fica registrada</span>
+          <span>
+            {filtered.length} de {available.length} processos
+          </span>
+          <span>
+            <CheckCheck size={14} /> Cada ação fica registrada
+          </span>
         </div>
       </section>
     </div>

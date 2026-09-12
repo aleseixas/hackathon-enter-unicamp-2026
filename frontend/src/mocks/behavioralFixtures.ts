@@ -34,6 +34,38 @@ type BehaviorMeta = {
 };
 
 const behaviorByCaseId: Record<string, BehaviorMeta> = {
+  'caso-anexo-01': {
+    lawyer_name: 'Marina Azevedo',
+    firm_name: 'Prado Tavares',
+    assigned_to_me: true,
+    lawyer_profile_label: 'Guardia da politica',
+    lawyer_profile_description: 'Segue a politica de forma disciplinada e diverge pouco.',
+    office_cluster: 'alto desempenho',
+    adherence_base: 0.91,
+    confidence_score: 0.91,
+    confidence_band: 'Alta',
+    subsidy_count: 7,
+    critical_subsidy_count: 5,
+    completeness_band: 'Alta',
+    decision_explanation:
+      'Contrato, crédito em conta de mesma titularidade, identificação e histórico de parcelas sustentam a defesa.',
+  },
+  'caso-anexo-02': {
+    lawyer_name: 'Marina Azevedo',
+    firm_name: 'Prado Tavares',
+    assigned_to_me: true,
+    lawyer_profile_label: 'Guardia da politica',
+    lawyer_profile_description: 'Segue a politica de forma disciplinada e diverge pouco.',
+    office_cluster: 'alto desempenho',
+    adherence_base: 0.91,
+    confidence_score: 0.56,
+    confidence_band: 'Baixa',
+    subsidy_count: 4,
+    critical_subsidy_count: 2,
+    completeness_band: 'Baixa',
+    decision_explanation:
+      'A ausência de contrato, aceite, extrato de destino e vídeo de liveness eleva o risco e favorece acordo.',
+  },
   'caso-1': {
     lawyer_name: 'Marina Azevedo',
     firm_name: 'Prado Tavares',
@@ -221,8 +253,7 @@ export const demoRecommendations: Record<string, RecommendationResponse> = Objec
 
 export const demoDecisions: DecisionRecord[] = baseDecisions.map((item) => {
   const meta = behaviorByCaseId[item.case_id];
-  const overrideCode =
-    item.case_id === 'caso-7' ? 'caso_caro_exigiu_postura_propria' : undefined;
+  const overrideCode = item.case_id === 'caso-7' ? 'caso_caro_exigiu_postura_propria' : undefined;
   return {
     ...item,
     follow_probability: meta.follow_probability,

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
   Check,
@@ -72,7 +72,9 @@ function RecommendationCard({
         <div className="recommendation-key-facts">
           <div>
             <span>Risco estimado de perda</span>
-            <strong>{data.loss_probability === null ? 'Não calculado' : percent(data.loss_probability)}</strong>
+            <strong>
+              {data.loss_probability === null ? 'Não calculado' : percent(data.loss_probability)}
+            </strong>
           </div>
           <div>
             <span>Valor da causa</span>
@@ -146,12 +148,16 @@ function nextActionCopy(decision: DecisionRecord | null, negotiation: Negotiatio
   ) {
     return 'Atualize o resultado da negociação para concluir o caso.';
   }
-  if (decision.decision === 'ACORDO') return 'Caso concluído. O resultado da negociação foi registrado.';
+  if (decision.decision === 'ACORDO')
+    return 'Caso concluído. O resultado da negociação foi registrado.';
   return 'Decisão registrada. Este caso não exige outra ação agora.';
 }
 
 export default function WorkspacePage() {
   const { caseId = '' } = useParams();
+  const location = useLocation();
+  const returnTo = location.state?.caseList === '/processos' ? '/processos' : '/minha-fila';
+  const returnLabel = returnTo === '/processos' ? 'Enviados' : 'Para analisar';
   const loader = useCallback(async () => {
     const [caseDetail, recommendation, decision, negotiation] = await Promise.all([
       getCase(caseId),
@@ -183,9 +189,9 @@ export default function WorkspacePage() {
   if (error)
     return (
       <>
-        <Link className="back-link" to="/minha-fila">
+        <Link className="back-link" to={returnTo}>
           <ArrowLeft size={14} />
-          Voltar à minha fila
+          Voltar para {returnLabel.toLocaleLowerCase('pt-BR')}
         </Link>
         <ErrorState message={error} onRetry={reload} />
       </>
@@ -209,9 +215,9 @@ export default function WorkspacePage() {
     <div className="workspace-page page-enter" key={caseId}>
       <header className="workspace-header">
         <div className="workspace-topline">
-          <Link className="back-link" to="/minha-fila">
+          <Link className="back-link" to={returnTo}>
             <ArrowLeft size={14} />
-            Minha fila
+            {returnLabel}
           </Link>
           <span className="workspace-case-reference">{caseDetail.case_number}</span>
           <div className="workspace-header-badges">
@@ -284,13 +290,22 @@ export default function WorkspacePage() {
         </aside>
       </div>
       <nav className="workspace-content-tabs" aria-label="Conteúdo do processo">
-        <button className={activeTab === 'evidences' ? 'active' : ''} onClick={() => setActiveTab('evidences')}>
+        <button
+          className={activeTab === 'evidences' ? 'active' : ''}
+          onClick={() => setActiveTab('evidences')}
+        >
           Evidências
         </button>
-        <button className={activeTab === 'documents' ? 'active' : ''} onClick={() => setActiveTab('documents')}>
+        <button
+          className={activeTab === 'documents' ? 'active' : ''}
+          onClick={() => setActiveTab('documents')}
+        >
           Documentos
         </button>
-        <button className={activeTab === 'details' ? 'active' : ''} onClick={() => setActiveTab('details')}>
+        <button
+          className={activeTab === 'details' ? 'active' : ''}
+          onClick={() => setActiveTab('details')}
+        >
           Detalhes
         </button>
       </nav>
@@ -360,13 +375,17 @@ export default function WorkspacePage() {
                 )}
               </dl>
               <div className="recommendation-provenance">
-                <Provenance policy={recommendation.policy_version} model={recommendation.model_version} />
+                <Provenance
+                  policy={recommendation.policy_version}
+                  model={recommendation.model_version}
+                />
               </div>
               {caseDetail.lawyer_profile_description && (
                 <div className="decision-authority">
                   <ShieldCheck size={16} />
                   <p>
-                    Perfil comportamental da demo: <strong>{caseDetail.lawyer_profile_label}</strong>.{' '}
+                    Perfil comportamental da demo:{' '}
+                    <strong>{caseDetail.lawyer_profile_label}</strong>.{' '}
                     {caseDetail.lawyer_profile_description}
                   </p>
                 </div>
@@ -377,7 +396,9 @@ export default function WorkspacePage() {
                   A política orienta. <strong>O advogado decide.</strong>
                 </p>
               </div>
-              <span className="details-updated">Análise recebida em {shortDate(recommendation.generated_at)}</span>
+              <span className="details-updated">
+                Análise recebida em {shortDate(recommendation.generated_at)}
+              </span>
             </div>
           </section>
         )}

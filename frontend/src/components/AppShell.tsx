@@ -72,8 +72,8 @@ export default function AppShell() {
         { to: '/admin/decisions', label: 'Decisões', icon: FileCheck2 },
       ]
     : [
-        { to: '/minha-fila', label: 'Minha fila', icon: ListFilter },
-        { to: '/processos', label: 'Meus processos', icon: Files },
+        { to: '/minha-fila', label: 'Para analisar', icon: ListFilter },
+        { to: '/processos', label: 'Enviados', icon: Files },
       ];
   const workspace = location.pathname.startsWith('/processos/');
   const currentLabel = workspace
@@ -356,7 +356,9 @@ export default function AppShell() {
             <Badge value="DEFESA" />
             <div>
               <h3>Prosseguir com a defesa</h3>
-              <p>Quando a prova documental sustenta a tese e o acordo não é a melhor opção agora.</p>
+              <p>
+                Quando a prova documental sustenta a tese e o acordo não é a melhor opção agora.
+              </p>
             </div>
           </article>
           <article>

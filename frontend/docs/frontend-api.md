@@ -2,9 +2,9 @@
 
 `src/services/api.ts` concentra toda a leitura e gravação de dados. Os componentes devem importar suas funções, sem usar `fetch` diretamente. Os contratos TypeScript ficam em `src/types/index.ts`.
 
-Sem `VITE_API_BASE_URL`, o serviço usa `src/mocks/behavioralFixtures.ts`, com latência simulada de 100 ms. Todos os nomes, números de processo, documentos, probabilidades, valores, versões de política e modelo são fictícios. Não há execução de política, modelo, extração de PDF ou cálculo financeiro. Documentos presentes e inconclusivos têm prévias textuais `demo_pages`; referências de evidência identificam essas prévias MOCK e uma página existente. Documentos ausentes têm zero páginas.
+Sem `VITE_API_BASE_URL`, o serviço usa `src/mocks/behavioralFixtures.ts`, com latência simulada de 100 ms. Todos os nomes, números de processo, documentos, probabilidades, valores, versões de política e modelo são fictícios. Não há execução de política, modelo, extração de PDF ou cálculo financeiro. Os casos originais têm prévias textuais `demo_pages`; os dois dossiês adicionais usam PDFs estáticos fornecidos em `public/demo-cases`. Toda referência de evidência identifica um documento e uma página existente.
 
-Os casos `caso-1` a `caso-8` têm sete categorias documentais. Os casos 1–3 começam aguardando decisão; os casos 4–8 incluem registros demonstrativos iniciais. O caso 2 contém a divergência entre a alegação sobre conta na Caixa e a atribuição ao tomador na consulta BACEN MOCK, sem tratar essa consulta como comprovação independente do crédito. A próxima evidência é uma sugestão acompanhada de SIMULAÇÃO explícita e nunca recalcula a recomendação.
+Os casos `caso-1` a `caso-8` mantêm as sete categorias documentais. `caso-anexo-01` preserva 7 PDFs do processo `0801234-56.2024.8.10.0001`; `caso-anexo-02` preserva 4 PDFs do processo `0654321-09.2024.8.04.0001`. Os casos 1–3 e os anexos começam aguardando decisão; os casos 4–8 incluem registros demonstrativos iniciais. A próxima evidência é uma sugestão acompanhada de SIMULAÇÃO explícita e nunca recalcula a recomendação.
 
 ## API pública
 

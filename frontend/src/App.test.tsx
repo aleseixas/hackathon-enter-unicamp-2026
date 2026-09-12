@@ -213,12 +213,12 @@ describe('application business flows', () => {
     await screen.findByText('Concluído');
     expect(screen.getByRole('heading', { name: 'ACORDO' })).toBeInTheDocument();
 
-    await user.click(screen.getByText('Minha fila', { selector: 'a.back-link' }));
+    await user.click(screen.getByText('Para analisar', { selector: 'a.back-link' }));
     await waitFor(() =>
       expect(screen.queryByRole('row', { name: /José Carlos Oliveira/ })).not.toBeInTheDocument(),
     );
     const lawyerNavigation = screen.getByRole('navigation', { name: 'Navegação principal' });
-    await user.click(within(lawyerNavigation).getByRole('link', { name: 'Meus processos' }));
+    await user.click(within(lawyerNavigation).getByRole('link', { name: 'Enviados' }));
     const completedAgreement = await screen.findByRole('row', { name: /José Carlos Oliveira/ });
     expect(within(completedAgreement).getByText('Concluído')).toBeInTheDocument();
     expect(
@@ -260,7 +260,7 @@ describe('application business flows', () => {
     await screen.findByText(justification);
 
     const navigation = screen.getByRole('navigation', { name: 'Navegação principal' });
-    await user.click(within(navigation).getByRole('link', { name: 'Meus processos' }));
+    await user.click(within(navigation).getByRole('link', { name: 'Enviados' }));
     await user.click(
       await screen.findByRole('link', {
         name: /^(Analisar agora|Continuar análise|Ver decisão): processo de José Carlos Oliveira$/,
@@ -350,7 +350,7 @@ describe('application business flows', () => {
     );
     await screen.findByRole('heading', { name: 'Maria Aparecida Santos', level: 1 });
 
-    await user.click(screen.getByText('Minha fila', { selector: 'a.back-link' }));
+    await user.click(screen.getByText('Para analisar', { selector: 'a.back-link' }));
     mariaRow = await screen.findByRole('row', { name: /Maria Aparecida Santos/ });
     expect(within(mariaRow).getByText('Visualizado')).toBeInTheDocument();
     await user.click(
@@ -361,21 +361,13 @@ describe('application business flows', () => {
     await screen.findByRole('heading', { name: 'Maria Aparecida Santos', level: 1 });
 
     await followRecommendation(user);
-    await user.click(screen.getByText('Minha fila', { selector: 'a.back-link' }));
+    await user.click(screen.getByText('Para analisar', { selector: 'a.back-link' }));
     await waitFor(() =>
       expect(screen.queryByRole('row', { name: /Maria Aparecida Santos/ })).not.toBeInTheDocument(),
     );
 
-    const negotiationRow = await screen.findByRole('row', { name: /Luciana Martins Ferreira/ });
-    expect(within(negotiationRow).getByText('Em negociação')).toBeInTheDocument();
-    expect(
-      within(negotiationRow).getByRole('link', {
-        name: 'Continuar negociação: processo de Luciana Martins Ferreira',
-      }),
-    ).toBeInTheDocument();
-
     const navigation = screen.getByRole('navigation', { name: 'Navegação principal' });
-    await user.click(within(navigation).getByRole('link', { name: 'Meus processos' }));
+    await user.click(within(navigation).getByRole('link', { name: 'Enviados' }));
     mariaRow = await screen.findByRole('row', { name: /Maria Aparecida Santos/ });
     expect(within(mariaRow).getByText('Decisão registrada')).toBeInTheDocument();
     expect(
@@ -383,16 +375,71 @@ describe('application business flows', () => {
         name: 'Ver decisão: processo de Maria Aparecida Santos',
       }),
     ).toBeInTheDocument();
+    const negotiationRow = screen.getByRole('row', { name: /Luciana Martins Ferreira/ });
+    expect(within(negotiationRow).getByText('Em negociação')).toBeInTheDocument();
+    expect(
+      within(negotiationRow).getByRole('link', {
+        name: 'Continuar negociação: processo de Luciana Martins Ferreira',
+      }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('row', { name: /Roberto Alves Souza/ })).not.toBeInTheDocument();
   });
 
-  it('keeps an agreement decision in the action queue until its proposal is registered', async () => {
+  it('shows both attached examples only under cases to analyze and opens their PDF sources', async () => {
+    const user = userEvent.setup();
+    renderApp();
+    await user.click(screen.getByRole('button', { name: /Entrar como Advogado/ }));
+
+    expect(await screen.findByRole('heading', { name: 'Para analisar' })).toBeInTheDocument();
+    const mariaAttachment = screen.getByRole('row', { name: /0801234-56\.2024\.8\.10\.0001/ });
+    const joseAttachment = screen.getByRole('row', { name: /0654321-09\.2024\.8\.04\.0001/ });
+    expect(within(mariaAttachment).getByText('Novo')).toBeInTheDocument();
+    expect(within(joseAttachment).getByText('Novo')).toBeInTheDocument();
+
+    await user.click(
+      within(mariaAttachment).getByRole('link', {
+        name: 'Analisar agora: processo de Maria das Graças Silva Pereira',
+      }),
+    );
+    await screen.findByRole('heading', { name: 'Maria das Graças Silva Pereira', level: 1 });
+    await user.click(
+      screen.getByRole('button', { name: 'Ver evidência: Extrato bancário, página 1' }),
+    );
+    const viewer = screen.getByRole('dialog', { name: 'Extrato bancário' });
+    expect(within(viewer).getByTitle('Extrato bancário — página 1')).toHaveAttribute(
+      'src',
+      expect.stringContaining(
+        '/demo-cases/Caso_01_0801234-56-2024-8-10-0001/03_Extrato_Bancario.pdf#page=1',
+      ),
+    );
+    await user.click(within(viewer).getByRole('button', { name: 'Voltar à análise' }));
+    await user.click(screen.getByText('Para analisar', { selector: 'a.back-link' }));
+
+    const navigation = screen.getByRole('navigation', { name: 'Navegação principal' });
+    await user.click(within(navigation).getByRole('link', { name: 'Enviados' }));
+    expect(
+      screen.queryByRole('row', { name: /0801234-56\.2024\.8\.10\.0001/ }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('row', { name: /0654321-09\.2024\.8\.04\.0001/ }),
+    ).not.toBeInTheDocument();
+    expect(
+      await screen.findByRole('row', { name: /Luciana Martins Ferreira/ }),
+    ).toBeInTheDocument();
+  });
+
+  it('moves an agreement decision to sent items and keeps the next action visible', async () => {
     const user = userEvent.setup();
     renderApp();
     await openLawyerCase(user, 'José Carlos Oliveira');
     await followRecommendation(user);
 
-    await user.click(screen.getByText('Minha fila', { selector: 'a.back-link' }));
+    await user.click(screen.getByText('Para analisar', { selector: 'a.back-link' }));
+    await waitFor(() =>
+      expect(screen.queryByRole('row', { name: /José Carlos Oliveira/ })).not.toBeInTheDocument(),
+    );
+    const navigation = screen.getByRole('navigation', { name: 'Navegação principal' });
+    await user.click(within(navigation).getByRole('link', { name: 'Enviados' }));
     const agreementRow = await screen.findByRole('row', { name: /José Carlos Oliveira/ });
     expect(within(agreementRow).getByText('Decisão registrada')).toBeInTheDocument();
     expect(
@@ -408,12 +455,16 @@ describe('application business flows', () => {
     await user.click(screen.getByRole('button', { name: /Entrar como Administrativo/ }));
     await user.click(await screen.findByRole('link', { name: 'Efetividade' }));
 
-    expect(await screen.findByText('Propostas registradas')).toBeInTheDocument();
-    expect(screen.getByText('Acordos aceitos')).toBeInTheDocument();
-    expect(screen.getByText('Propostas recusadas')).toBeInTheDocument();
-    expect(screen.getByText('Taxa de aceitação')).toBeInTheDocument();
-    expect(screen.getByText('Valor médio ofertado')).toBeInTheDocument();
-    expect(screen.getByText('Valor médio fechado')).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Da proposta a economia' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Propostas de acordo')).toBeInTheDocument();
+    expect(screen.getByText('Taxa de aceitacao')).toBeInTheDocument();
+    expect(screen.getAllByText('Custo sem politica').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Custo com politica').length).toBeGreaterThan(0);
+    expect(
+      screen.getByRole('heading', { name: 'Como as propostas terminaram' }),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Política de acordos' }));
     const policy = screen.getByRole('dialog', { name: 'Política de acordos vigente' });

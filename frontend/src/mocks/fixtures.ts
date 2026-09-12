@@ -50,6 +50,7 @@ interface CaseFixture {
   officeCluster: string;
   adherenceBase: number;
   assigned: boolean;
+  subject?: string;
   confidenceScore: number;
   confidenceBand: string;
   subsidyCount: number;
@@ -67,6 +68,115 @@ interface CaseFixture {
 }
 
 const caseFixtures: CaseFixture[] = [
+  {
+    id: 'caso-anexo-01',
+    number: '0801234-56.2024.8.10.0001',
+    plaintiff: 'Maria das Graças Silva Pereira',
+    city: 'São Luís',
+    uf: 'MA',
+    claim: 20000,
+    risk: 'BAIXO',
+    recommendation: 'DEFESA',
+    probability: 0.24,
+    condemnation: 7500,
+    defense: 2400,
+    settlement: null,
+    status: 'AGUARDANDO_DECISAO',
+    lawyer: 'Marina Azevedo',
+    firm: 'Prado Tavares',
+    lawyerProfileLabel: 'Guardia da politica',
+    lawyerProfileDescription: 'Segue a politica de forma disciplinada e diverge pouco.',
+    officeCluster: 'alto desempenho',
+    adherenceBase: 0.91,
+    assigned: true,
+    subject: 'Empréstimo consignado não reconhecido',
+    confidenceScore: 0.91,
+    confidenceBand: 'Alta',
+    subsidyCount: 7,
+    criticalSubsidyCount: 5,
+    completenessBand: 'Alta',
+    summary:
+      'A autora contesta o empréstimo consignado nº 502348719. O dossiê fornecido reúne contrato, crédito de R$ 5.000 em conta de mesma titularidade, registros de identificação e histórico de parcelas.',
+    allegation:
+      'A autora afirma que não contratou o empréstimo, que desconhece os descontos de R$ 120 e que não houve movimentação compatível com o crédito.',
+    contract:
+      'O contrato nº 502348719, datado de 10/05/2022, contém qualificação, condições da operação e assinatura manual atribuída à autora.',
+    transfer:
+      'O extrato registra crédito de R$ 5.000 em 12/05/2022 na conta de mesma titularidade e movimentações posteriores por TED, Pix e saque.',
+    biometrics:
+      'O Dossiê Veritas registra assinatura compatível em 91%, documentos válidos e liveness facial de 97,3%. Os percentuais pertencem ao documento fictício fornecido.',
+    bacen:
+      'O comprovante BACEN registra a operação e a liberação do crédito vinculadas ao contrato questionado.',
+    statuses: ['PRESENTE', 'PRESENTE', 'PRESENTE', 'PRESENTE', 'PRESENTE', 'PRESENTE', 'PRESENTE'],
+    reasons: [
+      'O contrato assinado identifica a autora e apresenta as condições do empréstimo.',
+      'O extrato mostra o crédito de R$ 5.000 em conta de mesma titularidade e movimentações posteriores.',
+      'BACEN, Dossiê Veritas e histórico de 21 parcelas formam um conjunto documental convergente.',
+    ],
+    missing: [
+      'Conferir a gravação de voz e o ACK do INSS mencionados no laudo, pois esses arquivos não vieram no dossiê.',
+      'Esclarecer a divergência entre “sem inadimplência” no laudo e as parcelas em aberto no demonstrativo.',
+    ],
+  },
+  {
+    id: 'caso-anexo-02',
+    number: '0654321-09.2024.8.04.0001',
+    plaintiff: 'José Raimundo Oliveira Costa',
+    city: 'Manaus',
+    uf: 'AM',
+    claim: 25000,
+    risk: 'ALTO',
+    recommendation: 'ACORDO',
+    probability: 0.72,
+    condemnation: 12600,
+    defense: 9072,
+    settlement: { opening: 4500, target: 6000, ceiling: 7500 },
+    status: 'AGUARDANDO_DECISAO',
+    lawyer: 'Marina Azevedo',
+    firm: 'Prado Tavares',
+    lawyerProfileLabel: 'Guardia da politica',
+    lawyerProfileDescription: 'Segue a politica de forma disciplinada e diverge pouco.',
+    officeCluster: 'alto desempenho',
+    adherenceBase: 0.91,
+    assigned: true,
+    subject: 'Contratação digital contestada',
+    confidenceScore: 0.56,
+    confidenceBand: 'Baixa',
+    subsidyCount: 4,
+    criticalSubsidyCount: 2,
+    completenessBand: 'Baixa',
+    summary:
+      'O autor contesta o empréstimo nº 603827451 e a conta indicada para liberação. O dossiê contém registros BACEN, demonstrativo da dívida e laudo referenciado, mas não contém o contrato, o aceite nem o extrato da conta de destino.',
+    allegation:
+      'O autor afirma que nunca contratou pelo aplicativo, não possui smartphone compatível nem a conta Caixa indicada e atribui a operação a fraude.',
+    contract:
+      'O contrato assinado ou termo de aceite eletrônico não foi incluído no dossiê fornecido.',
+    transfer:
+      'O BACEN registra liberação de R$ 8.500 para uma conta Caixa atribuída ao tomador, mas não há extrato da conta de destino confirmando o recebimento.',
+    biometrics:
+      'O laudo referencia fingerprint, geolocalização, IP e biometria. O mesmo documento informa que o vídeo de liveness não foi localizado e que não houve verificação grafotécnica complementar.',
+    bacen:
+      'O comprovante BACEN registra contrato em 18/07/2023 e liberação em 19/07/2023 para a conta Caixa declarada como pertencente ao autor.',
+    statuses: [
+      'PRESENTE',
+      'AUSENTE',
+      'INCONCLUSIVO',
+      'INCONCLUSIVO',
+      'PRESENTE',
+      'AUSENTE',
+      'PRESENTE',
+    ],
+    reasons: [
+      'O contrato assinado e o termo de aceite eletrônico não estão no dossiê.',
+      'O principal artefato de autenticação, o vídeo de liveness, não foi localizado.',
+      'Falta extrato da conta de destino que confirme titularidade e recebimento do crédito.',
+    ],
+    missing: [
+      'Obter o contrato ou termo de aceite eletrônico e a trilha completa da formalização.',
+      'Confirmar a titularidade da conta Caixa e o recebimento por extrato independente.',
+      'Solicitar o vídeo de liveness e os documentos citados pelo autor, como BO e reclamação BACEN.',
+    ],
+  },
   {
     id: 'caso-1',
     number: '1004827-32.2026.8.26.0114',
@@ -459,7 +569,8 @@ const caseFixtures: CaseFixture[] = [
     lawyer: 'Rafael Moura',
     firm: 'Duarte Fontes',
     lawyerProfileLabel: 'Cauteloso com baixa confianca',
-    lawyerProfileDescription: 'Confia no modelo quando a confianca e alta, mas revisa casos cinzentos.',
+    lawyerProfileDescription:
+      'Confia no modelo quando a confianca e alta, mas revisa casos cinzentos.',
     officeCluster: 'autonomia alta',
     adherenceBase: 0.66,
     assigned: false,
@@ -507,7 +618,118 @@ const documentCategories = [
   ['pagamentos', 'Histórico de pagamentos'],
 ] as const;
 
+const attachedDocumentsByCaseId: Record<string, CaseDocument[]> = {
+  'caso-anexo-01': [
+    {
+      id: 'caso-anexo-01-autos',
+      name: 'Autos do processo',
+      category: 'Petição inicial',
+      status: 'PRESENTE',
+      page_count: 8,
+      url: '/demo-cases/Caso_01_0801234-56-2024-8-10-0001/01_Autos_Processo_0801234-56-2024-8-10-0001.pdf',
+      description:
+        'Petição inicial e peças processuais do caso fictício fornecido para o hackathon.',
+    },
+    {
+      id: 'caso-anexo-01-contrato',
+      name: 'Contrato nº 502348719',
+      category: 'Contrato',
+      status: 'PRESENTE',
+      page_count: 2,
+      url: '/demo-cases/Caso_01_0801234-56-2024-8-10-0001/02_Contrato_502348719.pdf',
+      description: 'Instrumento contratual atribuído à autora.',
+    },
+    {
+      id: 'caso-anexo-01-extrato',
+      name: 'Extrato bancário',
+      category: 'Crédito e movimentação',
+      status: 'PRESENTE',
+      page_count: 1,
+      url: '/demo-cases/Caso_01_0801234-56-2024-8-10-0001/03_Extrato_Bancario.pdf',
+      description: 'Extrato da conta indicada para recebimento do crédito.',
+    },
+    {
+      id: 'caso-anexo-01-bacen',
+      name: 'Comprovante de crédito BACEN',
+      category: 'Liberação do crédito',
+      status: 'PRESENTE',
+      page_count: 2,
+      url: '/demo-cases/Caso_01_0801234-56-2024-8-10-0001/04_Comprovante_de_Credito_BACEN.pdf',
+      description: 'Registro da operação e da liberação do crédito.',
+    },
+    {
+      id: 'caso-anexo-01-veritas',
+      name: 'Dossiê Veritas',
+      category: 'Identificação e biometria',
+      status: 'PRESENTE',
+      page_count: 2,
+      url: '/demo-cases/Caso_01_0801234-56-2024-8-10-0001/05_Dossie_Veritas.pdf',
+      description: 'Registros de documentos, assinatura e prova de vida.',
+    },
+    {
+      id: 'caso-anexo-01-divida',
+      name: 'Demonstrativo da dívida',
+      category: 'Histórico de parcelas',
+      status: 'PRESENTE',
+      page_count: 3,
+      url: '/demo-cases/Caso_01_0801234-56-2024-8-10-0001/06_Demonstrativo_Evolucao_Divida.pdf',
+      description: 'Evolução das parcelas e lançamentos do contrato.',
+    },
+    {
+      id: 'caso-anexo-01-laudo',
+      name: 'Laudo referenciado',
+      category: 'Análise documental',
+      status: 'PRESENTE',
+      page_count: 2,
+      url: '/demo-cases/Caso_01_0801234-56-2024-8-10-0001/07_Laudo_Referenciado.pdf',
+      description: 'Relação das evidências disponíveis e dos pontos que ainda exigem conferência.',
+    },
+  ],
+  'caso-anexo-02': [
+    {
+      id: 'caso-anexo-02-autos',
+      name: 'Autos do processo',
+      category: 'Petição inicial',
+      status: 'PRESENTE',
+      page_count: 8,
+      url: '/demo-cases/Caso_02_0654321-09-2024-8-04-0001/01_Autos_Processo_0654321-09-2024-8-04-0001.pdf',
+      description:
+        'Petição inicial e peças processuais do caso fictício fornecido para o hackathon.',
+    },
+    {
+      id: 'caso-anexo-02-bacen',
+      name: 'Comprovante de crédito BACEN',
+      category: 'Liberação do crédito',
+      status: 'PRESENTE',
+      page_count: 2,
+      url: '/demo-cases/Caso_02_0654321-09-2024-8-04-0001/02_Comprovante_de_Credito_BACEN.pdf',
+      description: 'Registro da operação e da conta indicada para liberação.',
+    },
+    {
+      id: 'caso-anexo-02-divida',
+      name: 'Demonstrativo da dívida',
+      category: 'Histórico de parcelas',
+      status: 'PRESENTE',
+      page_count: 3,
+      url: '/demo-cases/Caso_02_0654321-09-2024-8-04-0001/03_Demonstrativo_Evolucao_Divida.pdf',
+      description: 'Evolução das parcelas e lançamentos do contrato.',
+    },
+    {
+      id: 'caso-anexo-02-laudo',
+      name: 'Laudo referenciado',
+      category: 'Análise documental',
+      status: 'PRESENTE',
+      page_count: 2,
+      url: '/demo-cases/Caso_02_0654321-09-2024-8-04-0001/04_Laudo_Referenciado.pdf',
+      description: 'Relação de rastros digitais e lacunas documentais do caso.',
+    },
+  ],
+};
+
 function documentsFor(fixture: CaseFixture): CaseDocument[] {
+  const attachedDocuments = attachedDocumentsByCaseId[fixture.id];
+  if (attachedDocuments) return attachedDocuments.map((document) => ({ ...document }));
+
   const texts = [
     fixture.summary,
     fixture.contract,
@@ -589,7 +811,7 @@ export const demoCases: CaseDetail[] = caseFixtures.map((fixture) => ({
   lawyer_profile_description: fixture.lawyerProfileDescription,
   office_cluster: fixture.officeCluster,
   adherence_base: fixture.adherenceBase,
-  subject: 'Contestação de contratação bancária',
+  subject: fixture.subject ?? 'Contestação de contratação bancária',
   summary: fixture.summary,
   documents: documentsFor(fixture),
 }));
@@ -608,7 +830,132 @@ function source(caseId: string, categoryIndex: number, page = 1): SourceReferenc
   };
 }
 
+function attachedSource(
+  caseId: string,
+  documentId: string,
+  page: number,
+  excerpt: string,
+): SourceReference {
+  const document = demoCases
+    .find((item) => item.case_id === caseId)
+    ?.documents.find((item) => item.id === documentId);
+  if (!document || page < 1 || page > document.page_count)
+    throw new Error(`A fixture referencia uma página inexistente: ${documentId}, página ${page}.`);
+  return {
+    document_id: document.id,
+    document_name: document.name,
+    page,
+    excerpt,
+    origin: 'Dossiê processual fictício fornecido para o Hackathon UFMG 2026 · PDF',
+  };
+}
+
 function evidenceFor(fixture: CaseFixture): Evidence[] {
+  if (fixture.id === 'caso-anexo-01')
+    return [
+      {
+        id: 'caso-anexo-01-alegacao',
+        kind: 'ALEGACAO',
+        title: 'Contratação e descontos são contestados',
+        description: fixture.allegation,
+        source: attachedSource(
+          fixture.id,
+          'caso-anexo-01-autos',
+          2,
+          'A autora afirma não reconhecer o contrato nem os descontos mensais.',
+        ),
+      },
+      {
+        id: 'caso-anexo-01-contrato-e-assinatura',
+        kind: 'FAVORAVEL',
+        title: 'Contrato com identificação e assinatura',
+        description: fixture.contract,
+        source: attachedSource(
+          fixture.id,
+          'caso-anexo-01-contrato',
+          2,
+          'O instrumento contém assinatura manual atribuída à autora.',
+        ),
+      },
+      {
+        id: 'caso-anexo-01-credito',
+        kind: 'FAVORAVEL',
+        title: 'Crédito e movimentação na conta',
+        description: fixture.transfer,
+        source: attachedSource(
+          fixture.id,
+          'caso-anexo-01-extrato',
+          1,
+          'O extrato registra crédito de R$ 5.000 e movimentações posteriores.',
+        ),
+      },
+      {
+        id: 'caso-anexo-01-identificacao',
+        kind: 'FAVORAVEL',
+        title: 'Assinatura 91% · liveness 97,3%',
+        description: fixture.biometrics,
+        source: attachedSource(
+          fixture.id,
+          'caso-anexo-01-veritas',
+          1,
+          'O dossiê registra compatibilidade de assinatura e prova de vida facial.',
+        ),
+      },
+      {
+        id: 'caso-anexo-01-laudo-atencao',
+        kind: 'RISCO',
+        title: 'Arquivos citados ainda precisam ser conferidos',
+        description:
+          'O laudo menciona gravação de voz e ACK do INSS, mas esses dois arquivos não vieram no conjunto fornecido.',
+        source: attachedSource(
+          fixture.id,
+          'caso-anexo-01-laudo',
+          2,
+          'O laudo relaciona gravação e ACK entre os elementos considerados.',
+        ),
+      },
+    ];
+
+  if (fixture.id === 'caso-anexo-02')
+    return [
+      {
+        id: 'caso-anexo-02-alegacao',
+        kind: 'ALEGACAO',
+        title: 'Contratação digital e conta são contestadas',
+        description: fixture.allegation,
+        source: attachedSource(
+          fixture.id,
+          'caso-anexo-02-autos',
+          2,
+          'O autor nega a contratação pelo aplicativo e a titularidade da conta indicada.',
+        ),
+      },
+      {
+        id: 'caso-anexo-02-bacen',
+        kind: 'FAVORAVEL',
+        title: 'BACEN registra operação e liberação',
+        description: fixture.bacen,
+        source: attachedSource(
+          fixture.id,
+          'caso-anexo-02-bacen',
+          1,
+          'O comprovante registra a operação de R$ 8.500 e a conta indicada para liberação.',
+        ),
+      },
+      {
+        id: 'caso-anexo-02-liveness',
+        kind: 'RISCO',
+        title: 'Vídeo de liveness não localizado',
+        description: fixture.biometrics,
+        source: attachedSource(
+          fixture.id,
+          'caso-anexo-02-laudo',
+          2,
+          'O laudo informa que o vídeo de liveness não foi localizado.',
+        ),
+      },
+    ];
+
   const evidence: Evidence[] = [
     {
       id: `${fixture.id}-alegacao`,
@@ -664,6 +1011,62 @@ function evidenceFor(fixture: CaseFixture): Evidence[] {
 }
 
 function contradictionsFor(fixture: CaseFixture): Contradiction[] {
+  if (fixture.id === 'caso-anexo-01')
+    return [
+      {
+        id: 'caso-anexo-01-credito-contestado',
+        title: 'Ausência de movimentação alegada × extrato da conta',
+        description:
+          'O extrato contrasta com a alegação de ausência de movimentação compatível. A autoria das saídas ainda deve ser avaliada pelo advogado.',
+        allegation: {
+          text: 'A autora afirma que não houve movimentação compatível com o crédito.',
+          source: attachedSource(
+            fixture.id,
+            'caso-anexo-01-autos',
+            2,
+            'A autora afirma que não houve movimentação compatível com o crédito.',
+          ),
+        },
+        documentary_fact: {
+          text: 'O extrato registra crédito de R$ 5.000 e movimentações posteriores.',
+          source: attachedSource(
+            fixture.id,
+            'caso-anexo-01-extrato',
+            1,
+            'O extrato registra crédito de R$ 5.000 e movimentações posteriores.',
+          ),
+        },
+      },
+    ];
+
+  if (fixture.id === 'caso-anexo-02')
+    return [
+      {
+        id: 'caso-anexo-02-titularidade',
+        title: 'Conta Caixa negada × titularidade registrada',
+        description:
+          'O registro BACEN atribui a conta ao tomador, enquanto a inicial nega a titularidade. O documento não substitui o extrato da conta de destino.',
+        allegation: {
+          text: 'O autor afirma não possuir a conta Caixa indicada na operação.',
+          source: attachedSource(
+            fixture.id,
+            'caso-anexo-02-autos',
+            3,
+            'O autor afirma não possuir a conta Caixa indicada na operação.',
+          ),
+        },
+        documentary_fact: {
+          text: 'O comprovante BACEN declara a conta Caixa como pertencente ao tomador.',
+          source: attachedSource(
+            fixture.id,
+            'caso-anexo-02-bacen',
+            1,
+            'O comprovante BACEN declara a conta Caixa como pertencente ao tomador.',
+          ),
+        },
+      },
+    ];
+
   if (fixture.id === 'caso-2')
     return [
       {
@@ -701,6 +1104,14 @@ function contradictionsFor(fixture: CaseFixture): Contradiction[] {
   return [];
 }
 
+function nextEvidenceTitle(fixture: CaseFixture): string {
+  if (fixture.id === 'caso-anexo-02') return 'Confirmar titularidade, recebimento e aceite';
+  if (fixture.id === 'caso-anexo-01') return 'Conferir os arquivos citados no laudo';
+  if (fixture.id === 'caso-2') return 'Obter comprovação independente do crédito';
+  if (fixture.recommendation === 'REVISAR') return 'Completar a documentação de contratação';
+  return 'Complementar a evidência documental';
+}
+
 export const demoRecommendations: Record<string, RecommendationResponse> = Object.fromEntries(
   caseFixtures.map((fixture) => [
     fixture.id,
@@ -717,12 +1128,7 @@ export const demoRecommendations: Record<string, RecommendationResponse> = Objec
       contradictions: contradictionsFor(fixture),
       missing_evidence: fixture.missing,
       next_best_evidence: {
-        title:
-          fixture.id === 'caso-2'
-            ? 'Obter comprovação independente do crédito'
-            : fixture.recommendation === 'REVISAR'
-              ? 'Completar a documentação de contratação'
-              : 'Complementar a evidência documental',
+        title: nextEvidenceTitle(fixture),
         description: fixture.missing[0],
         simulation: {
           hypothesis:
