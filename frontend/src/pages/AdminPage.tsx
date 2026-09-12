@@ -105,6 +105,35 @@ function MetricGrid({ items }: { items: Metric[] }) {
   );
 }
 
+function ViewSwitcher({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: { id: string; label: string }[];
+  value: string;
+  onChange: (id: string) => void;
+}) {
+  return (
+    <div className="admin-view-switcher" role="tablist" aria-label={label}>
+      {options.map((option) => (
+        <button
+          key={option.id}
+          type="button"
+          role="tab"
+          aria-selected={value === option.id}
+          className={`admin-view-button${value === option.id ? ' is-active' : ''}`}
+          onClick={() => onChange(option.id)}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function SnapshotNote({ updatedAt }: { updatedAt: string }) {
   return (
     <div className="admin-snapshot-note">
@@ -447,7 +476,7 @@ function AdherenceHighlights({
   return (
     <section className="admin-adherence-highlights" aria-label="Destaques da aderencia">
       {topAdherentProfile && (
-        <article className="admin-highlight-card">
+        <article className="admin-highlight-card is-profile">
           <div className="admin-highlight-rank">Perfil #1 em aderencia</div>
           <div className="admin-highlight-head">
             <strong>{topAdherentProfile.label}</strong>
@@ -461,7 +490,7 @@ function AdherenceHighlights({
         </article>
       )}
       {mostAutonomousFirm && (
-        <article className="admin-highlight-card">
+        <article className="admin-highlight-card is-firm">
           <div className="admin-highlight-rank">Escritorio mais autonomo</div>
           <div className="admin-highlight-head">
             <strong>{mostAutonomousFirm.name}</strong>
@@ -475,7 +504,7 @@ function AdherenceHighlights({
         </article>
       )}
       {mostNegotiatingProfile && (
-        <article className="admin-highlight-card">
+        <article className="admin-highlight-card is-agreement">
           <div className="admin-highlight-rank">Perfil mais negociador</div>
           <div className="admin-highlight-head">
             <strong>{mostNegotiatingProfile.label}</strong>
@@ -491,10 +520,40 @@ function AdherenceHighlights({
   );
 }
 
+function AdherenceHighlightsPanel({
+  rows,
+  overallAdherence,
+}: {
+  rows: AdminDecisionRow[];
+  overallAdherence: number;
+}) {
+  return (
+    <section
+      className="panel admin-panel admin-adherence-panel admin-adherence-panel-overview"
+      aria-labelledby="adherence-highlights-heading"
+    >
+      <div className="admin-panel-heading">
+        <div>
+          <span className="admin-section-kicker">LEITURA GERAL</span>
+          <h2 id="adherence-highlights-heading">Panorama da aderencia</h2>
+        </div>
+        <ShieldCheck size={19} aria-hidden="true" />
+      </div>
+      <p className="admin-panel-description">
+        Um resumo rapido dos sinais mais importantes da aderencia antes de abrir os detalhes.
+      </p>
+      <AdherenceHighlights rows={rows} overallAdherence={overallAdherence} />
+    </section>
+  );
+}
+
 function ProfileBehaviorPanel({ rows }: { rows: AdminDecisionRow[] }) {
   const profiles = summarizeProfiles(rows).slice(0, 4);
   return (
-    <section className="panel admin-panel" aria-labelledby="profile-behavior-heading">
+    <section
+      className="panel admin-panel admin-adherence-panel admin-adherence-panel-profiles"
+      aria-labelledby="profile-behavior-heading"
+    >
       <div className="admin-panel-heading">
         <div>
           <span className="admin-section-kicker">PERFIS COMPORTAMENTAIS</span>
@@ -546,7 +605,10 @@ function FirmComparisonPanel({
 }) {
   const firms = summarizeFirms(rows).slice(0, 5);
   return (
-    <section className="panel admin-panel" aria-labelledby="firm-comparison-heading">
+    <section
+      className="panel admin-panel admin-adherence-panel admin-adherence-panel-firms"
+      aria-labelledby="firm-comparison-heading"
+    >
       <div className="admin-panel-heading">
         <div>
           <span className="admin-section-kicker">ESCRITORIOS COMPARADOS</span>
@@ -596,7 +658,10 @@ function AdherenceModelCard({ rows }: { rows: AdminDecisionRow[] }) {
   const mostAutonomousFirm = [...firms].sort((left, right) => left.adherenceRate - right.adherenceRate)[0];
 
   return (
-    <section className="panel admin-panel" aria-labelledby="adherence-model-heading">
+    <section
+      className="panel admin-panel admin-adherence-panel admin-adherence-panel-model"
+      aria-labelledby="adherence-model-heading"
+    >
       <div className="admin-panel-heading">
         <div>
           <span className="admin-section-kicker">O QUE ESTE MODELO TRAZ</span>
@@ -1148,62 +1213,78 @@ function DecisionTable({ rows }: { rows: AdminDecisionRow[] }) {
 
 function Overview({ data }: { data: AdminDashboard }) {
   const metrics = data.metrics;
+  const [activeView, setActiveView] = useState<'evolution' | 'distribution' | 'override' | 'recent'>(
+    'evolution',
+  );
   return (
     <>
       <MetricGrid
         items={[
           {
-            label: 'Decisões registradas',
+            label: 'Decisoes registradas',
             value: count(metrics.decisions),
-            hint: 'No período demonstrado',
+            hint: 'No periodo demonstrado',
             icon: FileCheck2,
           },
           {
-            label: 'Aderência à política',
+            label: 'Aderencia a politica',
             value: percent(metrics.adherence_rate),
-            hint: 'Decisões alinhadas à recomendação',
+            hint: 'Decisoes alinhadas a recomendacao',
             icon: ShieldCheck,
             accent: true,
           },
           {
-            label: 'Divergências',
+            label: 'Divergencias',
             value: count(metrics.overrides),
-            hint: 'Decisões com divergência',
+            hint: 'Decisoes com divergencia',
             icon: GitBranch,
           },
           {
             label: 'Acordos fechados',
             value: count(metrics.settlements),
-            hint: 'Negociações concluídas',
+            hint: 'Negociacoes concluidas',
             icon: CheckCheck,
           },
           {
-            label: 'Taxa de aceitação',
+            label: 'Taxa de aceitacao',
             value: percent(metrics.acceptance_rate),
-            hint: 'Propostas aceitas no período',
+            hint: 'Propostas aceitas no periodo',
             icon: ShieldCheck,
           },
           {
-            label: 'Valor médio fechado',
+            label: 'Valor medio fechado',
             value: money(metrics.average_closed_value, true),
             hint: 'Por acordo fechado',
             icon: CircleDollarSign,
           },
         ]}
       />
-      <div className="admin-chart-grid">
-        <EvolutionChart data={data.evolution} />
-        <DistributionChart data={data.distribution} />
-      </div>
-      <div className="admin-bottom-grid">
-        <OverrideReasons data={data.override_reasons} />
-        <RecentDecisions rows={data.decisions} />
+      <ViewSwitcher
+        label="Visualizacoes da visao geral"
+        options={[
+          { id: 'evolution', label: 'Evolucao' },
+          { id: 'distribution', label: 'Distribuicao' },
+          { id: 'override', label: 'Divergencias' },
+          { id: 'recent', label: 'Ultimas decisoes' },
+        ]}
+        value={activeView}
+        onChange={(id) =>
+          setActiveView(id as 'evolution' | 'distribution' | 'override' | 'recent')
+        }
+      />
+      <div className="admin-view-stage">
+        {activeView === 'evolution' && <EvolutionChart data={data.evolution} />}
+        {activeView === 'distribution' && <DistributionChart data={data.distribution} />}
+        {activeView === 'override' && <OverrideReasons data={data.override_reasons} />}
+        {activeView === 'recent' && <RecentDecisions rows={data.decisions} />}
       </div>
     </>
   );
 }
-
 function Adherence({ data }: { data: AdminDashboard }) {
+  const [activeView, setActiveView] = useState<
+    'highlights' | 'profiles' | 'firms' | 'overrides' | 'model'
+  >('highlights');
   return (
     <>
       <MetricGrid
@@ -1237,20 +1318,36 @@ function Adherence({ data }: { data: AdminDashboard }) {
           },
         ]}
       />
-      <AdherenceHighlights
-        rows={data.decisions}
-        overallAdherence={data.metrics.adherence_rate}
+      <ViewSwitcher
+        label="Visualizacoes da aderencia"
+        options={[
+          { id: 'highlights', label: 'Panorama' },
+          { id: 'profiles', label: 'Perfis' },
+          { id: 'firms', label: 'Escritorios' },
+          { id: 'overrides', label: 'Motivos' },
+          { id: 'model', label: 'Modelo' },
+        ]}
+        value={activeView}
+        onChange={(id) =>
+          setActiveView(id as 'highlights' | 'profiles' | 'firms' | 'overrides' | 'model')
+        }
       />
-      <div className="admin-adherence-grid">
-        <ProfileBehaviorPanel rows={data.decisions} />
-        <FirmComparisonPanel
-          rows={data.decisions}
-          overallAdherence={data.metrics.adherence_rate}
-        />
-      </div>
-      <div className="admin-chart-grid">
-        <OverrideReasons data={data.override_reasons} />
-        <AdherenceModelCard rows={data.decisions} />
+      <div className="admin-view-stage">
+        {activeView === 'highlights' && (
+          <AdherenceHighlightsPanel
+            rows={data.decisions}
+            overallAdherence={data.metrics.adherence_rate}
+          />
+        )}
+        {activeView === 'profiles' && <ProfileBehaviorPanel rows={data.decisions} />}
+        {activeView === 'firms' && (
+          <FirmComparisonPanel
+            rows={data.decisions}
+            overallAdherence={data.metrics.adherence_rate}
+          />
+        )}
+        {activeView === 'overrides' && <OverrideReasons data={data.override_reasons} />}
+        {activeView === 'model' && <AdherenceModelCard rows={data.decisions} />}
       </div>
       <DecisionTable rows={data.decisions} />
     </>
@@ -1260,6 +1357,7 @@ function Adherence({ data }: { data: AdminDashboard }) {
 function Effectiveness({ data }: { data: AdminDashboard }) {
   const metrics = data.metrics;
   const simulation = data.historical_simulation;
+  const [activeView, setActiveView] = useState<'savings' | 'outcomes' | 'timeline'>('savings');
   return (
     <>
       <div className="admin-subsection-heading">
@@ -1316,11 +1414,25 @@ function Effectiveness({ data }: { data: AdminDashboard }) {
         <strong>{money(metrics.estimated_savings, true)}</strong>
         <span className="admin-operational-scope">Cenario de demonstracao</span>
       </div>
-      <div className="admin-chart-grid admin-effectiveness-grid">
-        <SavingsFlowChart data={data.effectiveness_savings_flow} />
-        <EffectivenessOutcomeChart data={data.effectiveness_outcomes} />
+      <ViewSwitcher
+        label="Visualizacoes da efetividade"
+        options={[
+          { id: 'savings', label: 'Economia' },
+          { id: 'outcomes', label: 'Resultados' },
+          { id: 'timeline', label: 'Trajetoria' },
+        ]}
+        value={activeView}
+        onChange={(id) => setActiveView(id as 'savings' | 'outcomes' | 'timeline')}
+      />
+      <div className="admin-view-stage admin-effectiveness-stage">
+        {activeView === 'savings' && <SavingsFlowChart data={data.effectiveness_savings_flow} />}
+        {activeView === 'outcomes' && (
+          <EffectivenessOutcomeChart data={data.effectiveness_outcomes} />
+        )}
+        {activeView === 'timeline' && (
+          <EffectivenessTimeline data={data.effectiveness_timeline} />
+        )}
       </div>
-      <EffectivenessTimeline data={data.effectiveness_timeline} />
       <section className="admin-simulation" aria-labelledby="simulation-heading">
         <div className="admin-simulation-heading">
           <div>
@@ -1486,5 +1598,7 @@ export default function AdminPage() {
     </div>
   );
 }
+
+
 
 

@@ -142,6 +142,48 @@
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.37fr);
   gap: 20px;
 }
+.admin-view-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 2px 0 18px;
+}
+.admin-view-button {
+  min-height: 36px;
+  padding: 0 13px;
+  border: 1px solid #e4e2d8;
+  border-radius: 999px;
+  background: #f5f4ef;
+  color: #66665e;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 550;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+.admin-view-button:hover {
+  border-color: #d5c7aa;
+  color: #44463f;
+}
+.admin-view-button.is-active {
+  background: #efe6d2;
+  border-color: #d7c39a;
+  color: #433a2d;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+.admin-view-button:focus-visible {
+  outline: 2px solid var(--accent, #eeab4c);
+  outline-offset: 3px;
+}
+.admin-view-stage {
+  margin-bottom: 24px;
+}
+.admin-view-stage > * {
+  margin-bottom: 0;
+}
 .admin-panel {
   min-width: 0;
   background: var(--surface, #fff);
@@ -472,11 +514,43 @@
   gap: 14px;
   margin: -2px 0 24px;
 }
+.admin-adherence-panel-overview .admin-adherence-highlights {
+  margin: 24px 0 0;
+}
 .admin-highlight-card {
+  position: relative;
   padding: 18px 18px 17px;
   border: 1px solid #eadfc9;
   border-radius: 12px;
-  background: linear-gradient(180deg, #fcf7ee 0%, #f7f1e5 100%);
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+.admin-highlight-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+}
+.admin-highlight-card.is-profile {
+  background: linear-gradient(180deg, #fbf4e7 0%, #f5ead5 100%);
+  border-color: #e8d5af;
+}
+.admin-highlight-card.is-profile::before {
+  background: linear-gradient(90deg, #edb460 0%, #bf8940 100%);
+}
+.admin-highlight-card.is-firm {
+  background: linear-gradient(180deg, #edf4ec 0%, #e3ede1 100%);
+  border-color: #d4e2d0;
+}
+.admin-highlight-card.is-firm::before {
+  background: linear-gradient(90deg, #6a8a65 0%, #4d6849 100%);
+}
+.admin-highlight-card.is-agreement {
+  background: linear-gradient(180deg, #f3f1eb 0%, #ece7dd 100%);
+  border-color: #ddd8cb;
+}
+.admin-highlight-card.is-agreement::before {
+  background: linear-gradient(90deg, #8d8573 0%, #5f6257 100%);
 }
 .admin-highlight-rank {
   color: #8c7348;
@@ -502,6 +576,14 @@
   flex-shrink: 0;
   color: #9d7634;
 }
+.admin-highlight-card.is-firm .admin-highlight-rank,
+.admin-highlight-card.is-firm .admin-highlight-head svg {
+  color: #587053;
+}
+.admin-highlight-card.is-agreement .admin-highlight-rank,
+.admin-highlight-card.is-agreement .admin-highlight-head svg {
+  color: #6f7067;
+}
 .admin-highlight-value {
   margin: 16px 0 8px;
   font-size: clamp(26px, 2.2vw, 34px);
@@ -516,6 +598,67 @@
   color: #6f6758;
   font-size: 12px;
   line-height: 1.6;
+}
+.admin-highlight-card.is-firm p {
+  color: #5d6758;
+}
+.admin-highlight-card.is-agreement p {
+  color: #66665d;
+}
+.admin-adherence-panel {
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
+.admin-adherence-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+}
+.admin-adherence-panel-profiles {
+  border-color: #eadab8;
+  background:
+    radial-gradient(circle at top right, rgba(237, 180, 96, 0.18), transparent 34%),
+    linear-gradient(180deg, #fbf7ef 0%, #f5efe3 100%);
+}
+.admin-adherence-panel-profiles::before {
+  background: linear-gradient(90deg, #edb460 0%, #bf8940 100%);
+}
+.admin-adherence-panel-firms {
+  border-color: #d9e5d7;
+  background:
+    radial-gradient(circle at top right, rgba(89, 112, 83, 0.14), transparent 34%),
+    linear-gradient(180deg, #f2f6f1 0%, #eaf0e8 100%);
+}
+.admin-adherence-panel-firms::before {
+  background: linear-gradient(90deg, #6a8a65 0%, #4d6849 100%);
+}
+.admin-adherence-panel-model {
+  border-color: #e2ddcf;
+  background:
+    radial-gradient(circle at top right, rgba(141, 133, 115, 0.12), transparent 34%),
+    linear-gradient(180deg, #f5f3ed 0%, #ece7dd 100%);
+}
+.admin-adherence-panel-model::before {
+  background: linear-gradient(90deg, #8d8573 0%, #5f6257 100%);
+}
+.admin-adherence-panel .admin-panel-heading > svg {
+  padding: 8px;
+  border-radius: 10px;
+  box-sizing: content-box;
+}
+.admin-adherence-panel-profiles .admin-panel-heading > svg {
+  color: #9d7634;
+  background: rgba(237, 180, 96, 0.16);
+}
+.admin-adherence-panel-firms .admin-panel-heading > svg {
+  color: #587053;
+  background: rgba(89, 112, 83, 0.12);
+}
+.admin-adherence-panel-model .admin-panel-heading > svg {
+  color: #6f6f66;
+  background: rgba(141, 133, 115, 0.12);
 }
 .admin-profile-list,
 .admin-firm-list,
@@ -534,9 +677,10 @@
 }
 .admin-profile-card {
   padding: 16px 17px;
-  border: 1px solid #ebe8df;
+  border: 1px solid #e7d8ba;
   border-radius: 10px;
-  background: #fcfbf8;
+  background: rgba(255, 249, 238, 0.9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 .admin-profile-card-top,
 .admin-firm-top {
@@ -582,11 +726,21 @@
   color: #595b53;
   font-size: 12px;
 }
+.admin-profile-meta > span,
+.admin-firm-stats > span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid rgba(187, 168, 129, 0.28);
+}
 .admin-profile-track,
 .admin-firm-track {
-  height: 6px;
+  height: 7px;
   border-radius: 999px;
-  background: #efeee8;
+  background: rgba(108, 99, 77, 0.12);
   overflow: hidden;
   margin-top: 12px;
 }
@@ -598,12 +752,13 @@
   background: linear-gradient(90deg, #edb460 0%, #bf8940 100%);
 }
 .admin-firm-row {
-  padding-bottom: 14px;
-  border-bottom: 1px solid #f0eee8;
+  padding: 15px 15px 13px;
+  border: 1px solid rgba(112, 134, 107, 0.18);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.5);
 }
 .admin-firm-row:last-child {
-  padding-bottom: 0;
-  border-bottom: 0;
+  padding-bottom: 13px;
 }
 .admin-firm-stats {
   margin-top: 10px;
@@ -633,6 +788,10 @@
   display: flex;
   align-items: flex-start;
   gap: 9px;
+  padding: 12px 13px;
+  border: 1px solid rgba(141, 133, 115, 0.18);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.42);
   color: #5e6058;
   font-size: 12px;
   line-height: 1.6;
@@ -649,7 +808,8 @@
   margin-top: 22px;
   padding: 14px;
   border-radius: 8px;
-  background: #f5efe3;
+  border: 1px solid rgba(186, 175, 150, 0.26);
+  background: rgba(255, 249, 240, 0.62);
   color: #6f5e3d;
   font-size: 12px;
   line-height: 1.65;
@@ -1321,6 +1481,9 @@
   .admin-adherence-highlights {
     grid-template-columns: minmax(0, 1fr);
   }
+  .admin-view-switcher {
+    margin-bottom: 16px;
+  }
   .admin-profile-card-top,
   .admin-firm-top {
     flex-direction: column;
@@ -1374,6 +1537,10 @@
   }
   .admin-metric-hint {
     font-size: 11px;
+  }
+  .admin-view-button {
+    min-height: 34px;
+    padding: 0 11px;
   }
   .admin-panel {
     padding: 21px;
