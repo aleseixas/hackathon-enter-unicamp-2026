@@ -13,7 +13,13 @@ import {
   TriangleAlert,
 } from 'lucide-react';
 import { getCase, getDecision, getNegotiation, getRecommendation } from '../services/api';
-import type { CaseDocument, RecommendationResponse, SourceReference } from '../types';
+import type {
+  CaseDocument,
+  DecisionRecord,
+  NegotiationRecord,
+  RecommendationResponse,
+  SourceReference,
+} from '../types';
 import { useAsync } from '../hooks/useAsync';
 import { money, percent, shortDate } from '../lib/format';
 import { markCaseAsViewed } from '../lib/caseProgress';
@@ -26,83 +32,122 @@ function RecommendationCard({
   data,
   claimValue,
   actions,
+  onViewSource,
 }: {
   data: RecommendationResponse;
   claimValue: number;
   actions: ReactNode;
+  onViewSource: (source: SourceReference) => void;
 }) {
   const review = data.recommendation === 'REVISAR';
   return (
-    <>
-      <div className={`recommendation-card recommendation-${data.recommendation.toLowerCase()}`}>
-        <div className="recommendation-eyebrow">
-          <span>
-            <Sparkles size={13} />
-            Recomendação
-          </span>
-          <span className="rec-status-dot" />
+    <div className={`recommendation-card recommendation-${data.recommendation.toLowerCase()}`}>
+      <div className="recommendation-primary-row">
+        <div className="recommendation-identity">
+          <div className="recommendation-eyebrow">
+            <span>
+              <Sparkles size={15} />
+              RECOMENDAÇÃO DA POLÍTICA
+            </span>
+            <span className="rec-status-dot" />
+          </div>
+          <div className="recommendation-title">
+            <h2>{data.recommendation}</h2>
+            {review ? (
+              <FileSearch size={32} />
+            ) : data.recommendation === 'DEFESA' ? (
+              <ShieldCheck size={32} />
+            ) : (
+              <Scale size={32} />
+            )}
+          </div>
+          <p className="recommendation-subtitle">
+            {review
+              ? 'Revise os pontos pendentes antes de definir a estratégia.'
+              : data.recommendation === 'DEFESA'
+                ? 'Prosseguir com a defesa judicial, sem acordo neste momento.'
+                : 'Buscar acordo dentro dos valores indicados pela política.'}
+          </p>
         </div>
-        <div className="recommendation-title">
-          <h2>{data.recommendation}</h2>
-          {review ? (
-            <FileSearch size={27} />
-          ) : data.recommendation === 'DEFESA' ? (
-            <ShieldCheck size={27} />
-          ) : (
-            <Scale size={27} />
-          )}
-        </div>
-        <p className="recommendation-subtitle">
-          {review
-            ? 'Uma análise mais próxima faz a diferença.'
-            : data.recommendation === 'DEFESA'
-              ? 'Prosseguir com a defesa judicial, sem acordo neste momento.'
-              : 'Um caminho para resolver este caso.'}
-        </p>
         <div className="recommendation-key-facts">
+          <div>
+            <span>Risco estimado de perda</span>
+            <strong>{data.loss_probability === null ? 'Não calculado' : percent(data.loss_probability)}</strong>
+          </div>
           <div>
             <span>Valor da causa</span>
             <strong>{money(claimValue)}</strong>
           </div>
-          {data.loss_probability !== null && (
-            <div>
-              <span>Risco estimado de perda</span>
-              <strong>{percent(data.loss_probability)}</strong>
-            </div>
-          )}
-        </div>
-        {review && (
-          <div className="review-message">
-            <TriangleAlert size={17} />
-            <p>Há evidências conflitantes ou insuficientes para uma recomendação conclusiva.</p>
+          <div className="recommended-value">
+            <span>Valor sugerido</span>
+            <strong>{data.settlement ? money(data.settlement.target) : 'Não se aplica'}</strong>
           </div>
-        )}
+        </div>
+        <div id="decision-actions">{actions}</div>
       </div>
-      {actions}
-      <div className="recommendation-rationale">
-        <h3>Por que esta é a melhor opção agora</h3>
-        {data.reasons.slice(0, 3).map((reason) => (
-          <p key={reason}>
-            <Check size={13} />
-            <span>{reason}</span>
-          </p>
-        ))}
+
+      <div className="decision-brief-grid">
+        <section className="recommendation-rationale" aria-labelledby="reasons-heading">
+          <h3 id="reasons-heading">Por que esta é a melhor opção</h3>
+          {data.reasons.slice(0, 3).map((reason) => (
+            <p key={reason}>
+              <Check size={16} />
+              <span>{reason}</span>
+            </p>
+          ))}
+        </section>
+        <section className="recommendation-evidence-preview" aria-labelledby="sources-heading">
+          <h3 id="sources-heading">Evidências principais</h3>
+          {data.evidence.slice(0, 3).map((evidence) => (
+            <button
+              key={evidence.id}
+              type="button"
+              onClick={() => onViewSource(evidence.source)}
+              aria-label={`Abrir fonte: ${evidence.source.document_name}, página ${evidence.source.page}`}
+            >
+              <span>{evidence.title}</span>
+              <small>
+                {evidence.source.document_name} · página {evidence.source.page}
+              </small>
+              <small>{evidence.source.origin}</small>
+            </button>
+          ))}
+        </section>
       </div>
+
+      {review && (
+        <div className="review-message">
+          <TriangleAlert size={18} />
+          <p>Há evidências conflitantes ou insuficientes para uma recomendação conclusiva.</p>
+        </div>
+      )}
       {data.missing_evidence.length > 0 && (
         <div className="missing-evidence">
           <h3>
-            <CircleHelp size={14} />
+            <CircleHelp size={17} />
             Ponto de atenção
           </h3>
-          <ul>
-            {data.missing_evidence.slice(0, 1).map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
+          <p>{data.missing_evidence[0]}</p>
         </div>
       )}
-    </>
+    </div>
   );
+}
+
+function nextActionCopy(decision: DecisionRecord | null, negotiation: NegotiationRecord | null) {
+  if (!decision) return 'Confira os motivos e escolha Seguir recomendação ou Divergir.';
+  if (decision.decision === 'ACORDO' && !negotiation) {
+    return 'Decisão salva. Registre agora a proposta de acordo.';
+  }
+  if (
+    decision.decision === 'ACORDO' &&
+    negotiation &&
+    (negotiation.status === 'PENDENTE' || negotiation.status === 'CONTRAPROPOSTA')
+  ) {
+    return 'Atualize o resultado da negociação para concluir o caso.';
+  }
+  if (decision.decision === 'ACORDO') return 'Caso concluído. O resultado da negociação foi registrado.';
+  return 'Decisão registrada. Este caso não exige outra ação agora.';
 }
 
 export default function WorkspacePage() {
@@ -204,22 +249,17 @@ export default function WorkspacePage() {
           </button>
         </div>
       )}
+      <section className="workspace-next-action" aria-label="Próxima ação">
+        <span>PRÓXIMA AÇÃO</span>
+        <strong>{nextActionCopy(decision, negotiation)}</strong>
+      </section>
       <div className="workspace-decision-overview">
-        <section className="case-context case-context-brief">
-          <div>
-            <span className="context-icon" aria-hidden="true">
-              <Scale size={17} />
-            </span>
-            <span className="eyebrow">PROCESSO</span>
-          </div>
-          <h2>{caseDetail.subject}</h2>
-          <p>{caseDetail.summary}</p>
-        </section>
         <aside className="workspace-recommendation" aria-label="Recomendação e decisão">
           <section className="panel decision-panel">
             <RecommendationCard
               data={recommendation}
               claimValue={caseDetail.claim_value}
+              onViewSource={viewSource}
               actions={
                 <DecisionActions
                   key={`${caseId}-${decision?.id || 'pending'}`}
@@ -232,12 +272,14 @@ export default function WorkspacePage() {
             />
           </section>
           {decision?.decision === 'ACORDO' && (
-            <NegotiationPanel
-              key={caseId}
-              recommendation={recommendation}
-              negotiation={negotiation}
-              onSaved={saved}
-            />
+            <div id="negotiation-panel">
+              <NegotiationPanel
+                key={caseId}
+                recommendation={recommendation}
+                negotiation={negotiation}
+                onSaved={saved}
+              />
+            </div>
           )}
         </aside>
       </div>
@@ -269,6 +311,11 @@ export default function WorkspacePage() {
               {recommendation.demo_data && <Badge value="DEMO" />}
             </div>
             <div className="case-details-body">
+              <div className="case-summary-detail">
+                <span>Assunto</span>
+                <h3>{caseDetail.subject}</h3>
+                <p>{caseDetail.summary}</p>
+              </div>
               <dl className="cost-summary">
                 {recommendation.expected_condemnation !== null && (
                   <div>

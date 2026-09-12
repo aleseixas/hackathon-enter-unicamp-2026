@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   BriefcaseBusiness,
@@ -21,7 +21,7 @@ import { useSession } from '../hooks/session';
 import { initials } from '../lib/format';
 import { demoCases } from '../mocks/behavioralFixtures';
 import { isMockMode, resetDemoData } from '../services/api';
-import { Brand, Button, Modal, Notice } from './ui';
+import { Badge, Brand, Button, Modal, Notice } from './ui';
 
 const demoLawyer = isMockMode ? demoCases.find((item) => item.assigned_to_me) : undefined;
 
@@ -31,9 +31,13 @@ export default function AppShell() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [policyOpen, setPolicyOpen] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
   const [resetStatus, setResetStatus] = useState<'idle' | 'pending' | 'success'>('idle');
   const [resetError, setResetError] = useState<string | null>(null);
+  useEffect(() => {
+    if (!navigator.userAgent.includes('jsdom')) window.scrollTo({ top: 0, left: 0 });
+  }, [location.pathname]);
   const admin = role === 'ADMINISTRATIVO';
   const profileName = admin ? 'Equipe do banco' : (demoLawyer?.lawyer_name ?? 'Perfil do advogado');
   const closeHelp = () => {
@@ -69,7 +73,7 @@ export default function AppShell() {
       ]
     : [
         { to: '/minha-fila', label: 'Minha fila', icon: ListFilter },
-        { to: '/processos', label: 'Todos os processos', icon: Files },
+        { to: '/processos', label: 'Meus processos', icon: Files },
       ];
   const workspace = location.pathname.startsWith('/processos/');
   const currentLabel = workspace
@@ -187,8 +191,10 @@ export default function AppShell() {
                 Sistema demonstrativo
               </span>
               <span className="topbar-separator" />
-              <Scale size={16} />
-              <span>Política de acordos</span>
+              <button className="topbar-policy" onClick={() => setPolicyOpen(true)}>
+                <Scale size={16} />
+                Política de acordos
+              </button>
             </div>
           </div>
         </header>
@@ -331,6 +337,40 @@ export default function AppShell() {
             )}
           </section>
         )}
+      </Modal>
+      <Modal
+        open={policyOpen}
+        onClose={() => setPolicyOpen(false)}
+        title="Política de acordos vigente"
+        description="Os mesmos critérios orientam todas as recomendações apresentadas aos advogados."
+      >
+        <div className="modal-body policy-rules">
+          <article>
+            <Badge value="ACORDO" />
+            <div>
+              <h3>Buscar composição</h3>
+              <p>Quando o risco e as evidências favorecem uma solução dentro da faixa aprovada.</p>
+            </div>
+          </article>
+          <article>
+            <Badge value="DEFESA" />
+            <div>
+              <h3>Prosseguir com a defesa</h3>
+              <p>Quando a prova documental sustenta a tese e o acordo não é a melhor opção agora.</p>
+            </div>
+          </article>
+          <article>
+            <Badge value="REVISAR" />
+            <div>
+              <h3>Confirmar antes de decidir</h3>
+              <p>Quando faltam documentos ou há contradições que exigem análise humana.</p>
+            </div>
+          </article>
+          <Notice tone="warning">
+            A política orienta a decisão. Toda divergência exige motivo e justificativa e fica
+            disponível para monitoramento administrativo.
+          </Notice>
+        </div>
       </Modal>
     </div>
   );

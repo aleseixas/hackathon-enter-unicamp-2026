@@ -13,6 +13,7 @@ import {
   Database,
   FileCheck2,
   GitBranch,
+  Handshake,
   Info,
   Layers3,
   RefreshCw,
@@ -249,7 +250,7 @@ function OverrideReasons({ data }: { data: AdminDashboard['override_reasons'] })
         </div>
         <GitBranch size={19} aria-hidden="true" />
       </div>
-      <p className="admin-panel-description">Motivos dos overrides no cenário de demonstração.</p>
+      <p className="admin-panel-description">Motivos das divergências no cenário de demonstração.</p>
       {data.length ? (
         <div className="admin-reasons">
           {data.map((item) => (
@@ -446,7 +447,7 @@ function DecisionTable({ rows }: { rows: AdminDecisionRow[] }) {
           >
             <option value="">Todas</option>
             <option value="adherent">Aderente</option>
-            <option value="override">Override</option>
+            <option value="override">Divergência</option>
           </select>
         </label>
       </div>
@@ -524,7 +525,7 @@ function DecisionTable({ rows }: { rows: AdminDecisionRow[] }) {
                         ) : (
                           <GitBranch size={14} aria-hidden="true" />
                         )}
-                        {row.adherent ? 'Aderente' : 'Override'}
+                        {row.adherent ? 'Aderente' : 'Divergência'}
                       </span>
                     </td>
                     <td className="admin-number-cell">{money(row.suggested_value)}</td>
@@ -578,7 +579,7 @@ function DecisionTable({ rows }: { rows: AdminDecisionRow[] }) {
                             )}
                             {row.override_reason_label && (
                               <div>
-                                <dt>Motivo do override</dt>
+                                <dt>Motivo da divergência</dt>
                                 <dd>{humanizeToken(row.override_reason_label)}</dd>
                               </div>
                             )}
@@ -675,7 +676,7 @@ function Overview({ data }: { data: AdminDashboard }) {
             accent: true,
           },
           {
-            label: 'Overrides',
+            label: 'Divergências',
             value: count(metrics.overrides),
             hint: 'Decisões com divergência',
             icon: GitBranch,
@@ -731,7 +732,7 @@ function Adherence({ data }: { data: AdminDashboard }) {
             icon: FileCheck2,
           },
           {
-            label: 'Overrides registrados',
+            label: 'Divergências registradas',
             value: count(data.metrics.overrides),
             hint: 'Decisões com divergência',
             icon: GitBranch,
@@ -747,7 +748,7 @@ function Adherence({ data }: { data: AdminDashboard }) {
           <span className="admin-section-kicker">DECISÃO HUMANA, CONTEXTO PRESERVADO</span>
           <h2 id="governance-heading">Cada divergência tem algo a dizer.</h2>
           <p>
-            O override registra a escolha do advogado quando ela difere da recomendação. A
+            A divergência registra a escolha do advogado quando ela difere da recomendação. A
             justificativa preserva o contexto para a análise da operação.
           </p>
           <div>
@@ -768,6 +769,7 @@ function Adherence({ data }: { data: AdminDashboard }) {
 function Effectiveness({ data }: { data: AdminDashboard }) {
   const metrics = data.metrics;
   const simulation = data.historical_simulation;
+  const proposals = metrics.settlements + metrics.rejected + metrics.counteroffers;
   return (
     <>
       <div className="admin-subsection-heading">
@@ -780,7 +782,13 @@ function Effectiveness({ data }: { data: AdminDashboard }) {
       <MetricGrid
         items={[
           {
-            label: 'Acordos fechados',
+            label: 'Propostas registradas',
+            value: count(proposals),
+            hint: 'Com resultado informado ou pendente',
+            icon: Handshake,
+          },
+          {
+            label: 'Acordos aceitos',
             value: count(metrics.settlements),
             hint: 'Negociações concluídas',
             icon: CheckCheck,
@@ -797,12 +805,6 @@ function Effectiveness({ data }: { data: AdminDashboard }) {
             value: count(metrics.rejected),
             hint: 'Resultado informado no período',
             icon: X,
-          },
-          {
-            label: 'Contrapropostas',
-            value: count(metrics.counteroffers),
-            hint: 'Retornos com outro valor',
-            icon: GitBranch,
           },
           {
             label: 'Valor médio ofertado',

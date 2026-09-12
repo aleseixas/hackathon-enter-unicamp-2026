@@ -23,7 +23,7 @@ const labels: Record<string, string> = {
   RECUSADO: 'Recusado',
   CONTRAPROPOSTA: 'Contraproposta',
   ADERENTE: 'Aderente',
-  OVERRIDE: 'Override',
+  OVERRIDE: 'Divergência',
   DEMO: 'Demo data',
   SIMULACAO: 'Simulação',
   LOCAL: 'Nesta demo',
