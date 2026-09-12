@@ -1,0 +1,90 @@
+{
+  "total_processos": 60000,
+  "taxa_aderencia_global": 0.5642,
+  "taxa_override": 0.4358,
+  "taxa_aceite_acordos": 0.5793,
+  "tempo_decisao_medio_min": 79.32,
+  "razoes_override": {
+    "advogado_mais_negociador": 2185,
+    "caso_caro_exigiu_postura_propria": 5192,
+    "baixa_confianca_modelo": 12820,
+    "estrategia_do_escritorio": 1003,
+    "avaliacao_juridica_individual": 3631,
+    "informacao_nova_na_analise": 963,
+    "estrategia_autonoma_do_advogado": 355
+  },
+  "piores_advogados": [
+    {
+      "advogado_id": "ADV028",
+      "advogado_nome": "Fernanda Lima 28",
+      "escritorio_nome": "Nogueira Bastos",
+      "total": 1667,
+      "taxa_aderencia": 0.4667
+    },
+    {
+      "advogado_id": "ADV036",
+      "advogado_nome": "Camila Duarte 36",
+      "escritorio_nome": "Duarte Fontes",
+      "total": 1704,
+      "taxa_aderencia": 0.4994
+    },
+    {
+      "advogado_id": "ADV027",
+      "advogado_nome": "Camila Duarte 27",
+      "escritorio_nome": "Nogueira Bastos",
+      "total": 1678,
+      "taxa_aderencia": 0.5024
+    },
+    {
+      "advogado_id": "ADV031",
+      "advogado_nome": "Camila Duarte 31",
+      "escritorio_nome": "Duarte Fontes",
+      "total": 1666,
+      "taxa_aderencia": 0.5036
+    },
+    {
+      "advogado_id": "ADV030",
+      "advogado_nome": "Juliana Teixeira 30",
+      "escritorio_nome": "Nogueira Bastos",
+      "total": 1707,
+      "taxa_aderencia": 0.5196
+    }
+  ],
+  "melhores_advogados": [
+    {
+      "advogado_id": "ADV020",
+      "advogado_nome": "Marina Azevedo 20",
+      "escritorio_nome": "Silva Moura",
+      "total": 1676,
+      "taxa_aderencia": 0.6175
+    },
+    {
+      "advogado_id": "ADV013",
+      "advogado_nome": "Marina Azevedo 13",
+      "escritorio_nome": "Prado Tavares",
+      "total": 1571,
+      "taxa_aderencia": 0.6085
+    },
+    {
+      "advogado_id": "ADV011",
+      "advogado_nome": "Juliana Teixeira 11",
+      "escritorio_nome": "Costa Ribeiro",
+      "total": 1702,
+      "taxa_aderencia": 0.6075
+    },
+    {
+      "advogado_id": "ADV012",
+      "advogado_nome": "Leonardo Siqueira 12",
+      "escritorio_nome": "Costa Ribeiro",
+      "total": 1656,
+      "taxa_aderencia": 0.6069
+    },
+    {
+      "advogado_id": "ADV003",
+      "advogado_nome": "Rafael Moura 3",
+      "escritorio_nome": "Almeida Rocha",
+      "total": 1660,
+      "taxa_aderencia": 0.606
+    }
+  ]
+}

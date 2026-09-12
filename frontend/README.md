@@ -32,7 +32,7 @@ Abra a URL indicada pelo Vite no terminal. O modo mock funciona sem arquivo de a
 2. Abra **Maria Aparecida Santos (`caso-1`)**. A causa é de R$ 20.000, com recomendação demonstrativa de **defesa** e risco de perda de **23%**. Consulte os indicadores simulados de assinatura (**91%**) e face (**97,3%**), abra suas fontes e confira a página. Registre a confirmação da recomendação. Uma escolha diferente exige motivo e justificativa.
 3. Abra **José Carlos Oliveira (`caso-2`)**. A causa é de R$ 25.000, com recomendação demonstrativa de **acordo** e risco de perda de **72%**. Em contradições, confronte a alegação de não possuir conta na Caixa com a atribuição ao tomador na consulta BACEN MOCK. Essa consulta não resolve as lacunas de comprovação independente do crédito e de liveness.
 4. No caso 2, confira a faixa de **R$ 4.500 / R$ 5.200 / R$ 6.500** para abertura, alvo e teto. Os valores de condenação e custo esperado de defesa, **R$ 10.500 / R$ 7.560**, já vêm da fixture. Confirme a decisão de acordo e registre uma negociação. Para demonstrar uma conclusão, informe proposta de R$ 4.500, situação aceita e valor final de R$ 5.200. Pendência, recusa e contraproposta também têm estados próprios.
-5. Saia pelo menu lateral e entre como **Administrativo**. Consulte **Visão geral**, **Aderência**, **Efetividade** e **Decisões**. Os registros salvos no navegador aparecem na tabela. Os KPIs e gráficos continuam sendo exemplos estáticos, e a simulação histórica tem premissas fictícias próprias.
+5. Saia pelo menu lateral e entre como **Administrativo**. Consulte **Visão geral**, **Aderência**, **Efetividade** e **Decisões**. Os registros salvos no navegador aparecem na tabela. Os KPIs e graficos foram alinhados a uma base sintetica maior, enquanto a simulacao historica continua separada dos registros feitos no navegador.
 
 O `caso-3` demonstra a recomendação **Revisar**, com dados numéricos indisponíveis e documentação insuficiente. A seção sobre a próxima evidência mostra uma **SIMULAÇÃO** textual; nenhuma interação executa um modelo ou recalcula a recomendação.
 
@@ -52,11 +52,11 @@ As sete categorias documentais têm estados **Presente**, **Ausente** ou **Incon
 
 Para documentos reais disponibilizados futuramente pela API em `CaseDocument.url`, o visualizador usa um `iframe` e acrescenta a página ao fragmento da URL, como `#page=2`. O comportamento de PDFs depende do visualizador do navegador e da permissão de incorporação do servidor de origem. A URL também pode ser aberta separadamente.
 
-Os indicadores agregados e gráficos administrativos representam um cenário demonstrativo maior e não são totais da tabela visível. Registros locais atualizam a tabela e seu estado, sem recalcular KPIs financeiros. A simulação histórica permanece separada e não representa economia realizada.
+Os indicadores agregados e graficos administrativos representam um cenario sintetico maior e nao sao totais da tabela visivel. Registros locais atualizam a tabela e seu estado, sem recalcular KPIs financeiros. A simulacao historica permanece separada e nao representa economia realizada.
 
 ## Integração futura
 
-Todas as chamadas estão em [`src/services/api.ts`](src/services/api.ts), com contratos em [`src/types/index.ts`](src/types/index.ts). Os componentes não fazem `fetch` diretamente. Por padrão, o serviço retorna cópias das fixtures com pequena latência simulada.
+Todas as chamadas estão em [`src/services/api.ts`](src/services/api.ts), com contratos em [`src/types/index.ts`](src/types/index.ts). Os componentes não fazem `fetch` diretamente. Por padrão, o serviço retorna cópias dos mocks comportamentais em [`src/mocks/behavioralFixtures.ts`](src/mocks/behavioralFixtures.ts), com pequena latência simulada.
 
 Para direcionar o frontend a uma API, crie `frontend/.env.local` a partir da raiz do repositório:
 
@@ -76,6 +76,6 @@ O [contrato de integração](docs/frontend-api.md) descreve os endpoints, retorn
 | `src/components` | Layout, elementos de interface, evidências e visualizador de documentos. |
 | `src/hooks` | Sessão demonstrativa e carregamento de dados. |
 | `src/services` | API central, persistência e testes da camada de dados. |
-| `src/mocks` | Casos, documentos, recomendações e indicadores demonstrativos. |
+| `src/mocks` | Casos, documentos, recomendacoes e indicadores demonstrativos, incluindo a camada comportamental sintetica. |
 | `src/types` | Contratos compartilhados do frontend. |
 | `src/styles` | Estilos e apresentação responsiva. |
