@@ -29,6 +29,7 @@
   --radius: 10px;
   --shadow: none;
   --font-heading: 'Geist Variable', Arial, sans-serif;
+  --page-gutter: clamp(24px, 1.8vw, 40px);
 }
 
 html {
@@ -292,7 +293,7 @@ textarea:focus-visible {
 /* Shell */
 
 .app-sidebar {
-  width: 246px;
+  width: 224px;
   background: var(--sidebar);
   border-color: var(--line-soft);
   padding: 26px 16px 0;
@@ -302,7 +303,7 @@ textarea:focus-visible {
 }
 
 .app-main {
-  margin-left: 246px;
+  margin-left: 224px;
   background: var(--bg);
 }
 
@@ -421,7 +422,8 @@ textarea:focus-visible {
 }
 
 .main-content {
-  max-width: 1640px;
+  max-width: none;
+  align-self: stretch;
 }
 
 .app-footer {
@@ -1659,6 +1661,37 @@ textarea:focus-visible {
 /* Responsive flow: the evidence always comes before the decision. */
 
 @media (min-width: 1500px) {
+  .quick-start h2,
+  .case-list-heading h2 {
+    font-size: 20px;
+  }
+
+  .quick-start-heading p,
+  .quick-start-steps li,
+  .queue-summary section > span,
+  .case-tabs button {
+    font-size: 14px;
+  }
+
+  .queue-summary section > strong {
+    font-size: 32px;
+  }
+
+  .search-input input,
+  .cases-table td,
+  .case-person {
+    font-size: 15px;
+  }
+
+  .cases-table th,
+  .case-number,
+  .case-city,
+  .case-status,
+  .money-cell,
+  .open-case {
+    font-size: 14px;
+  }
+
   .workspace-grid {
     grid-template-columns: minmax(0, 1fr) 380px;
     gap: 30px;

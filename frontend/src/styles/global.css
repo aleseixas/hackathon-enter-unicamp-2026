@@ -676,7 +676,7 @@ svg {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 33px;
+  padding: 0 var(--page-gutter, 33px);
   gap: 18px;
 }
 .breadcrumbs {
@@ -715,14 +715,14 @@ svg {
   margin: 0 5px;
 }
 .main-content {
-  padding: 33px 33px 40px;
+  padding: 33px var(--page-gutter, 33px) 40px;
   width: 100%;
-  max-width: 1680px;
-  align-self: center;
+  max-width: none;
+  align-self: stretch;
   flex: 1;
 }
 .app-footer {
-  margin: 0 33px;
+  margin: 0 var(--page-gutter, 33px);
   border-top: 1px solid var(--line);
   padding: 15px 0;
   display: flex;
@@ -1410,10 +1410,10 @@ svg {
 }
 @media (min-width: 1550px) {
   .main-content {
-    padding: 41px 45px;
+    padding: 41px var(--page-gutter, 45px);
   }
   .topbar {
-    padding: 0 45px;
+    padding: 0 var(--page-gutter, 45px);
   }
   .cases-table td {
     padding-top: 23px;
@@ -1424,6 +1424,64 @@ svg {
   }
   .page-title {
     font-size: 40px;
+  }
+}
+@media (min-width: 901px) {
+  .login-story {
+    display: grid;
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+    row-gap: clamp(14px, 2vh, 22px);
+    padding: clamp(28px, 4vh, 38px) clamp(40px, 5vw, 88px) clamp(20px, 3vh, 28px);
+  }
+  .login-story-content {
+    width: min(100%, 55rem);
+    padding: clamp(56px, 9vh, 104px) 0 clamp(24px, 4vh, 44px);
+    align-self: start;
+  }
+  .login-proof {
+    width: min(100%, 55rem);
+    margin-bottom: 0;
+  }
+  .login-story footer {
+    align-self: end;
+  }
+  .login-principles {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(8px, 1vw, 14px);
+    max-width: 45rem;
+  }
+  .login-access {
+    display: grid;
+    grid-template-rows: auto minmax(min-content, 1fr) auto;
+    justify-content: stretch;
+    padding: clamp(28px, 4vh, 38px) clamp(32px, 4vw, 72px) clamp(20px, 3vh, 28px);
+  }
+  .login-access-content {
+    width: min(100%, 32rem);
+    max-width: none;
+    margin: 0 auto;
+    align-self: start;
+    padding-top: clamp(64px, 10vh, 120px);
+  }
+}
+@media (min-width: 901px) and (max-height: 780px) {
+  .login-story-content {
+    padding-block: 32px 20px;
+  }
+  .login-access-content {
+    padding-top: 28px;
+  }
+  .access-icon {
+    margin-bottom: 18px;
+  }
+  .login-proof {
+    padding-block: 16px;
+  }
+}
+@media (min-width: 1200px) {
+  .login-page {
+    grid-template-columns: minmax(0, 1fr) clamp(600px, 42vw, 800px);
   }
 }
 @media (max-width: 1200px) {
