@@ -1,14 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import {
-  AlertCircle,
-  ArrowUpRight,
-  Check,
-  Circle,
-  LoaderCircle,
-  ShieldCheck,
-  X,
-} from 'lucide-react';
+import { AlertCircle, Check, Circle, LoaderCircle, ShieldCheck, X } from 'lucide-react';
 
 const labels: Record<string, string> = {
   ACORDO: 'Acordo',
@@ -85,12 +77,7 @@ export function Brand({
       className={`brand ${inverse ? 'brand-inverse' : ''}`}
       aria-label="Enter Policy — protótipo Hackathon"
     >
-      <span className="brand-symbol">
-        <ArrowUpRight size={23} strokeWidth={2.2} />
-      </span>
-      <span className="brand-name">
-        enter<span className="brand-period">.</span>
-      </span>
+      <img className="brand-logo" src="/enter-logo-full.svg" alt="" aria-hidden="true" />
       {!compact && (
         <>
           <span className="brand-divider" />

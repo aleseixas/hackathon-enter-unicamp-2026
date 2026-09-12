@@ -306,12 +306,6 @@ textarea:focus-visible {
   background: var(--bg);
 }
 
-.brand-symbol {
-  background: var(--accent);
-  color: var(--on-accent);
-}
-
-.brand-period,
 .nav-item.active > svg:first-child {
   color: var(--accent);
 }
@@ -1682,6 +1676,11 @@ textarea:focus-visible {
 
   .app-main {
     margin-left: 210px;
+  }
+
+  .brand-divider,
+  .brand-module {
+    display: none;
   }
 
   .quick-start {
