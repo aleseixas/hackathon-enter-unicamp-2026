@@ -7,7 +7,10 @@ import {
   Check,
   CircleHelp,
   Clock3,
+  FileCheck2,
   FileSearch,
+  Files,
+  ListChecks,
   MapPin,
   Scale,
   ShieldCheck,
@@ -163,9 +166,9 @@ export default function WorkspacePage() {
   if (error)
     return (
       <>
-        <Link className="back-link" to="/processos">
+        <Link className="back-link" to="/minha-fila">
           <ArrowLeft size={14} />
-          Voltar aos processos
+          Voltar à minha fila
         </Link>
         <ErrorState message={error} onRetry={reload} />
       </>
@@ -189,9 +192,9 @@ export default function WorkspacePage() {
     <div className="workspace-page page-enter" key={caseId}>
       <header className="workspace-header">
         <div className="workspace-topline">
-          <Link className="back-link" to="/processos">
+          <Link className="back-link" to="/minha-fila">
             <ArrowLeft size={14} />
-            Processos
+            Minha fila
           </Link>
           <span className="workspace-case-reference">{caseDetail.case_number}</span>
           <div className="workspace-header-badges">
@@ -238,25 +241,84 @@ export default function WorkspacePage() {
           </button>
         </div>
       )}
+      <nav className="workspace-steps" aria-label="Passos para analisar o processo">
+        <div className="workspace-steps-title">
+          <span>COMO ANALISAR</span>
+          <strong>Siga esta ordem</strong>
+        </div>
+        <a href="#passo-entender">
+          <span className="workspace-step-number">1</span>
+          <span>
+            <strong>Entenda o caso</strong>
+            <small>Leia o resumo</small>
+          </span>
+          <ListChecks size={18} aria-hidden="true" />
+        </a>
+        <a href="#passo-provas">
+          <span className="workspace-step-number">2</span>
+          <span>
+            <strong>Confira as provas</strong>
+            <small>Abra as fontes</small>
+          </span>
+          <Files size={18} aria-hidden="true" />
+        </a>
+        <a href="#passo-decisao">
+          <span className="workspace-step-number">3</span>
+          <span>
+            <strong>Registre a decisão</strong>
+            <small>Salve sua escolha</small>
+          </span>
+          <FileCheck2 size={18} aria-hidden="true" />
+        </a>
+      </nav>
       <div className="workspace-grid">
-        <DocumentsPanel
-          documents={recommendation.documents}
-          onOpen={(document, page = 1) => setViewer({ document, page })}
-        />
-        <div className="workspace-evidence">
-          <section className="case-context">
+        <div className="workspace-review">
+          <section className="case-context" id="passo-entender">
             <div>
-              <span className="context-icon">
+              <span className="workspace-step-number">1</span>
+              <span className="context-icon" aria-hidden="true">
                 <Scale size={17} />
               </span>
-              <span className="eyebrow">Contexto do caso</span>
+              <span className="eyebrow">PRIMEIRO: ENTENDA O CASO</span>
             </div>
             <h2>{caseDetail.subject}</h2>
             <p>{caseDetail.summary}</p>
           </section>
-          <EvidencePanel key={caseId} recommendation={recommendation} onViewSource={viewSource} />
+          <section className="workspace-proof-step" id="passo-provas">
+            <div className="workspace-section-heading">
+              <span className="workspace-step-number">2</span>
+              <div>
+                <span>DEPOIS: CONFIRA AS PROVAS</span>
+                <h2>Abra os documentos e confira os pontos importantes</h2>
+                <p>Clique em uma fonte sempre que quiser conferir de onde veio a informação.</p>
+              </div>
+            </div>
+            <DocumentsPanel
+              documents={recommendation.documents}
+              onOpen={(document, page = 1) => setViewer({ document, page })}
+            />
+            <div className="workspace-evidence">
+              <EvidencePanel
+                key={caseId}
+                recommendation={recommendation}
+                onViewSource={viewSource}
+              />
+            </div>
+          </section>
         </div>
-        <aside className="workspace-recommendation" aria-label="Recomendação e decisão">
+        <aside
+          className="workspace-recommendation"
+          id="passo-decisao"
+          aria-label="Recomendação e decisão"
+        >
+          <div className="workspace-section-heading decision-step-heading">
+            <span className="workspace-step-number">3</span>
+            <div>
+              <span>POR ÚLTIMO: DECIDA</span>
+              <h2>Escolha o próximo passo</h2>
+              <p>Veja a recomendação e salve a sua decisão.</p>
+            </div>
+          </div>
           <section className="panel decision-panel">
             <RecommendationCard
               data={recommendation}
@@ -265,6 +327,7 @@ export default function WorkspacePage() {
                   key={`${caseId}-${decision?.id || 'pending'}`}
                   recommendation={recommendation}
                   decision={decision}
+                  negotiation={negotiation}
                   onSaved={saved}
                 />
               }

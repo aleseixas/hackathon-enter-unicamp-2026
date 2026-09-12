@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { ArrowRight, Check, CheckCheck, Handshake, PencilLine } from 'lucide-react';
 import type {
   DecisionRecord,
@@ -24,10 +25,12 @@ const overrideReasons: { value: OverrideReason; label: string }[] = [
 export function DecisionActions({
   recommendation,
   decision,
+  negotiation,
   onSaved,
 }: {
   recommendation: RecommendationResponse;
   decision: DecisionRecord | null;
+  negotiation: NegotiationRecord | null;
   onSaved: (message: string) => void;
 }) {
   const [modal, setModal] = useState<'follow' | 'override' | null>(null);
@@ -103,7 +106,9 @@ export function DecisionActions({
             <div>
               <CheckCheck size={18} />
               <strong>Decisão registrada</strong>
-              <Badge value={decision.is_override ? 'OVERRIDE' : 'ADERENTE'} />
+              <Badge value={decision.is_override ? 'OVERRIDE' : 'ADERENTE'}>
+                {decision.is_override ? 'Escolha diferente' : 'Seguiu a recomendação'}
+              </Badge>
             </div>
             <p>
               Sua decisão: <b>{decision.decision}</b>
@@ -111,6 +116,21 @@ export function DecisionActions({
             <span>{shortDate(decision.created_at)}</span>
             {decision.justification && <blockquote>{decision.justification}</blockquote>}
             {decision.notes && <p className="receipt-notes">{decision.notes}</p>}
+            {decision.decision === 'ACORDO' ? (
+              <a className="decision-next-step" href="#negociacao">
+                {negotiation
+                  ? negotiation.status === 'ACEITA' || negotiation.status === 'RECUSADA'
+                    ? 'Ver resultado da negociação'
+                    : 'Ver negociação em andamento'
+                  : 'Próximo passo: registrar a proposta'}
+                <ArrowRight size={14} aria-hidden="true" />
+              </a>
+            ) : (
+              <Link className="decision-next-step" to="/minha-fila">
+                Ir para o próximo processo
+                <ArrowRight size={14} aria-hidden="true" />
+              </Link>
+            )}
             <div className="receipt-buttons">
               <button onClick={() => open('follow')}>
                 <Check size={12} />
@@ -124,6 +144,10 @@ export function DecisionActions({
           </div>
         ) : (
           <>
+            <div className="decision-choice-intro">
+              <strong>O que você quer fazer?</strong>
+              <span>Escolha uma opção. Nada será salvo sem sua confirmação.</span>
+            </div>
             <Button className="full accent" onClick={() => open('follow')}>
               {recommendation.recommendation === 'REVISAR'
                 ? 'Encaminhar para revisão'
@@ -132,19 +156,19 @@ export function DecisionActions({
             </Button>
             <Button variant="secondary" className="full" onClick={() => open('override')}>
               <PencilLine size={14} />
-              Divergir
+              Escolher outra decisão
             </Button>
-            <p>A decisão final é sua. Toda divergência fica registrada.</p>
+            <p>A decisão final é sua. Toda escolha diferente da recomendação fica registrada.</p>
           </>
         )}
       </div>
       <Modal
         open={modal !== null}
         onClose={close}
-        title={modal === 'override' ? 'Registrar divergência' : 'Confirmar decisão'}
+        title={modal === 'override' ? 'Escolher outra decisão' : 'Confirmar decisão'}
         description={
           modal === 'override'
-            ? 'Documente o contexto que fundamenta uma decisão diferente da política.'
+            ? 'Escolha o que fazer e explique por que esta opção é melhor para o caso.'
             : 'Revise a recomendação antes de registrar sua decisão.'
         }
       >
@@ -187,10 +211,11 @@ export function DecisionActions({
                   </select>
                 </label>
                 <label className="field">
-                  Motivo <span className="sr-only">obrigatório</span>
+                  Por que você escolheu outra decisão? <span className="sr-only">obrigatório</span>
                   <select
                     required
                     className="select"
+                    aria-label="Por que você escolheu outra decisão?"
                     value={reason}
                     aria-invalid={!!errors.reason}
                     aria-describedby={errors.reason ? 'reason-error' : undefined}
@@ -213,10 +238,11 @@ export function DecisionActions({
                   )}
                 </label>
                 <label className="field">
-                  Justificativa <span className="field-help">Obrigatória</span>
+                  Explique sua escolha <span className="field-help">Obrigatório</span>
                   <textarea
                     required
                     className="textarea"
+                    aria-label="Explique sua escolha"
                     value={justification}
                     onChange={(event) => setJustification(event.target.value)}
                     placeholder="Explique por que esta decisão é mais adequada ao caso…"
@@ -261,7 +287,7 @@ export function DecisionActions({
               Cancelar
             </Button>
             <Button type="submit" loading={busy}>
-              {modal === 'override' ? 'Confirmar divergência' : 'Confirmar decisão'}
+              {modal === 'override' ? 'Salvar minha decisão' : 'Confirmar decisão'}
             </Button>
           </div>
         </form>
@@ -288,7 +314,13 @@ export function NegotiationPanel({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   function edit() {
-    setProposal(negotiation ? String(negotiation.proposal_value) : '');
+    setProposal(
+      negotiation
+        ? String(negotiation.proposal_value)
+        : recommendation.settlement
+          ? String(recommendation.settlement.target)
+          : '',
+    );
     setStatus(negotiation?.status || 'PENDENTE');
     setCounter(
       negotiation?.counterproposal_value === undefined
@@ -335,7 +367,7 @@ export function NegotiationPanel({
     }
   }
   return (
-    <section className="panel negotiation-panel">
+    <section className="panel negotiation-panel" id="negociacao">
       <div className="panel-heading">
         <h2>
           <Handshake size={16} />
@@ -375,6 +407,12 @@ export function NegotiationPanel({
           {negotiation ? 'Atualizar negociação' : 'Registrar proposta'}
           <ArrowRight size={14} />
         </Button>
+        {negotiation && (
+          <Link className="negotiation-next-case" to="/minha-fila">
+            Voltar à minha fila
+            <ArrowRight size={14} aria-hidden="true" />
+          </Link>
+        )}
       </div>
       <Modal
         open={open}
@@ -391,10 +429,17 @@ export function NegotiationPanel({
                   ['Alvo', recommendation.settlement.target],
                   ['Teto', recommendation.settlement.ceiling],
                 ].map(([label, value]) => (
-                  <div key={label}>
+                  <button
+                    type="button"
+                    key={label}
+                    className={Number(proposal) === value ? 'is-selected' : undefined}
+                    onClick={() => setProposal(String(value))}
+                    aria-pressed={Number(proposal) === value}
+                  >
                     <span>{label}</span>
                     <strong>{money(value as number)}</strong>
-                  </div>
+                    <small>Usar este valor</small>
+                  </button>
                 ))}
               </div>
             )}

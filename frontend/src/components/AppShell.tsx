@@ -68,8 +68,8 @@ export default function AppShell() {
         { to: '/admin/decisions', label: 'Decisões', icon: FileCheck2 },
       ]
     : [
-        { to: '/processos', label: 'Processos', icon: Files },
         { to: '/minha-fila', label: 'Minha fila', icon: ListFilter },
+        { to: '/processos', label: 'Todos os processos', icon: Files },
       ];
   const workspace = location.pathname.startsWith('/processos/');
   const currentLabel = workspace
@@ -176,14 +176,20 @@ export default function AppShell() {
             <ChevronRight size={13} />
             <strong>{currentLabel}</strong>
           </div>
-          <div className="topbar-context">
-            <span className="topbar-status">
-              <span />
-              Sistema demonstrativo
-            </span>
-            <span className="topbar-separator" />
-            <Scale size={16} />
-            <span>Política de acordos</span>
+          <div className="topbar-actions">
+            <button className="topbar-help" onClick={() => setHelpOpen(true)}>
+              <CircleHelp size={17} aria-hidden="true" />
+              Como usar
+            </button>
+            <div className="topbar-context">
+              <span className="topbar-status">
+                <span />
+                Sistema demonstrativo
+              </span>
+              <span className="topbar-separator" />
+              <Scale size={16} />
+              <span>Política de acordos</span>
+            </div>
           </div>
         </header>
         <main id="main-content" className={`main-content ${workspace ? 'main-workspace' : ''}`}>

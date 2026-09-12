@@ -71,8 +71,14 @@ describe('demonstration API', () => {
       decision: 'ACORDO',
       notes: '  Conferido  ',
     });
-    expect((await getCase('caso-2')).status).toBe('EM_NEGOCIACAO');
+    expect((await getCase('caso-2')).status).toBe('DECISAO_REGISTRADA');
     expect(decision.notes).toBe('Conferido');
+    await submitNegotiation({
+      case_id: 'caso-2',
+      proposal_value: 4500,
+      status: 'PENDENTE',
+    });
+    expect((await getCase('caso-2')).status).toBe('EM_NEGOCIACAO');
     const negotiation = await submitNegotiation({
       case_id: 'caso-2',
       proposal_value: 4500,

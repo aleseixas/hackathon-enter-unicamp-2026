@@ -114,9 +114,9 @@ describe('application business flows', () => {
     ).toBeInTheDocument();
     await user.click(within(document).getByRole('button', { name: 'Voltar à análise' }));
 
-    await user.click(screen.getByRole('button', { name: 'Divergir' }));
-    const dialog = screen.getByRole('dialog', { name: 'Registrar divergência' });
-    await user.click(within(dialog).getByRole('button', { name: 'Confirmar divergência' }));
+    await user.click(screen.getByRole('button', { name: 'Escolher outra decisão' }));
+    const dialog = screen.getByRole('dialog', { name: 'Escolher outra decisão' });
+    await user.click(within(dialog).getByRole('button', { name: 'Salvar minha decisão' }));
     expect(within(dialog).getByText('Selecione o motivo da divergência.')).toBeInTheDocument();
     expect(
       within(dialog).getByText('A justificativa é obrigatória para divergir.'),
@@ -129,11 +129,14 @@ describe('application business flows', () => {
       'DEFESA',
     );
     await user.selectOptions(
-      within(dialog).getByRole('combobox', { name: /Motivo/ }),
+      within(dialog).getByRole('combobox', { name: /outra decisão/ }),
       'NOVA_EVIDENCIA',
     );
-    await user.type(within(dialog).getByRole('textbox', { name: /Justificativa/ }), justification);
-    await user.click(within(dialog).getByRole('button', { name: 'Confirmar divergência' }));
+    await user.type(
+      within(dialog).getByRole('textbox', { name: /Explique sua escolha/ }),
+      justification,
+    );
+    await user.click(within(dialog).getByRole('button', { name: 'Salvar minha decisão' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     await screen.findByText('Divergência registrada com motivo e justificativa.');
     expect(screen.getByRole('heading', { name: 'ACORDO' })).toBeInTheDocument();
@@ -165,7 +168,10 @@ describe('application business flows', () => {
     await followRecommendation(user);
     await user.click(await screen.findByRole('button', { name: 'Registrar proposta' }));
     let dialog = screen.getByRole('dialog', { name: 'Registrar proposta' });
-    await user.type(within(dialog).getByRole('spinbutton', { name: /Valor da proposta/ }), '4500');
+    const proposal = within(dialog).getByRole('spinbutton', { name: /Valor da proposta/ });
+    expect(proposal).toHaveValue(5200);
+    await user.clear(proposal);
+    await user.type(proposal, '4500');
     await user.selectOptions(
       within(dialog).getByRole('combobox', { name: 'Resultado da negociação' }),
       'CONTRAPROPOSTA',
@@ -214,34 +220,37 @@ describe('application business flows', () => {
     const user = userEvent.setup();
     renderApp();
     await openLawyerCase(user, 'José Carlos Oliveira');
-    await user.click(screen.getByRole('button', { name: 'Divergir' }));
-    let dialog = screen.getByRole('dialog', { name: 'Registrar divergência' });
+    await user.click(screen.getByRole('button', { name: 'Escolher outra decisão' }));
+    let dialog = screen.getByRole('dialog', { name: 'Escolher outra decisão' });
     const justification = 'Revisar o extrato independente antes de definir a estratégia.';
     await user.selectOptions(
       within(dialog).getByRole('combobox', { name: /Minha decisão/ }),
       'REVISAR',
     );
     await user.selectOptions(
-      within(dialog).getByRole('combobox', { name: /Motivo/ }),
+      within(dialog).getByRole('combobox', { name: /outra decisão/ }),
       'INFORMACAO_NAO_CONSIDERADA',
     );
-    await user.type(within(dialog).getByRole('textbox', { name: /Justificativa/ }), justification);
-    await user.click(within(dialog).getByRole('button', { name: 'Confirmar divergência' }));
+    await user.type(
+      within(dialog).getByRole('textbox', { name: /Explique sua escolha/ }),
+      justification,
+    );
+    await user.click(within(dialog).getByRole('button', { name: 'Salvar minha decisão' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     await screen.findByText(justification);
 
     const navigation = screen.getByRole('navigation', { name: 'Navegação principal' });
-    await user.click(within(navigation).getByRole('link', { name: 'Processos' }));
+    await user.click(within(navigation).getByRole('link', { name: 'Todos os processos' }));
     await user.click(
       await screen.findByRole('link', { name: 'Abrir processo de José Carlos Oliveira' }),
     );
     await user.click(await screen.findByRole('button', { name: 'Alterar decisão' }));
-    dialog = screen.getByRole('dialog', { name: 'Registrar divergência' });
+    dialog = screen.getByRole('dialog', { name: 'Escolher outra decisão' });
     expect(within(dialog).getByRole('combobox', { name: /Minha decisão/ })).toHaveValue('REVISAR');
-    expect(within(dialog).getByRole('combobox', { name: /Motivo/ })).toHaveValue(
+    expect(within(dialog).getByRole('combobox', { name: /outra decisão/ })).toHaveValue(
       'INFORMACAO_NAO_CONSIDERADA',
     );
-    expect(within(dialog).getByRole('textbox', { name: /Justificativa/ })).toHaveValue(
+    expect(within(dialog).getByRole('textbox', { name: /Explique sua escolha/ })).toHaveValue(
       justification,
     );
 
@@ -249,20 +258,23 @@ describe('application business flows', () => {
       within(dialog).getByRole('combobox', { name: /Minha decisão/ }),
       'DEFESA',
     );
-    await user.selectOptions(within(dialog).getByRole('combobox', { name: /Motivo/ }), 'OUTRO');
-    await user.clear(within(dialog).getByRole('textbox', { name: /Justificativa/ }));
+    await user.selectOptions(
+      within(dialog).getByRole('combobox', { name: /outra decisão/ }),
+      'OUTRO',
+    );
+    await user.clear(within(dialog).getByRole('textbox', { name: /Explique sua escolha/ }));
     await user.type(
-      within(dialog).getByRole('textbox', { name: /Justificativa/ }),
+      within(dialog).getByRole('textbox', { name: /Explique sua escolha/ }),
       'Rascunho que será cancelado.',
     );
     await user.click(within(dialog).getByRole('button', { name: 'Cancelar' }));
     await user.click(screen.getByRole('button', { name: 'Alterar decisão' }));
-    dialog = screen.getByRole('dialog', { name: 'Registrar divergência' });
+    dialog = screen.getByRole('dialog', { name: 'Escolher outra decisão' });
     expect(within(dialog).getByRole('combobox', { name: /Minha decisão/ })).toHaveValue('REVISAR');
-    expect(within(dialog).getByRole('combobox', { name: /Motivo/ })).toHaveValue(
+    expect(within(dialog).getByRole('combobox', { name: /outra decisão/ })).toHaveValue(
       'INFORMACAO_NAO_CONSIDERADA',
     );
-    expect(within(dialog).getByRole('textbox', { name: /Justificativa/ })).toHaveValue(
+    expect(within(dialog).getByRole('textbox', { name: /Explique sua escolha/ })).toHaveValue(
       justification,
     );
   });
@@ -290,7 +302,7 @@ describe('application business flows', () => {
       'Demonstração restaurada. Os processos voltaram ao cenário inicial.',
     );
     await user.click(within(dialog).getByRole('button', { name: 'Fechar janela' }));
-    await screen.findByRole('button', { name: 'Divergir' });
+    await screen.findByRole('button', { name: 'Escolher outra decisão' });
     expect(screen.queryByText('Sua decisão:')).not.toBeInTheDocument();
     expect(
       screen.queryByText('Decisão registrada. Você seguiu a recomendação da política.'),

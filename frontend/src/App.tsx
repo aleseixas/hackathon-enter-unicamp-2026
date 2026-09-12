@@ -13,7 +13,9 @@ function RequireRole({ role }: { role: Role }) {
   const session = useSession();
   if (!session.role) return <Navigate to="/" replace />;
   if (session.role !== role)
-    return <Navigate to={session.role === 'ADVOGADO' ? '/processos' : '/admin/overview'} replace />;
+    return (
+      <Navigate to={session.role === 'ADVOGADO' ? '/minha-fila' : '/admin/overview'} replace />
+    );
   return <Outlet />;
 }
 function NotFound() {
@@ -26,7 +28,7 @@ function NotFound() {
       <Link
         className="button primary"
         to={
-          role === 'ADVOGADO' ? '/processos' : role === 'ADMINISTRATIVO' ? '/admin/overview' : '/'
+          role === 'ADVOGADO' ? '/minha-fila' : role === 'ADMINISTRATIVO' ? '/admin/overview' : '/'
         }
       >
         <ArrowLeft size={15} />

@@ -5,8 +5,10 @@ import {
   ArrowUpRight,
   CheckCheck,
   Clock3,
+  FileCheck2,
   Files,
   Handshake,
+  MousePointerClick,
   Search,
   SlidersHorizontal,
 } from 'lucide-react';
@@ -19,6 +21,7 @@ const tabs = [
   { id: 'all', label: 'Todos os processos' },
   { id: 'AGUARDANDO_DECISAO', label: 'Aguardando decisão' },
   { id: 'EM_NEGOCIACAO', label: 'Em negociação' },
+  { id: 'DECISAO_REGISTRADA', label: 'Decisão registrada' },
   { id: 'CONCLUIDO', label: 'Concluídos' },
 ];
 export default function CasesPage({ mine = false }: { mine?: boolean }) {
@@ -45,6 +48,7 @@ export default function CasesPage({ mine = false }: { mine?: boolean }) {
       ),
     [available, tab, uf, recommendation, query],
   );
+  const nextCase = available.find((item) => item.status === 'AGUARDANDO_DECISAO');
   if (loading && !cases) return <LoadingState />;
   if (error) return <ErrorState message={error} onRetry={reload} />;
   return (
@@ -55,9 +59,11 @@ export default function CasesPage({ mine = false }: { mine?: boolean }) {
             <span className="accent-square" />
             MESA DO ADVOGADO
           </div>
-          <h1 className="page-title">{mine ? 'Sua próxima decisão.' : 'Sua mesa de trabalho.'}</h1>
+          <h1 className="page-title">{mine ? 'Meus processos' : 'Todos os processos'}</h1>
           <p className="page-description">
-            Cada processo, com o contexto que você precisa para decidir.
+            {mine
+              ? 'Esta é a sua fila. Comece por um processo que está aguardando decisão.'
+              : 'Consulte todos os processos ou use os filtros para encontrar um caso.'}
           </p>
         </div>
         <div className="header-meta">
@@ -65,6 +71,43 @@ export default function CasesPage({ mine = false }: { mine?: boolean }) {
           <span>Banco Unicamp · Consignado</span>
         </div>
       </div>
+      <section className="quick-start" aria-labelledby="quick-start-title">
+        <div className="quick-start-heading">
+          <span className="quick-start-icon">
+            <MousePointerClick size={22} aria-hidden="true" />
+          </span>
+          <div>
+            <span className="quick-start-label">COMECE AQUI</span>
+            <h2 id="quick-start-title">Analise um processo em três passos simples</h2>
+            <p>O sistema mostra o caminho. Você pode voltar e conferir tudo antes de salvar.</p>
+          </div>
+        </div>
+        <ol className="quick-start-steps">
+          <li>
+            <span>1</span>
+            <strong>Abra o processo</strong>
+          </li>
+          <li>
+            <span>2</span>
+            <strong>Confira as provas</strong>
+          </li>
+          <li>
+            <span>3</span>
+            <strong>Registre sua decisão</strong>
+          </li>
+        </ol>
+        {nextCase && (
+          <Link
+            className="button accent quick-start-button"
+            to={`/processos/${nextCase.case_id}`}
+            aria-label={`Começar pelo processo de ${nextCase.plaintiff}`}
+          >
+            <FileCheck2 size={18} aria-hidden="true" />
+            Analisar próximo processo
+            <ArrowRight size={18} aria-hidden="true" />
+          </Link>
+        )}
+      </section>
       <section className="queue-summary" aria-label="Resumo da fila">
         <div>
           <span className="queue-icon">
@@ -123,7 +166,7 @@ export default function CasesPage({ mine = false }: { mine?: boolean }) {
       <section className="panel case-list-panel">
         <div className="case-list-heading">
           <div>
-            <h2>{mine ? 'Minha fila de processos' : 'Processos em acompanhamento'}</h2>
+            <h2>{mine ? 'Processos atribuídos a mim' : 'Processos em acompanhamento'}</h2>
             <p>Da análise das evidências ao registro da decisão.</p>
           </div>
           <span className="table-count">{available.length} processos</span>
@@ -223,7 +266,10 @@ export default function CasesPage({ mine = false }: { mine?: boolean }) {
             </thead>
             <tbody>
               {filtered.map((item) => (
-                <tr key={item.case_id}>
+                <tr
+                  key={item.case_id}
+                  className={item.status === 'AGUARDANDO_DECISAO' ? 'case-needs-action' : undefined}
+                >
                   <td>
                     <Link className="case-person" to={`/processos/${item.case_id}`}>
                       {item.plaintiff}
@@ -234,14 +280,20 @@ export default function CasesPage({ mine = false }: { mine?: boolean }) {
                       {item.city} <span>·</span> {item.uf}
                     </span>
                   </td>
-                  <td className="money-cell">{money(item.claim_value, true)}</td>
+                  <td className="money-cell">
+                    <span className="mobile-cell-label">Valor da causa</span>
+                    {money(item.claim_value, true)}
+                  </td>
                   <td>
+                    <span className="mobile-cell-label">Risco</span>
                     <Badge value={item.risk_level} />
                   </td>
                   <td>
+                    <span className="mobile-cell-label">Recomendação</span>
                     <Badge value={item.recommendation} />
                   </td>
                   <td>
+                    <span className="mobile-cell-label">Situação</span>
                     <span className={`case-status status-${item.status.toLowerCase()}`}>
                       <span />
                       {
@@ -260,7 +312,7 @@ export default function CasesPage({ mine = false }: { mine?: boolean }) {
                       to={`/processos/${item.case_id}`}
                       aria-label={`Abrir processo de ${item.plaintiff}`}
                     >
-                      Abrir
+                      {item.status === 'AGUARDANDO_DECISAO' ? 'Analisar agora' : 'Ver processo'}
                       <ArrowRight size={16} />
                     </Link>
                   </td>

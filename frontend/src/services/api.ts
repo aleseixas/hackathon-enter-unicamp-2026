@@ -211,9 +211,9 @@ async function request<T>(method: 'GET' | 'POST', path: string, body?: unknown):
   } catch (error) {
     if (error instanceof ApiError) throw error;
     if (controller.signal.aborted)
-      throw new ApiError('A API demorou para responder. Tente novamente.', 408);
+      throw new ApiError('O sistema demorou para responder. Tente novamente.', 408);
     throw new ApiError(
-      'Não foi possível conectar à API. Verifique sua conexão e a configuração do serviço.',
+      'Não foi possível carregar os dados agora. Confira sua conexão e tente novamente.',
       503,
     );
   } finally {
@@ -254,9 +254,11 @@ function withLocalState(caseDetail: CaseDetail, state: DemoState): CaseDetail {
   if (decision) {
     result.status =
       decision.decision === 'ACORDO'
-        ? negotiation?.status === 'ACEITA'
-          ? 'CONCLUIDO'
-          : 'EM_NEGOCIACAO'
+        ? negotiation
+          ? negotiation.status === 'ACEITA' || negotiation.status === 'RECUSADA'
+            ? 'CONCLUIDO'
+            : 'EM_NEGOCIACAO'
+          : 'DECISAO_REGISTRADA'
         : 'DECISAO_REGISTRADA';
     result.updated_at = [result.updated_at, decision.created_at, negotiation?.updated_at ?? '']
       .sort()

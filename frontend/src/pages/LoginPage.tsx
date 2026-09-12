@@ -17,7 +17,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const enter = (role: Role) => {
     login(role);
-    navigate(role === 'ADVOGADO' ? '/processos' : '/admin/overview');
+    navigate(role === 'ADVOGADO' ? '/minha-fila' : '/admin/overview');
   };
   return (
     <div className="login-page">
@@ -32,22 +32,25 @@ export default function LoginPage() {
             POLÍTICA DE ACORDOS, COM INTELIGÊNCIA
           </div>
           <h1>
-            Mais contexto.
+            Entenda o caso.
             <br />
-            Melhores
+            Confira as provas.
             <br />
-            <span>decisões jurídicas.</span>
+            <span>Decida com segurança.</span>
           </h1>
           <p>
-            Da evidência à decisão, uma visão clara
-            <br className="desktop-only" /> de cada processo.
+            O sistema organiza o que importa e mostra
+            <br className="desktop-only" /> qual é o próximo passo.
           </p>
           <div className="login-principles">
             <span>
-              <Check size={14} /> Evidências rastreáveis
+              <Check size={14} /> 1. Abra o processo
             </span>
             <span>
-              <Check size={14} /> Decisão humana
+              <Check size={14} /> 2. Confira as provas
+            </span>
+            <span>
+              <Check size={14} /> 3. Registre sua decisão
             </span>
           </div>
         </div>
@@ -77,20 +80,21 @@ export default function LoginPage() {
           <div className="access-icon">
             <Fingerprint size={27} strokeWidth={1.4} />
           </div>
-          <div className="eyebrow">BEM-VINDO À SUA NOVA MESA DE TRABALHO</div>
+          <div className="eyebrow">ACESSO À DEMONSTRAÇÃO</div>
           <h2>
-            Um espaço para
-            <br />
-            cada perspectiva.
+            Como você quer
+            <br /> entrar?
           </h2>
-          <p className="login-intro">Escolha seu perfil para explorar a plataforma.</p>
+          <p className="login-intro">
+            Se você analisa processos e toma decisões, escolha <strong>Advogado</strong>.
+          </p>
           <button className="role-card role-lawyer" onClick={() => enter('ADVOGADO')}>
             <span className="role-icon">
               <Scale size={25} strokeWidth={1.6} />
             </span>
             <span className="role-copy">
               <strong>Entrar como Advogado</strong>
-              <span>Analise evidências e decida com clareza.</span>
+              <span>Abra casos, confira provas e registre decisões.</span>
             </span>
             <ArrowRight size={21} />
           </button>
@@ -100,7 +104,7 @@ export default function LoginPage() {
             </span>
             <span className="role-copy">
               <strong>Entrar como Administrativo</strong>
-              <span>Acompanhe a política e seus resultados.</span>
+              <span>Veja indicadores, decisões e resultados.</span>
             </span>
             <ArrowRight size={21} />
           </button>

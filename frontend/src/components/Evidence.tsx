@@ -28,10 +28,11 @@ export function DocumentsPanel({
   documents: CaseDocument[];
   onOpen: (document: CaseDocument, page?: number) => void;
 }) {
+  const [unavailable, setUnavailable] = useState<CaseDocument | null>(null);
   return (
     <aside className="panel documents-panel" aria-label="Documentos do processo">
       <div className="panel-heading">
-        <h2>Documentos</h2>
+        <h2>Documentos do processo</h2>
         <span className="count-label">{documents.length}</span>
       </div>
       <div className="documents-list">
@@ -46,8 +47,18 @@ export function DocumentsPanel({
             <button
               key={document.id}
               className={`document-item document-${document.status.toLowerCase()}`}
-              disabled={document.status === 'AUSENTE'}
-              onClick={() => onOpen(document)}
+              onClick={() => {
+                if (document.status === 'AUSENTE') setUnavailable(document);
+                else {
+                  setUnavailable(null);
+                  onOpen(document);
+                }
+              }}
+              aria-label={
+                document.status === 'AUSENTE'
+                  ? `${document.name}: documento ausente. Ver orientação.`
+                  : `Abrir ${document.name}`
+              }
               title={document.description}
             >
               <span className="document-icon">
@@ -69,9 +80,17 @@ export function DocumentsPanel({
           );
         })}
       </div>
+      {unavailable && (
+        <div className="document-unavailable">
+          <Notice tone="warning">
+            <strong>{unavailable.name} não foi encontrado.</strong> Considere esta ausência antes de
+            decidir e, se possível, solicite o documento.
+          </Notice>
+        </div>
+      )}
       <div className="documents-footnote">
         <ScanLine size={17} />
-        <p>Abra um documento para consultar a fonte de cada evidência.</p>
+        <p>Clique em qualquer documento disponível para ler o conteúdo.</p>
       </div>
       <div className="document-legend">
         <span>
@@ -160,7 +179,7 @@ export function EvidencePanel({
           onClick={() => setTab('evidence')}
         >
           <Fingerprint size={15} />
-          Evidências <span>{recommendation.evidence.length}</span>
+          Pontos importantes <span>{recommendation.evidence.length}</span>
         </button>
         <button
           className={tab === 'contradictions' ? 'active' : ''}
@@ -188,10 +207,10 @@ export function EvidencePanel({
                       <MessageSquareQuote size={13} />
                     )}
                     {kind === 'FAVORAVEL'
-                      ? 'Evidências favoráveis'
+                      ? 'O que ajuda a defesa'
                       : kind === 'RISCO'
-                        ? 'Evidências de risco'
-                        : 'Alegações da parte'}
+                        ? 'O que precisa de atenção'
+                        : 'O que a outra parte diz'}
                   </span>
                   <span>{items.length}</span>
                 </div>
