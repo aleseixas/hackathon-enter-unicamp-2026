@@ -401,113 +401,124 @@
 }
 
 .modal.workflow-modal {
-  width: clamp(560px, 44vw, 660px);
-  border-radius: 16px;
+  width: min(900px, calc(100vw - 40px));
+  border-radius: 18px;
 }
 
 .workflow-modal .modal-header {
-  gap: 18px;
-  padding: 28px 30px 24px;
+  gap: 24px;
+  padding: 30px 36px 26px;
 }
 
 .workflow-modal .modal-title {
-  font-size: clamp(23px, 1.45vw, 28px);
-  font-weight: 650;
-  letter-spacing: -0.7px;
+  font-size: clamp(29px, 2vw, 34px);
+  font-weight: 680;
+  letter-spacing: -0.9px;
 }
 
 .workflow-modal .modal-description {
-  max-width: 50ch;
-  margin-top: 9px;
-  font-size: 15px;
-  line-height: 1.55;
+  max-width: 58ch;
+  margin-top: 10px;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.workflow-modal .icon-button {
+  width: 50px;
+  height: 50px;
+}
+
+.workflow-modal .icon-button svg {
+  width: 24px;
+  height: 24px;
 }
 
 .workflow-modal .modal-body {
-  padding: 28px 30px;
+  padding: 32px 36px;
 }
 
 .workflow-modal .form-grid {
-  gap: 21px;
+  gap: 24px;
 }
 
 .workflow-modal .field {
-  gap: 10px;
-  font-size: 16px;
+  gap: 11px;
+  font-size: 19px;
 }
 
 .workflow-modal .field-help,
 .workflow-modal .field-error {
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .workflow-modal .input,
 .workflow-modal .select,
 .workflow-modal .textarea {
-  min-height: 54px;
-  padding: 14px 15px;
-  border-radius: 9px;
-  font-size: 16px;
+  min-height: 62px;
+  padding: 16px 18px;
+  border-radius: 10px;
+  font-size: 18px;
 }
 
 .workflow-modal .textarea {
-  min-height: 112px;
+  min-height: 144px;
 }
 
 .workflow-modal .confirmation-summary {
-  padding: 19px 20px;
-  border-radius: 10px;
+  padding: 22px 24px;
+  border-radius: 11px;
 }
 
 .workflow-modal .confirmation-summary > div {
-  gap: 16px;
-  font-size: 15px;
+  gap: 20px;
+  font-size: 18px;
 }
 
 .workflow-modal .confirmation-summary .badge {
-  padding: 6px 9px;
-  font-size: 14px;
+  padding: 8px 11px;
+  font-size: 16px;
 }
 
 .workflow-modal .notice {
-  gap: 11px;
-  padding: 16px 17px;
-  border-radius: 9px;
-  font-size: 15px;
-  line-height: 1.55;
+  gap: 13px;
+  padding: 18px 20px;
+  border-radius: 10px;
+  font-size: 18px;
+  line-height: 1.5;
 }
 
 .workflow-modal .modal-footer {
-  gap: 13px;
-  padding: 20px 30px;
+  gap: 16px;
+  padding: 24px 36px;
 }
 
 .workflow-modal .modal-footer .button {
-  min-height: 52px;
-  padding: 13px 22px;
-  font-size: 16px;
+  min-height: 60px;
+  padding: 16px 28px;
+  font-size: 18px;
 }
 
 @media (max-width: 640px) {
   .modal.workflow-modal {
-    width: calc(100vw - 24px);
+    width: calc(100vw - 20px);
     max-width: none;
   }
 
   .workflow-modal .modal-header,
   .workflow-modal .modal-body {
-    padding-right: 22px;
-    padding-left: 22px;
+    padding-right: 20px;
+    padding-left: 20px;
   }
 
   .workflow-modal .modal-footer {
-    padding: 18px 22px;
+    padding-right: 20px;
+    padding-left: 20px;
   }
 }
 
-@media (max-height: 700px) {
+@media (max-height: 760px) {
   .workflow-modal .modal-header {
-    padding: 20px 24px 16px;
+    padding: 22px 28px 18px;
   }
 
   .workflow-modal .modal-description {
@@ -515,31 +526,62 @@
   }
 
   .workflow-modal .modal-body {
-    padding: 18px 24px;
+    padding: 20px 28px;
   }
 
   .workflow-modal .form-grid {
-    gap: 14px;
+    gap: 16px;
   }
 
   .workflow-modal .textarea {
-    min-height: 82px;
+    min-height: 100px;
   }
 
   .workflow-modal .confirmation-summary {
+    padding: 16px 18px;
+  }
+
+  .workflow-modal .notice {
     padding: 14px 16px;
   }
 
+  .workflow-modal .modal-footer {
+    padding: 16px 28px;
+  }
+
+  .workflow-modal .modal-footer .button {
+    min-height: 54px;
+  }
+}
+
+@media (max-height: 700px) {
+  .workflow-modal .modal-header {
+    padding: 18px 22px 14px;
+  }
+
+  .workflow-modal .modal-body {
+    padding: 14px 22px;
+  }
+
+  .workflow-modal .form-grid {
+    gap: 12px;
+  }
+
+  .workflow-modal .textarea {
+    min-height: 80px;
+  }
+
+  .workflow-modal .confirmation-summary,
   .workflow-modal .notice {
     padding: 12px 14px;
   }
 
   .workflow-modal .modal-footer {
-    padding: 14px 24px;
+    padding: 12px 22px;
   }
 
   .workflow-modal .modal-footer .button {
-    min-height: 48px;
+    min-height: 52px;
   }
 }
 .decision-receipt {
