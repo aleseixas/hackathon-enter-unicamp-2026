@@ -274,6 +274,129 @@ function OverrideReasons({ data }: { data: AdminDashboard['override_reasons'] })
   );
 }
 
+function EffectivenessOutcomeChart({
+  data,
+}: {
+  data: AdminDashboard['effectiveness_outcomes'];
+}) {
+  return (
+    <section className="panel admin-panel" aria-labelledby="effectiveness-outcomes-heading">
+      <div className="admin-panel-heading">
+        <div>
+          <span className="admin-section-kicker">RESULTADO DAS NEGOCIACOES</span>
+          <h2 id="effectiveness-outcomes-heading">Como as propostas terminaram</h2>
+        </div>
+        <Handshake size={19} aria-hidden="true" />
+      </div>
+      <p className="admin-panel-description">
+        Composicao das tentativas de acordo no cenario de demonstracao.
+      </p>
+      <div
+        className="admin-distribution"
+        role="img"
+        aria-label={data
+          .map((item) => `${item.label}: ${count(item.value)}, ${percent(item.percentage)}`)
+          .join('. ')}
+      >
+        <div className="admin-distribution-total" aria-hidden="true">
+          {data.map((item, index) => (
+            <span
+              key={item.label}
+              className={`admin-chart-tone-${index % 3}`}
+              style={{ flexGrow: Math.max(0, item.percentage) }}
+            />
+          ))}
+        </div>
+        <div className="admin-distribution-rows" aria-hidden="true">
+          {data.map((item, index) => (
+            <div className="admin-distribution-row" key={item.label}>
+              <span className={`admin-chart-dot admin-chart-tone-${index % 3}`} />
+              <span className="admin-distribution-name">{item.label}</span>
+              <strong>{count(item.value)}</strong>
+              <span className="admin-distribution-percent">{percent(item.percentage)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SavingsFlowChart({
+  data,
+}: {
+  data: AdminDashboard['effectiveness_savings_flow'];
+}) {
+  const maximum = Math.max(1, ...data.map((item) => item.value));
+  return (
+    <section className="panel admin-panel" aria-labelledby="savings-flow-heading">
+      <div className="admin-panel-heading">
+        <div>
+          <span className="admin-section-kicker">ECONOMIA GERADA</span>
+          <h2 id="savings-flow-heading">Onde a economia aparece</h2>
+        </div>
+        <CircleDollarSign size={19} aria-hidden="true" />
+      </div>
+      <p className="admin-panel-description">
+        Comparacao entre custo base, economia estimada e custo projetado com a politica.
+      </p>
+      <div className="admin-savings-flow">
+        {data.map((item, index) => (
+          <div className="admin-savings-row" key={item.label}>
+            <div className="admin-savings-copy">
+              <span>{item.label}</span>
+              <strong>{money(item.value, true)}</strong>
+            </div>
+            <div className="admin-savings-track" aria-hidden="true">
+              <span
+                className={`admin-chart-tone-${index % 3}`}
+                style={{ width: `${(item.value / maximum) * 100}%` }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function EffectivenessTimeline({
+  data,
+}: {
+  data: AdminDashboard['effectiveness_timeline'];
+}) {
+  const maximum = Math.max(1, ...data.map((item) => item.savings));
+  return (
+    <section className="panel admin-panel" aria-labelledby="effectiveness-timeline-heading">
+      <div className="admin-panel-heading">
+        <div>
+          <span className="admin-section-kicker">TRAJETORIA DA EFETIVIDADE</span>
+          <h2 id="effectiveness-timeline-heading">Economia e aceitacao por mes</h2>
+        </div>
+        <Activity size={19} aria-hidden="true" />
+      </div>
+      <p className="admin-panel-description">
+        A economia acumulada cresce junto da taxa de aceitacao ao longo do periodo.
+      </p>
+      <div className="admin-effectiveness-timeline" aria-hidden="true">
+        {data.map((item) => (
+          <div className="admin-effectiveness-period" key={item.label}>
+            <div className="admin-effectiveness-bar-wrap">
+              <span>{money(item.savings, true)}</span>
+              <div
+                className="admin-effectiveness-bar"
+                style={{ height: `${(item.savings / maximum) * 100}%` }}
+              />
+            </div>
+            <strong>{percent(item.acceptance_rate)}</strong>
+            <span>{item.label}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function RecentDecisions({ rows }: { rows: AdminDecisionRow[] }) {
   return (
     <section className="panel admin-panel admin-recent-panel" aria-labelledby="recent-heading">
@@ -691,7 +814,7 @@ function Overview({ data }: { data: AdminDashboard }) {
             label: 'Taxa de aceitação',
             value: percent(metrics.acceptance_rate),
             hint: 'Propostas aceitas no período',
-            icon: ArrowDownLeft,
+            icon: ShieldCheck,
           },
           {
             label: 'Valor médio fechado',
@@ -769,87 +892,91 @@ function Adherence({ data }: { data: AdminDashboard }) {
 function Effectiveness({ data }: { data: AdminDashboard }) {
   const metrics = data.metrics;
   const simulation = data.historical_simulation;
-  const proposals = metrics.settlements + metrics.rejected + metrics.counteroffers;
   return (
     <>
       <div className="admin-subsection-heading">
         <div>
-          <span className="admin-section-kicker">RESULTADOS DA OPERAÇÃO</span>
-          <h2>Da proposta ao acordo</h2>
+          <span className="admin-section-kicker">RESULTADOS DA OPERACAO</span>
+          <h2>Da proposta a economia</h2>
         </div>
         <DemoLabel />
       </div>
       <MetricGrid
         items={[
           {
-            label: 'Propostas registradas',
-            value: count(proposals),
-            hint: 'Com resultado informado ou pendente',
-            icon: Handshake,
-          },
-          {
-            label: 'Acordos aceitos',
-            value: count(metrics.settlements),
-            hint: 'Negociações concluídas',
-            icon: CheckCheck,
-          },
-          {
-            label: 'Taxa de aceitação',
-            value: percent(metrics.acceptance_rate),
-            hint: 'Propostas aceitas no período',
-            icon: ShieldCheck,
+            label: 'Economia estimada',
+            value: money(metrics.estimated_savings, true),
+            hint: 'Reducao absoluta frente ao cenario-base',
+            icon: CircleDollarSign,
             accent: true,
           },
           {
-            label: 'Propostas recusadas',
-            value: count(metrics.rejected),
-            hint: 'Resultado informado no período',
-            icon: X,
+            label: 'Reducao de custo',
+            value: percent(metrics.estimated_savings_rate),
+            hint: 'Percentual economizado com a politica',
+            icon: ArrowDownLeft,
           },
           {
-            label: 'Valor médio ofertado',
-            value: money(metrics.average_offered_value, true),
-            hint: 'Por proposta no período',
-            icon: ArrowUpRight,
+            label: 'Custo sem politica',
+            value: money(metrics.baseline_cost, true),
+            hint: 'Referencia de judicializacao',
+            icon: Layers3,
           },
           {
-            label: 'Valor médio fechado',
-            value: money(metrics.average_closed_value, true),
-            hint: 'Por acordo fechado',
-            icon: CircleDollarSign,
+            label: 'Custo com politica',
+            value: money(metrics.projected_cost, true),
+            hint: 'Custo projetado apos acordos',
+            icon: Activity,
+          },
+          {
+            label: 'Propostas de acordo',
+            value: count(metrics.agreement_proposals),
+            hint: 'Casos que avancaram para negociacao',
+            icon: Handshake,
+          },
+          {
+            label: 'Taxa de aceitacao',
+            value: percent(metrics.acceptance_rate),
+            hint: 'Propostas aceitas no periodo',
+            icon: ShieldCheck,
           },
         ]}
       />
       <div className="admin-operational-summary">
         <Activity size={18} aria-hidden="true" />
-        <span>Custo projetado do cenário operacional</span>
-        <strong>{money(metrics.projected_cost, true)}</strong>
-        <span className="admin-operational-scope">Cenário de demonstração</span>
+        <span>A economia estimada e o principal indicador desta demonstracao.</span>
+        <strong>{money(metrics.estimated_savings, true)}</strong>
+        <span className="admin-operational-scope">Cenario de demonstracao</span>
       </div>
+      <div className="admin-chart-grid admin-effectiveness-grid">
+        <SavingsFlowChart data={data.effectiveness_savings_flow} />
+        <EffectivenessOutcomeChart data={data.effectiveness_outcomes} />
+      </div>
+      <EffectivenessTimeline data={data.effectiveness_timeline} />
       <section className="admin-simulation" aria-labelledby="simulation-heading">
         <div className="admin-simulation-heading">
           <div>
             <span className="admin-section-kicker">UMA OUTRA PERSPECTIVA</span>
-            <h2 id="simulation-heading">Simulação sobre a base histórica</h2>
-            <p>Um cenário estimado para comparação, separado dos resultados operacionais.</p>
+            <h2 id="simulation-heading">Simulacao sobre a base historica</h2>
+            <p>Um cenario estimado para comparacao, separado dos resultados operacionais.</p>
           </div>
           <DemoLabel simulation />
         </div>
         <div className="admin-simulation-metrics">
           <div>
-            <span>Custo de referência</span>
+            <span>Custo de referencia</span>
             <strong>{money(simulation.baseline_cost, true)}</strong>
-            <small>Referência histórica</small>
+            <small>Referencia historica</small>
           </div>
           <div>
             <span>Custo projetado</span>
             <strong>{money(simulation.projected_cost, true)}</strong>
-            <small>No cenário simulado</small>
+            <small>No cenario simulado</small>
           </div>
           <div className="admin-simulation-saving">
             <span>Economia estimada</span>
             <strong>{money(simulation.estimated_savings, true)}</strong>
-            <small>Estimativa da simulação</small>
+            <small>{percent(metrics.estimated_savings_rate)} de reducao no custo</small>
           </div>
         </div>
         <div className="admin-simulation-assumptions">
@@ -862,7 +989,7 @@ function Effectiveness({ data }: { data: AdminDashboard }) {
           <div>
             <CheckCheck size={17} aria-hidden="true" />
             <span>
-              Hipótese de aceitação <strong>{percent(simulation.acceptance_assumption)}</strong>
+              Hipotese de aceitacao <strong>{percent(simulation.acceptance_assumption)}</strong>
             </span>
           </div>
         </div>
@@ -872,15 +999,14 @@ function Effectiveness({ data }: { data: AdminDashboard }) {
         </div>
       </section>
       <div className="admin-end-link">
-        <span>Os resultados individuais estão no registro da operação.</span>
+        <span>Os resultados individuais continuam disponiveis no registro da operacao.</span>
         <Link className="admin-text-link" to="/admin/decisions">
-          Explorar decisões <ArrowRight size={16} aria-hidden="true" />
+          Explorar decisoes <ArrowRight size={16} aria-hidden="true" />
         </Link>
       </div>
     </>
   );
 }
-
 export default function AdminPage() {
   const { section: sectionParam } = useParams<{ section?: string }>();
   const section: AdminSection =
@@ -992,3 +1118,4 @@ export default function AdminPage() {
     </div>
   );
 }
+

@@ -833,6 +833,94 @@
   font-size: 12px;
   color: #8c8e80;
 }
+.admin-effectiveness-grid {
+  margin-bottom: 20px;
+}
+.admin-savings-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 26px;
+}
+.admin-savings-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.admin-savings-copy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  color: #66685d;
+}
+.admin-savings-copy strong {
+  font-size: 13px;
+  font-weight: 550;
+  color: #2f322c;
+  font-variant-numeric: tabular-nums;
+}
+.admin-savings-track {
+  height: 10px;
+  background: #f0efe8;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.admin-savings-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+.admin-effectiveness-timeline {
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(10px, 1.6vw, 18px);
+  height: 250px;
+  margin-top: 26px;
+  padding-top: 28px;
+}
+.admin-effectiveness-period {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.admin-effectiveness-bar-wrap {
+  position: relative;
+  width: 100%;
+  height: 182px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.admin-effectiveness-bar-wrap > span {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: #79796f;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.admin-effectiveness-bar {
+  width: min(34px, 78%);
+  min-height: 2px;
+  border-radius: 6px 6px 0 0;
+  background: linear-gradient(180deg, #edb460 0%, #c9892e 100%);
+}
+.admin-effectiveness-period strong {
+  font-size: 12px;
+  font-weight: 550;
+  color: #575a51;
+}
+.admin-effectiveness-period > span:last-child {
+  font-size: 12px;
+  color: #8a887d;
+}
 .admin-simulation {
   padding: 29px;
   border: 1px solid #e8d9ba;
@@ -1039,6 +1127,12 @@
   .admin-adherence-grid {
     grid-template-columns: minmax(0, 1fr);
   }
+  .admin-effectiveness-timeline {
+    height: 232px;
+  }
+  .admin-effectiveness-bar-wrap {
+    height: 165px;
+  }
   .admin-simulation-metrics {
     gap: 16px;
   }
@@ -1124,6 +1218,23 @@
   .admin-simulation-metrics strong {
     font-size: 30px;
   }
+  .admin-effectiveness-timeline {
+    gap: 10px;
+    height: 214px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .admin-effectiveness-period {
+    min-width: 62px;
+  }
+  .admin-effectiveness-bar-wrap {
+    height: 145px;
+  }
+  .admin-savings-copy {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
   .admin-simulation-assumptions {
     gap: 16px;
     flex-direction: column;
@@ -1179,6 +1290,12 @@
   }
   .admin-panel {
     padding: 20px 17px;
+  }
+  .admin-effectiveness-period {
+    min-width: 58px;
+  }
+  .admin-effectiveness-bar {
+    width: min(28px, 78%);
   }
   .admin-panel-heading {
     align-items: flex-start;

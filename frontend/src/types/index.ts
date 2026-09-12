@@ -182,16 +182,27 @@ export interface AdminDashboard {
     adherence_rate: number;
     overrides: number;
     settlements: number;
+    agreement_proposals: number;
     acceptance_rate: number;
     average_closed_value: number;
     average_offered_value: number;
     rejected: number;
     counteroffers: number;
+    baseline_cost: number;
     projected_cost: number;
+    estimated_savings: number;
+    estimated_savings_rate: number;
   };
   distribution: { label: string; value: number; percentage: number }[];
   evolution: { label: string; agreement: number; defense: number }[];
   override_reasons: { label: string; value: number; percentage: number }[];
+  effectiveness_outcomes: { label: string; value: number; percentage: number }[];
+  effectiveness_savings_flow: { label: string; value: number }[];
+  effectiveness_timeline: {
+    label: string;
+    savings: number;
+    acceptance_rate: number;
+  }[];
   historical_simulation: {
     sample_size: number;
     acceptance_assumption: number;
