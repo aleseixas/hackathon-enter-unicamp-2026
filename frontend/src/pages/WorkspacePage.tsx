@@ -3,14 +3,9 @@ import type { ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
-  ArrowUpRight,
   Check,
   CircleHelp,
-  Clock3,
-  FileCheck2,
   FileSearch,
-  Files,
-  ListChecks,
   MapPin,
   Scale,
   ShieldCheck,
@@ -28,9 +23,11 @@ import '../styles/workspace.css';
 
 function RecommendationCard({
   data,
+  claimValue,
   actions,
 }: {
   data: RecommendationResponse;
+  claimValue: number;
   actions: ReactNode;
 }) {
   const review = data.recommendation === 'REVISAR';
@@ -58,62 +55,32 @@ function RecommendationCard({
           {review
             ? 'Uma análise mais próxima faz a diferença.'
             : data.recommendation === 'DEFESA'
-              ? 'Evidências que sustentam a defesa.'
+              ? 'Prosseguir com a defesa judicial, sem acordo neste momento.'
               : 'Um caminho para resolver este caso.'}
         </p>
-        {data.loss_probability !== null && (
-          <div className="risk-summary">
+        <div className="recommendation-key-facts">
+          <div>
+            <span>Valor da causa</span>
+            <strong>{money(claimValue)}</strong>
+          </div>
+          {data.loss_probability !== null && (
             <div>
               <span>Risco estimado de perda</span>
               <strong>{percent(data.loss_probability)}</strong>
             </div>
-            <span className="risk-caption">Estimativa da análise recebida</span>
-          </div>
-        )}
+          )}
+        </div>
         {review && (
           <div className="review-message">
             <TriangleAlert size={17} />
             <p>Há evidências conflitantes ou insuficientes para uma recomendação conclusiva.</p>
           </div>
         )}
-        <dl className="cost-summary">
-          {data.expected_condemnation !== null && (
-            <div>
-              <dt>Condenação esperada</dt>
-              <dd>{money(data.expected_condemnation)}</dd>
-            </div>
-          )}
-          {data.expected_defense_cost !== null && (
-            <div>
-              <dt>Custo esperado da defesa</dt>
-              <dd>{money(data.expected_defense_cost)}</dd>
-            </div>
-          )}
-        </dl>
-        {data.recommendation === 'ACORDO' && data.settlement && (
-          <div className="settlement-range">
-            <span className="rec-section-label">Faixa de negociação</span>
-            <div>
-              <span>Abertura</span>
-              <strong>{money(data.settlement.opening)}</strong>
-            </div>
-            <div className="settlement-target">
-              <span>
-                Alvo <ArrowUpRight size={12} />
-              </span>
-              <strong>{money(data.settlement.target)}</strong>
-            </div>
-            <div>
-              <span>Teto</span>
-              <strong>{money(data.settlement.ceiling)}</strong>
-            </div>
-          </div>
-        )}
       </div>
       {actions}
       <div className="recommendation-rationale">
-        <h3>Por que esta recomendação?</h3>
-        {data.reasons.map((reason) => (
+        <h3>Por que esta é a melhor opção agora</h3>
+        {data.reasons.slice(0, 3).map((reason) => (
           <p key={reason}>
             <Check size={13} />
             <span>{reason}</span>
@@ -124,10 +91,10 @@ function RecommendationCard({
         <div className="missing-evidence">
           <h3>
             <CircleHelp size={14} />
-            Informações a confirmar
+            Ponto de atenção
           </h3>
           <ul>
-            {data.missing_evidence.map((item) => (
+            {data.missing_evidence.slice(0, 1).map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
@@ -150,6 +117,7 @@ export default function WorkspacePage() {
   }, [caseId]);
   const { data, loading, error, reload } = useAsync(loader);
   const [viewer, setViewer] = useState<{ document: CaseDocument; page: number } | null>(null);
+  const [activeTab, setActiveTab] = useState<'evidences' | 'documents' | 'details'>('evidences');
   const [message, setMessage] = useState('');
   const [messageTone, setMessageTone] = useState<'success' | 'warning'>('success');
   useEffect(() => {
@@ -198,7 +166,6 @@ export default function WorkspacePage() {
           </Link>
           <span className="workspace-case-reference">{caseDetail.case_number}</span>
           <div className="workspace-header-badges">
-            {recommendation.demo_data && <Badge value="DEMO" />}
             <Badge value={caseDetail.status} />
           </div>
         </div>
@@ -219,14 +186,6 @@ export default function WorkspacePage() {
               <Badge value={caseDetail.risk_level} />
             </div>
           </div>
-          <div className="workspace-updated">
-            <Clock3 size={13} />
-            <span>
-              Análise recebida
-              <br />
-              <strong>{shortDate(recommendation.generated_at)}</strong>
-            </span>
-          </div>
         </div>
       </header>
       {message && (
@@ -241,87 +200,22 @@ export default function WorkspacePage() {
           </button>
         </div>
       )}
-      <nav className="workspace-steps" aria-label="Passos para analisar o processo">
-        <div className="workspace-steps-title">
-          <span>COMO ANALISAR</span>
-          <strong>Siga esta ordem</strong>
-        </div>
-        <a href="#passo-entender">
-          <span className="workspace-step-number">1</span>
-          <span>
-            <strong>Entenda o caso</strong>
-            <small>Leia o resumo</small>
-          </span>
-          <ListChecks size={18} aria-hidden="true" />
-        </a>
-        <a href="#passo-provas">
-          <span className="workspace-step-number">2</span>
-          <span>
-            <strong>Confira as provas</strong>
-            <small>Abra as fontes</small>
-          </span>
-          <Files size={18} aria-hidden="true" />
-        </a>
-        <a href="#passo-decisao">
-          <span className="workspace-step-number">3</span>
-          <span>
-            <strong>Registre a decisão</strong>
-            <small>Salve sua escolha</small>
-          </span>
-          <FileCheck2 size={18} aria-hidden="true" />
-        </a>
-      </nav>
-      <div className="workspace-grid">
-        <div className="workspace-review">
-          <section className="case-context" id="passo-entender">
-            <div>
-              <span className="workspace-step-number">1</span>
-              <span className="context-icon" aria-hidden="true">
-                <Scale size={17} />
-              </span>
-              <span className="eyebrow">PRIMEIRO: ENTENDA O CASO</span>
-            </div>
-            <h2>{caseDetail.subject}</h2>
-            <p>{caseDetail.summary}</p>
-          </section>
-          <section className="workspace-proof-step" id="passo-provas">
-            <div className="workspace-section-heading">
-              <span className="workspace-step-number">2</span>
-              <div>
-                <span>DEPOIS: CONFIRA AS PROVAS</span>
-                <h2>Abra os documentos e confira os pontos importantes</h2>
-                <p>Clique em uma fonte sempre que quiser conferir de onde veio a informação.</p>
-              </div>
-            </div>
-            <DocumentsPanel
-              documents={recommendation.documents}
-              onOpen={(document, page = 1) => setViewer({ document, page })}
-            />
-            <div className="workspace-evidence">
-              <EvidencePanel
-                key={caseId}
-                recommendation={recommendation}
-                onViewSource={viewSource}
-              />
-            </div>
-          </section>
-        </div>
-        <aside
-          className="workspace-recommendation"
-          id="passo-decisao"
-          aria-label="Recomendação e decisão"
-        >
-          <div className="workspace-section-heading decision-step-heading">
-            <span className="workspace-step-number">3</span>
-            <div>
-              <span>POR ÚLTIMO: DECIDA</span>
-              <h2>Escolha o próximo passo</h2>
-              <p>Veja a recomendação e salve a sua decisão.</p>
-            </div>
+      <div className="workspace-decision-overview">
+        <section className="case-context case-context-brief">
+          <div>
+            <span className="context-icon" aria-hidden="true">
+              <Scale size={17} />
+            </span>
+            <span className="eyebrow">PROCESSO</span>
           </div>
+          <h2>{caseDetail.subject}</h2>
+          <p>{caseDetail.summary}</p>
+        </section>
+        <aside className="workspace-recommendation" aria-label="Recomendação e decisão">
           <section className="panel decision-panel">
             <RecommendationCard
               data={recommendation}
+              claimValue={caseDetail.claim_value}
               actions={
                 <DecisionActions
                   key={`${caseId}-${decision?.id || 'pending'}`}
@@ -332,12 +226,6 @@ export default function WorkspacePage() {
                 />
               }
             />
-            <div className="recommendation-provenance">
-              <Provenance
-                policy={recommendation.policy_version}
-                model={recommendation.model_version}
-              />
-            </div>
           </section>
           {decision?.decision === 'ACORDO' && (
             <NegotiationPanel
@@ -347,16 +235,64 @@ export default function WorkspacePage() {
               onSaved={saved}
             />
           )}
-          <div className="decision-authority">
-            <ShieldCheck size={16} />
-            <p>
-              A política orienta.
-              <br />
-              <strong>O advogado decide.</strong>
-            </p>
-          </div>
         </aside>
       </div>
+      <nav className="workspace-content-tabs" aria-label="Conteúdo do processo">
+        <button className={activeTab === 'evidences' ? 'active' : ''} onClick={() => setActiveTab('evidences')}>
+          Evidências
+        </button>
+        <button className={activeTab === 'documents' ? 'active' : ''} onClick={() => setActiveTab('documents')}>
+          Documentos
+        </button>
+        <button className={activeTab === 'details' ? 'active' : ''} onClick={() => setActiveTab('details')}>
+          Detalhes
+        </button>
+      </nav>
+      <section className="workspace-tab-content">
+        {activeTab === 'evidences' && (
+          <EvidencePanel key={caseId} recommendation={recommendation} onViewSource={viewSource} />
+        )}
+        {activeTab === 'documents' && (
+          <DocumentsPanel
+            documents={recommendation.documents}
+            onOpen={(document, page = 1) => setViewer({ document, page })}
+          />
+        )}
+        {activeTab === 'details' && (
+          <section className="panel case-details-panel">
+            <div className="panel-heading">
+              <h2>Detalhes do processo</h2>
+              {recommendation.demo_data && <Badge value="DEMO" />}
+            </div>
+            <div className="case-details-body">
+              <dl className="cost-summary">
+                {recommendation.expected_condemnation !== null && (
+                  <div>
+                    <dt>Condenação esperada</dt>
+                    <dd>{money(recommendation.expected_condemnation)}</dd>
+                  </div>
+                )}
+                {recommendation.expected_defense_cost !== null && (
+                  <div>
+                    <dt>Custo esperado da defesa</dt>
+                    <dd>{money(recommendation.expected_defense_cost)}</dd>
+                  </div>
+                )}
+              </dl>
+              <div className="recommendation-provenance">
+                <Provenance policy={recommendation.policy_version} model={recommendation.model_version} />
+              </div>
+              <div className="decision-authority">
+                <ShieldCheck size={16} />
+                <p>
+                  A política orienta. <strong>O advogado decide.</strong>
+                </p>
+              </div>
+              <span className="details-updated">Análise recebida em {shortDate(recommendation.generated_at)}</span>
+            </div>
+          </section>
+        )}
+      </section>
       {viewer && (
         <DocumentViewer
           key={`${viewer.document.id}-${viewer.page}`}

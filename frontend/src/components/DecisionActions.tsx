@@ -107,7 +107,7 @@ export function DecisionActions({
               <CheckCheck size={18} />
               <strong>Decisão registrada</strong>
               <Badge value={decision.is_override ? 'OVERRIDE' : 'ADERENTE'}>
-                {decision.is_override ? 'Escolha diferente' : 'Seguiu a recomendação'}
+                {decision.is_override ? 'Divergência registrada' : 'Seguiu a recomendação'}
               </Badge>
             </div>
             <p>
@@ -138,7 +138,7 @@ export function DecisionActions({
               </button>
               <button onClick={() => open('override')}>
                 <PencilLine size={12} />
-                Alterar decisão
+                Divergir da recomendação
               </button>
             </div>
           </div>
@@ -156,16 +156,16 @@ export function DecisionActions({
             </Button>
             <Button variant="secondary" className="full" onClick={() => open('override')}>
               <PencilLine size={14} />
-              Escolher outra decisão
+              Divergir
             </Button>
-            <p>A decisão final é sua. Toda escolha diferente da recomendação fica registrada.</p>
+            <p>A decisão final é sua. Se divergir, explique o motivo.</p>
           </>
         )}
       </div>
       <Modal
         open={modal !== null}
         onClose={close}
-        title={modal === 'override' ? 'Escolher outra decisão' : 'Confirmar decisão'}
+        title={modal === 'override' ? 'Divergir da recomendação' : 'Confirmar decisão'}
         description={
           modal === 'override'
             ? 'Escolha o que fazer e explique por que esta opção é melhor para o caso.'

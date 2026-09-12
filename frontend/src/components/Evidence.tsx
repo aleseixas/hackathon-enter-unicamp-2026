@@ -297,7 +297,7 @@ export function EvidencePanel({
       {recommendation.next_best_evidence && (
         <article className="next-evidence">
           <div className="eyebrow">
-            <span className="accent-square" />O que poderia mudar esta decisão?
+            <span className="accent-square" />O que ainda precisamos confirmar?
           </div>
           <h3>{recommendation.next_best_evidence.title}</h3>
           <p>{recommendation.next_best_evidence.description}</p>
