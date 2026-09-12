@@ -1,0 +1,180 @@
+export type Role = 'ADVOGADO' | 'ADMINISTRATIVO';
+export type Recommendation = 'ACORDO' | 'DEFESA' | 'REVISAR';
+export type RiskLevel = 'ALTO' | 'MEDIO' | 'BAIXO';
+export type CaseStatus =
+  'AGUARDANDO_DECISAO' | 'EM_NEGOCIACAO' | 'DECISAO_REGISTRADA' | 'CONCLUIDO';
+export type DocumentStatus = 'PRESENTE' | 'AUSENTE' | 'INCONCLUSIVO';
+export type NegotiationStatus = 'PENDENTE' | 'ACEITA' | 'RECUSADA' | 'CONTRAPROPOSTA';
+export type OverrideReason =
+  | 'NOVA_EVIDENCIA'
+  | 'ESTRATEGIA_PROCESSUAL'
+  | 'INFORMACAO_NAO_CONSIDERADA'
+  | 'POLITICA_INADEQUADA'
+  | 'OUTRO';
+
+export interface SourceReference {
+  document_id: string;
+  document_name: string;
+  page: number;
+  excerpt?: string;
+  origin: string;
+}
+export interface DocumentPage {
+  page: number;
+  title: string;
+  paragraphs: string[];
+  fields?: { label: string; value: string }[];
+}
+export interface CaseDocument {
+  id: string;
+  name: string;
+  category: string;
+  status: DocumentStatus;
+  page_count: number;
+  url?: string;
+  demo_pages?: DocumentPage[];
+  description?: string;
+}
+export interface Evidence {
+  id: string;
+  kind: 'FAVORAVEL' | 'RISCO' | 'ALEGACAO';
+  title: string;
+  description: string;
+  source: SourceReference;
+}
+export interface Contradiction {
+  id: string;
+  title: string;
+  description: string;
+  allegation: { text: string; source: SourceReference };
+  documentary_fact: { text: string; source: SourceReference };
+}
+export interface SettlementRange {
+  opening: number;
+  target: number;
+  ceiling: number;
+}
+export interface NextBestEvidence {
+  title: string;
+  description: string;
+  simulation?: { hypothesis: string; outcome: string };
+}
+export interface CaseSummary {
+  case_id: string;
+  case_number: string;
+  plaintiff: string;
+  city: string;
+  uf: string;
+  claim_value: number;
+  status: CaseStatus;
+  risk_level: RiskLevel;
+  recommendation: Recommendation;
+  updated_at: string;
+  lawyer_name: string;
+  firm_name: string;
+  assigned_to_me: boolean;
+}
+export interface CaseDetail extends CaseSummary {
+  subject: string;
+  summary: string;
+  received_at: string;
+  documents: CaseDocument[];
+}
+export interface RecommendationResponse {
+  case_id: string;
+  recommendation: Recommendation;
+  loss_probability: number | null;
+  expected_condemnation: number | null;
+  expected_defense_cost: number | null;
+  settlement: SettlementRange | null;
+  reasons: string[];
+  documents: CaseDocument[];
+  evidence: Evidence[];
+  contradictions: Contradiction[];
+  missing_evidence: string[];
+  next_best_evidence: NextBestEvidence | null;
+  policy_version: string;
+  model_version: string;
+  generated_at: string;
+  demo_data: boolean;
+}
+export interface LawyerDecisionInput {
+  case_id: string;
+  decision: Recommendation;
+  notes?: string;
+}
+export interface OverrideInput extends LawyerDecisionInput {
+  reason: OverrideReason;
+  justification: string;
+}
+export interface DecisionRecord {
+  id: string;
+  case_id: string;
+  recommendation: Recommendation;
+  decision: Recommendation;
+  is_override: boolean;
+  reason?: OverrideReason;
+  justification?: string;
+  notes?: string;
+  policy_version: string;
+  created_at: string;
+}
+export interface NegotiationInput {
+  case_id: string;
+  proposal_value: number;
+  status: NegotiationStatus;
+  counterproposal_value?: number;
+  final_value?: number;
+  notes?: string;
+}
+export interface NegotiationRecord extends NegotiationInput {
+  id: string;
+  updated_at: string;
+}
+export interface AdminDecisionRow {
+  id: string;
+  case_id: string;
+  case_number: string;
+  plaintiff: string;
+  lawyer_name: string;
+  firm_name: string;
+  uf: string;
+  recommendation: Recommendation;
+  decision: Recommendation;
+  adherent: boolean;
+  suggested_value: number | null;
+  realized_value: number | null;
+  status: NegotiationStatus | 'DECISAO_REGISTRADA';
+  created_at: string;
+  is_local?: boolean;
+  justification?: string;
+}
+export interface AdminDashboard {
+  demo_data: boolean;
+  period: string;
+  updated_at: string;
+  metrics: {
+    decisions: number;
+    adherence_rate: number;
+    overrides: number;
+    settlements: number;
+    acceptance_rate: number;
+    average_closed_value: number;
+    average_offered_value: number;
+    rejected: number;
+    counteroffers: number;
+    projected_cost: number;
+  };
+  distribution: { label: string; value: number; percentage: number }[];
+  evolution: { label: string; agreement: number; defense: number }[];
+  override_reasons: { label: string; value: number; percentage: number }[];
+  historical_simulation: {
+    sample_size: number;
+    acceptance_assumption: number;
+    baseline_cost: number;
+    projected_cost: number;
+    estimated_savings: number;
+    description: string;
+  };
+  decisions: AdminDecisionRow[];
+}
