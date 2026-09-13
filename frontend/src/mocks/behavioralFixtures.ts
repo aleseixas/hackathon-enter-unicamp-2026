@@ -80,7 +80,7 @@ const behaviorByCaseId: Record<string, BehaviorMeta> = {
     critical_subsidy_count: 3,
     completeness_band: 'Alta',
     decision_explanation:
-      'Documentacao critica robusta, biometria simulada forte e perfil disciplinado favorecem manutencao da defesa.',
+      'Documentacao critica robusta e biometria simulada forte favorecem manutencao da defesa.',
   },
   'caso-2': {
     lawyer_name: 'Marina Azevedo',
@@ -146,7 +146,7 @@ const behaviorByCaseId: Record<string, BehaviorMeta> = {
     critical_subsidy_count: 2,
     completeness_band: 'Media',
     decision_explanation:
-      'A trilha documental incompleta e a afinidade do perfil com conciliacao sustentam o acordo dentro da faixa recomendada.',
+      'A trilha documental incompleta e a baixa confianca sustentam o acordo dentro da faixa recomendada.',
     follow_probability: 0.72,
     decision_minutes: 64,
   },
@@ -182,7 +182,7 @@ const behaviorByCaseId: Record<string, BehaviorMeta> = {
     critical_subsidy_count: 3,
     completeness_band: 'Alta',
     decision_explanation:
-      'O perfil autonomo leu o valor alto da causa e a prova de credito como motivo suficiente para defender, mesmo contra a recomendacao.',
+      'O valor alto da causa e a prova de credito foram registrados como justificativa para defender, mesmo contra a recomendacao.',
     follow_probability: 0.41,
     decision_minutes: 92,
   },
@@ -284,8 +284,6 @@ const demoAdminRows: AdminDecisionRow[] = demoDecisions.map((decision) => {
     created_at: decision.created_at,
     is_local: false,
     justification: decision.justification,
-    lawyer_profile_label: caseDetail.lawyer_profile_label,
-    lawyer_profile_description: caseDetail.lawyer_profile_description,
     confidence_score: recommendation.confidence_score ?? null,
     confidence_band: recommendation.confidence_band ?? null,
     subsidy_count: recommendation.subsidy_count ?? null,

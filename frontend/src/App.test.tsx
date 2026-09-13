@@ -449,6 +449,23 @@ describe('application business flows', () => {
     ).toBeInTheDocument();
   });
 
+  it('shows lawyer behavior as measurable percentages in administration', async () => {
+    const user = userEvent.setup();
+    renderApp();
+    await user.click(screen.getByRole('button', { name: /Entrar como Administrativo/ }));
+    await user.click(await screen.findByRole('link', { name: 'Aderência' }));
+
+    expect(
+      await screen.findByRole('heading', { name: 'Escritórios que mais aderiram' }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('tab', { name: 'Advogados' }));
+
+    expect(screen.getByRole('heading', { name: 'Indicadores por advogado' })).toBeInTheDocument();
+    expect(screen.getAllByText('Aderência observada').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Propensão estimada').length).toBeGreaterThan(0);
+    expect(screen.queryByRole('tab', { name: 'Perfis' })).not.toBeInTheDocument();
+  });
+
   it('keeps policy definition and operational monitoring separate from the lawyer flow', async () => {
     const user = userEvent.setup();
     renderApp();
