@@ -769,6 +769,19 @@ describe('application business flows', () => {
     expect(await screen.findByRole('button', { name: 'Seguir recomendação' })).toBeInTheDocument();
   });
 
+  it('shows the defense score computed by the risk model from the case subsidies', async () => {
+    const user = userEvent.setup();
+    renderApp();
+    await openLawyerCase(user, 'Maria Aparecida Santos');
+
+    const meter = screen.getByRole('meter', { name: 'Score de defesa' });
+    expect(meter).toHaveAttribute('aria-valuenow', '98');
+    expect(meter).toHaveAttribute('aria-valuemin', '0');
+    expect(meter).toHaveAttribute('aria-valuemax', '100');
+    expect(screen.getByText('Risco estimado de perda 1,7%')).toBeInTheDocument();
+    expect(screen.getByText('Calculado com 5 de 6 subsídios da planilha')).toBeInTheDocument();
+  });
+
   it('shows lawyer behavior as measurable percentages in administration', async () => {
     const user = userEvent.setup();
     renderApp();

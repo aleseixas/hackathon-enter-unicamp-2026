@@ -1,6 +1,11 @@
 export type Role = 'ADVOGADO' | 'ADMINISTRATIVO';
 export type Recommendation = 'ACORDO' | 'DEFESA' | 'REVISAR';
 export type RiskLevel = 'ALTO' | 'MEDIO' | 'BAIXO';
+/** Sub-assunto da planilha de processos. */
+export type SubSubject = 'GOLPE' | 'GENERICO';
+/** Os seis subsídios registrados na planilha de processos. */
+export type SubsidyKey =
+  'contrato' | 'extrato' | 'comprovante' | 'dossie' | 'demonstrativo' | 'laudo';
 export type CaseStatus =
   'AGUARDANDO_DECISAO' | 'EM_NEGOCIACAO' | 'DECISAO_REGISTRADA' | 'CONCLUIDO';
 export type DocumentStatus = 'PRESENTE' | 'AUSENTE' | 'INCONCLUSIVO';
@@ -29,6 +34,8 @@ export interface CaseDocument {
   id: string;
   name: string;
   category: string;
+  /** Subsídio da planilha que este documento representa; ausente em peças que não são subsídio. */
+  subsidy?: SubsidyKey;
   status: DocumentStatus;
   page_count: number;
   url?: string;
@@ -80,6 +87,7 @@ export interface CaseSummary {
 }
 export interface CaseDetail extends CaseSummary {
   subject: string;
+  sub_subject?: SubSubject;
   summary: string;
   received_at: string;
   documents: CaseDocument[];
