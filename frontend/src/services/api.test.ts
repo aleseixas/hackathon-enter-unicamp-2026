@@ -15,6 +15,7 @@ import {
   submitNegotiation,
   submitOverride,
 } from './api';
+import { lossProbabilityForCase } from '../lib/riskModel';
 
 beforeEach(async () => {
   await resetDemoData();
@@ -61,14 +62,23 @@ describe('demonstration API', () => {
         }
       }
     }
-    expect(recommendations.find((item) => item.case_id === 'caso-1')?.loss_probability).toBe(0.23);
+    for (const recommendation of recommendations) {
+      const caseDetail = await getCase(recommendation.case_id);
+      expect(recommendation.loss_probability).toBe(lossProbabilityForCase(caseDetail));
+    }
+    expect(recommendations.find((item) => item.case_id === 'caso-1')?.loss_probability).toBeCloseTo(
+      0.017077,
+      5,
+    );
     expect(recommendations.find((item) => item.case_id === 'caso-2')).toMatchObject({
-      loss_probability: 0.72,
       expected_condemnation: 10500,
       expected_defense_cost: 7560,
       settlement: { opening: 4500, target: 5200, ceiling: 6500 },
     });
-    expect(recommendations.find((item) => item.case_id === 'caso-3')?.loss_probability).toBeNull();
+    expect(recommendations.find((item) => item.case_id === 'caso-3')?.loss_probability).toBeCloseTo(
+      0.573806,
+      5,
+    );
 
     expect(cases.find((item) => item.case_id === 'caso-anexo-01')).toMatchObject({
       case_number: '0801234-56.2024.8.10.0001',

@@ -22,6 +22,8 @@ import type {
 } from '../types';
 import { useAsync } from '../hooks/useAsync';
 import { money, percent, shortDate } from '../lib/format';
+import { defenseScore } from '../lib/defenseScore';
+import { SUBSIDY_KEYS, subsidiesFromDocuments } from '../lib/riskModel';
 import { markCaseAsViewed } from '../lib/caseProgress';
 import { buildDecisionPoints } from '../lib/lawyerExperience';
 import { Badge, ErrorState, LoadingState, Notice, Provenance } from '../components/ui';
@@ -47,6 +49,8 @@ function RecommendationCard({
   const decisionPoints = buildDecisionPoints(data);
   const [showDecisionBasis, setShowDecisionBasis] = useState(false);
   const attentionPoint = decisionPoints.find((point) => point.id === 'change');
+  const score = defenseScore(data.loss_probability);
+  const subsidyCount = subsidiesFromDocuments(data.documents).size;
   return (
     <div className={`recommendation-card recommendation-${data.recommendation.toLowerCase()}`}>
       <div className="recommendation-primary-row">
@@ -77,11 +81,39 @@ function RecommendationCard({
           </p>
         </div>
         <div className="recommendation-key-facts">
-          <div>
-            <span>Risco estimado de perda</span>
-            <strong>
-              {data.loss_probability === null ? 'Não calculado' : percent(data.loss_probability)}
-            </strong>
+          <div className="defense-score-fact">
+            <span>Score de defesa</span>
+            {score === null ? (
+              <strong>Não calculado</strong>
+            ) : (
+              <>
+                <strong className="defense-score-value">
+                  {score}
+                  <small>/100</small>
+                </strong>
+                <div
+                  className="defense-score-meter"
+                  role="meter"
+                  aria-label="Score de defesa"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={score}
+                  aria-valuetext={`${score} de 100: 0 indica fechar acordo e 100 indica defender`}
+                >
+                  <i style={{ width: `${score}%` }} />
+                </div>
+                <small className="defense-score-scale" aria-hidden="true">
+                  <em>Acordo</em>
+                  <em>Defesa</em>
+                </small>
+                <small className="defense-score-risk">
+                  Risco estimado de perda {percent(data.loss_probability)}
+                </small>
+                <small className="defense-score-risk">
+                  Calculado com {subsidyCount} de {SUBSIDY_KEYS.length} subsídios da planilha
+                </small>
+              </>
+            )}
           </div>
           <div>
             <span>Valor da causa</span>

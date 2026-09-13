@@ -866,3 +866,51 @@
     margin-left: auto;
   }
 }
+
+/* Score de defesa no card de recomendação: 0 = fechar acordo, 100 = pode defender */
+.recommendation-key-facts .defense-score-value {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.recommendation-key-facts .defense-score-value small {
+  color: var(--muted);
+  font-size: 0.45em;
+  font-weight: 700;
+}
+
+.defense-score-meter {
+  height: 6px;
+  margin-top: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+.defense-score-meter > i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+.defense-score-scale {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.defense-score-scale em {
+  font-style: normal;
+}
+
+.defense-score-risk {
+  color: var(--muted);
+  font-size: clamp(13px, 0.82vw, 16px);
+  line-height: 1.3;
+}

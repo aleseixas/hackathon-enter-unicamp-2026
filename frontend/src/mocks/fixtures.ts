@@ -13,9 +13,15 @@ import type {
   RecommendationResponse,
   RiskLevel,
   SourceReference,
+  SubSubject,
 } from '../types';
+import { lossProbabilityForCase } from '../lib/riskModel';
 
-/** Entirely synthetic demonstration data. No legal, financial or model inference runs here. */
+/**
+ * Synthetic demonstration cases. The loss probability is computed by the trained risk model
+ * (lib/riskModel.ts) from each case's subsidies, sub-subject and UF; the other recommendation
+ * fields remain illustrative.
+ */
 export const DEMO_GENERATED_AT = '2026-09-12T12:00:00.000Z';
 export const DEMO_POLICY_VERSION = 'politica-demo-v1.0';
 export const DEMO_MODEL_VERSION = 'modelo-simulado-v1.0';
@@ -38,7 +44,6 @@ interface CaseFixture {
   claim: number;
   risk: RiskLevel;
   recommendation: Recommendation;
-  probability: number | null;
   condemnation: number | null;
   defense: number | null;
   settlement: RecommendationResponse['settlement'];
@@ -51,6 +56,8 @@ interface CaseFixture {
   adherenceBase: number;
   assigned: boolean;
   subject?: string;
+  /** GOLPE only when the allegation attributes the operation to fraud or says the receiving account is not the plaintiff's. */
+  subSubject: SubSubject;
   confidenceScore: number;
   confidenceBand: string;
   subsidyCount: number;
@@ -77,7 +84,7 @@ const caseFixtures: CaseFixture[] = [
     claim: 20000,
     risk: 'BAIXO',
     recommendation: 'DEFESA',
-    probability: 0.24,
+    subSubject: 'GENERICO',
     condemnation: 7500,
     defense: 2400,
     settlement: null,
@@ -127,7 +134,7 @@ const caseFixtures: CaseFixture[] = [
     claim: 25000,
     risk: 'ALTO',
     recommendation: 'ACORDO',
-    probability: 0.72,
+    subSubject: 'GOLPE',
     condemnation: 12600,
     defense: 9072,
     settlement: { opening: 4500, target: 6000, ceiling: 7500 },
@@ -186,7 +193,7 @@ const caseFixtures: CaseFixture[] = [
     claim: 20000,
     risk: 'BAIXO',
     recommendation: 'DEFESA',
-    probability: 0.23,
+    subSubject: 'GENERICO',
     condemnation: 8400,
     defense: 1932,
     settlement: null,
@@ -242,7 +249,7 @@ const caseFixtures: CaseFixture[] = [
     claim: 25000,
     risk: 'ALTO',
     recommendation: 'ACORDO',
-    probability: 0.72,
+    subSubject: 'GOLPE',
     condemnation: 10500,
     defense: 7560,
     settlement: { opening: 4500, target: 5200, ceiling: 6500 },
@@ -300,7 +307,7 @@ const caseFixtures: CaseFixture[] = [
     claim: 15000,
     risk: 'MEDIO',
     recommendation: 'REVISAR',
-    probability: null,
+    subSubject: 'GENERICO',
     condemnation: null,
     defense: null,
     settlement: null,
@@ -355,7 +362,7 @@ const caseFixtures: CaseFixture[] = [
     claim: 18000,
     risk: 'BAIXO',
     recommendation: 'DEFESA',
-    probability: 0.31,
+    subSubject: 'GENERICO',
     condemnation: 7200,
     defense: 2232,
     settlement: null,
@@ -405,7 +412,7 @@ const caseFixtures: CaseFixture[] = [
     claim: 22000,
     risk: 'ALTO',
     recommendation: 'ACORDO',
-    probability: 0.67,
+    subSubject: 'GENERICO',
     condemnation: 9800,
     defense: 6566,
     settlement: { opening: 3800, target: 4600, ceiling: 5800 },
@@ -461,7 +468,7 @@ const caseFixtures: CaseFixture[] = [
     claim: 16000,
     risk: 'ALTO',
     recommendation: 'ACORDO',
-    probability: 0.64,
+    subSubject: 'GENERICO',
     condemnation: 8000,
     defense: 5120,
     settlement: { opening: 3000, target: 3800, ceiling: 4800 },
@@ -510,7 +517,7 @@ const caseFixtures: CaseFixture[] = [
     claim: 30000,
     risk: 'MEDIO',
     recommendation: 'ACORDO',
-    probability: 0.56,
+    subSubject: 'GENERICO',
     condemnation: 12000,
     defense: 6720,
     settlement: { opening: 4000, target: 5000, ceiling: 6200 },
@@ -561,7 +568,7 @@ const caseFixtures: CaseFixture[] = [
     claim: 12500,
     risk: 'MEDIO',
     recommendation: 'REVISAR',
-    probability: null,
+    subSubject: 'GENERICO',
     condemnation: null,
     defense: null,
     settlement: null,
@@ -608,14 +615,15 @@ const caseFixtures: CaseFixture[] = [
   },
 ];
 
+// Terceiro item: subsídio da planilha que a categoria representa (null quando não é subsídio).
 const documentCategories = [
-  ['inicial', 'Petição inicial'],
-  ['contrato', 'Contrato'],
-  ['credito', 'Comprovante de liberação'],
-  ['biometria', 'Biometria e assinatura'],
-  ['bacen', 'Consulta BACEN'],
-  ['endereco', 'Comprovante de endereço'],
-  ['pagamentos', 'Histórico de pagamentos'],
+  ['inicial', 'Petição inicial', null],
+  ['contrato', 'Contrato', 'contrato'],
+  ['credito', 'Comprovante de liberação', 'extrato'],
+  ['biometria', 'Biometria e assinatura', 'dossie'],
+  ['bacen', 'Consulta BACEN', 'comprovante'],
+  ['endereco', 'Comprovante de endereço', null],
+  ['pagamentos', 'Histórico de pagamentos', 'demonstrativo'],
 ] as const;
 
 const attachedDocumentsByCaseId: Record<string, CaseDocument[]> = {
@@ -634,6 +642,7 @@ const attachedDocumentsByCaseId: Record<string, CaseDocument[]> = {
       id: 'caso-anexo-01-contrato',
       name: 'Contrato nº 502348719',
       category: 'Contrato',
+      subsidy: 'contrato',
       status: 'PRESENTE',
       page_count: 2,
       url: '/demo-cases/Caso_01_0801234-56-2024-8-10-0001/02_Contrato_502348719.pdf',
@@ -643,6 +652,7 @@ const attachedDocumentsByCaseId: Record<string, CaseDocument[]> = {
       id: 'caso-anexo-01-extrato',
       name: 'Extrato bancário',
       category: 'Crédito e movimentação',
+      subsidy: 'extrato',
       status: 'PRESENTE',
       page_count: 1,
       url: '/demo-cases/Caso_01_0801234-56-2024-8-10-0001/03_Extrato_Bancario.pdf',
@@ -652,6 +662,7 @@ const attachedDocumentsByCaseId: Record<string, CaseDocument[]> = {
       id: 'caso-anexo-01-bacen',
       name: 'Comprovante de crédito BACEN',
       category: 'Liberação do crédito',
+      subsidy: 'comprovante',
       status: 'PRESENTE',
       page_count: 2,
       url: '/demo-cases/Caso_01_0801234-56-2024-8-10-0001/04_Comprovante_de_Credito_BACEN.pdf',
@@ -661,6 +672,7 @@ const attachedDocumentsByCaseId: Record<string, CaseDocument[]> = {
       id: 'caso-anexo-01-veritas',
       name: 'Dossiê Veritas',
       category: 'Identificação e biometria',
+      subsidy: 'dossie',
       status: 'PRESENTE',
       page_count: 2,
       url: '/demo-cases/Caso_01_0801234-56-2024-8-10-0001/05_Dossie_Veritas.pdf',
@@ -670,6 +682,7 @@ const attachedDocumentsByCaseId: Record<string, CaseDocument[]> = {
       id: 'caso-anexo-01-divida',
       name: 'Demonstrativo da dívida',
       category: 'Histórico de parcelas',
+      subsidy: 'demonstrativo',
       status: 'PRESENTE',
       page_count: 3,
       url: '/demo-cases/Caso_01_0801234-56-2024-8-10-0001/06_Demonstrativo_Evolucao_Divida.pdf',
@@ -679,6 +692,7 @@ const attachedDocumentsByCaseId: Record<string, CaseDocument[]> = {
       id: 'caso-anexo-01-laudo',
       name: 'Laudo referenciado',
       category: 'Análise documental',
+      subsidy: 'laudo',
       status: 'PRESENTE',
       page_count: 2,
       url: '/demo-cases/Caso_01_0801234-56-2024-8-10-0001/07_Laudo_Referenciado.pdf',
@@ -700,6 +714,7 @@ const attachedDocumentsByCaseId: Record<string, CaseDocument[]> = {
       id: 'caso-anexo-02-bacen',
       name: 'Comprovante de crédito BACEN',
       category: 'Liberação do crédito',
+      subsidy: 'comprovante',
       status: 'PRESENTE',
       page_count: 2,
       url: '/demo-cases/Caso_02_0654321-09-2024-8-04-0001/02_Comprovante_de_Credito_BACEN.pdf',
@@ -709,6 +724,7 @@ const attachedDocumentsByCaseId: Record<string, CaseDocument[]> = {
       id: 'caso-anexo-02-divida',
       name: 'Demonstrativo da dívida',
       category: 'Histórico de parcelas',
+      subsidy: 'demonstrativo',
       status: 'PRESENTE',
       page_count: 3,
       url: '/demo-cases/Caso_02_0654321-09-2024-8-04-0001/03_Demonstrativo_Evolucao_Divida.pdf',
@@ -718,6 +734,7 @@ const attachedDocumentsByCaseId: Record<string, CaseDocument[]> = {
       id: 'caso-anexo-02-laudo',
       name: 'Laudo referenciado',
       category: 'Análise documental',
+      subsidy: 'laudo',
       status: 'PRESENTE',
       page_count: 2,
       url: '/demo-cases/Caso_02_0654321-09-2024-8-04-0001/04_Laudo_Referenciado.pdf',
@@ -743,12 +760,13 @@ function documentsFor(fixture: CaseFixture): CaseDocument[] {
       ? 'Histórico MOCK parcial, sem conciliação suficiente de todos os pagamentos mencionados.'
       : 'Histórico de pagamentos MOCK com lançamentos fictícios. Este arquivo não comprova, isoladamente, a regularidade da contratação.',
   ];
-  return documentCategories.map(([key, category], index) => {
+  return documentCategories.map(([key, category, subsidy], index) => {
     const status = fixture.statuses[index];
     const document: CaseDocument = {
       id: `${fixture.id}-${key}`,
       name: `${category} · MOCK`,
       category,
+      ...(subsidy ? { subsidy } : {}),
       status,
       page_count: status === 'AUSENTE' ? 0 : index === 0 ? 2 : 1,
       description:
@@ -812,6 +830,7 @@ export const demoCases: CaseDetail[] = caseFixtures.map((fixture) => ({
   office_cluster: fixture.officeCluster,
   adherence_base: fixture.adherenceBase,
   subject: fixture.subject ?? 'Contestação de contratação bancária',
+  sub_subject: fixture.subSubject,
   summary: fixture.summary,
   documents: documentsFor(fixture),
 }));
@@ -1118,7 +1137,9 @@ export const demoRecommendations: Record<string, RecommendationResponse> = Objec
     {
       case_id: fixture.id,
       recommendation: fixture.recommendation,
-      loss_probability: fixture.probability,
+      loss_probability: lossProbabilityForCase(
+        demoCases.find((item) => item.case_id === fixture.id)!,
+      ),
       expected_condemnation: fixture.condemnation,
       expected_defense_cost: fixture.defense,
       settlement: fixture.settlement,
