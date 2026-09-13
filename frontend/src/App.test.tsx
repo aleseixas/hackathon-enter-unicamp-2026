@@ -27,6 +27,12 @@ function renderApp() {
   );
 }
 
+function readDisplayedInteger(value: string | null | undefined) {
+  const digits = value?.replace(/\D/g, '') ?? '';
+  if (!digits) throw new Error(`Expected an integer, received: ${String(value)}`);
+  return Number(digits);
+}
+
 async function openLawyerCase(user: User, plaintiff: string) {
   await user.click(screen.getByRole('button', { name: /Entrar como Advogado/ }));
   await user.click(
@@ -57,6 +63,145 @@ async function followRecommendation(user: User, notes?: string) {
 }
 
 describe('application business flows', () => {
+  it('separates aggregate indicators from traceable demo records in administration', async () => {
+    const user = userEvent.setup();
+    renderApp();
+    await user.click(screen.getByRole('button', { name: /Entrar como Administrativo/ }));
+
+    await screen.findByRole('heading', { name: 'Visão geral' });
+    const dataScope = await screen.findByRole('note', { name: 'Escopo dos dados administrativos' });
+    expect(dataScope).toHaveTextContent('60.000 decisões simuladas');
+    expect(dataScope).toHaveTextContent('5 registros rastreáveis');
+    expect(
+      screen.getByText(/5 registros rastreáveis no recorte atual.*60\.000 decisões simuladas/),
+    ).toBeInTheDocument();
+
+    const aggregateMetric = screen.getByText('Decisões na base agregada').closest('article');
+    expect(aggregateMetric).not.toBeNull();
+    expect(within(aggregateMetric!).getByText('60.000')).toBeInTheDocument();
+    expect(
+      within(aggregateMetric!).getByText('5 registros rastreáveis disponíveis'),
+    ).toBeInTheDocument();
+  });
+
+  it('uses every aggregate decision and shows the count of every historical justification', async () => {
+    const user = userEvent.setup();
+    renderApp();
+    await user.click(screen.getByRole('button', { name: /Entrar como Administrativo/ }));
+    await user.click(await screen.findByRole('link', { name: 'Aderência' }));
+
+    const adherenceMetric = (await screen.findByText('Aderência geral')).closest('article');
+    const overrideMetric = screen.getByText('Divergências registradas').closest('article');
+    const justificationMetric = screen.getByText('Justificativas classificadas').closest('article');
+    const firmMetric = screen.getByText('Total de escritórios').closest('article');
+    const lawyerMetric = screen.getByText('Total de advogados').closest('article');
+    expect(adherenceMetric).not.toBeNull();
+    expect(overrideMetric).not.toBeNull();
+    expect(justificationMetric).not.toBeNull();
+    expect(firmMetric).not.toBeNull();
+    expect(lawyerMetric).not.toBeNull();
+    expect(adherenceMetric).toHaveTextContent('60.000 decisões no recorte');
+    expect(overrideMetric).toHaveTextContent('26.149');
+    expect(justificationMetric).toHaveTextContent('26.149');
+    expect(justificationMetric).toHaveTextContent('7 motivos históricos no recorte');
+    expect(firmMetric).toHaveTextContent('6');
+    expect(firmMetric).toHaveTextContent('Na base agregada');
+    expect(lawyerMetric).toHaveTextContent('36');
+    expect(lawyerMetric).toHaveTextContent('Na base agregada');
+
+    const viewTabs = within(
+      screen.getByRole('tablist', { name: 'Visualizações da aderência' }),
+    ).getAllByRole('tab');
+    expect(viewTabs.map((tab) => tab.textContent)).toEqual([
+      'Justificativas',
+      'Escritórios',
+      'Advogados',
+    ]);
+    expect(viewTabs[0]).toHaveAttribute('aria-selected', 'true');
+    const reasons = screen.getByRole('region', { name: 'Motivos que concentram os desvios' });
+    expect(within(reasons).getByRole('note')).toHaveTextContent(
+      '26.149 justificativas classificadas',
+    );
+    const expectedReasons = [
+      ['Baixa confiança do modelo', '12.820'],
+      ['Caso de alto valor exigiu avaliação própria', '5.192'],
+      ['Avaliação jurídica individual', '3.631'],
+      ['Perfil mais negociador do advogado', '2.185'],
+      ['Estratégia do escritório', '1.003'],
+      ['Informação nova na análise', '963'],
+      ['Estratégia autônoma do advogado', '355'],
+    ];
+    for (const [label, value] of expectedReasons) {
+      expect(within(reasons).getByText(label).closest('.admin-reason')).toHaveTextContent(value);
+    }
+
+    await user.click(screen.getByRole('tab', { name: 'Escritórios' }));
+    const firms = await screen.findByRole('region', {
+      name: 'Escritórios que mais aderiram',
+    });
+    const firmRows = within(firms).getAllByRole('article');
+    expect(firmRows).toHaveLength(6);
+    const firmDecisionCounts = firmRows.map((row) =>
+      readDisplayedInteger(within(row).getByText(/^\d[\d.]* decisões na base$/).textContent),
+    );
+    expect(firmDecisionCounts.every((value) => value > 1)).toBe(true);
+    expect(firmDecisionCounts.reduce((total, value) => total + value, 0)).toBe(60_000);
+
+    await user.click(screen.getByRole('tab', { name: 'Advogados' }));
+    const lawyers = await screen.findByRole('region', { name: 'Indicadores por advogado' });
+    const lawyerRows = within(lawyers).getAllByRole('article');
+    expect(lawyerRows).toHaveLength(36);
+    const lawyerDecisionCounts = lawyerRows.map((row) => {
+      const scopeLabel = within(row).getByText('decisões na base');
+      return readDisplayedInteger(scopeLabel.parentElement?.querySelector('strong')?.textContent);
+    });
+    expect(lawyerDecisionCounts.every((value) => value > 1)).toBe(true);
+    expect(lawyerDecisionCounts.reduce((total, value) => total + value, 0)).toBe(60_000);
+
+    await user.click(screen.getByRole('tab', { name: 'Justificativas' }));
+
+    await user.selectOptions(screen.getByRole('combobox', { name: 'UF global' }), 'BA');
+    expect(screen.getByText('Aderência geral').closest('article')).toHaveTextContent(
+      '1 decisão no recorte',
+    );
+    expect(screen.getByText('Divergências registradas').closest('article')).toHaveTextContent('1');
+    expect(screen.getByText('Justificativas informadas').closest('article')).toHaveTextContent('1');
+    const filteredFirmMetric = screen.getByText('Total de escritórios').closest('article');
+    const filteredLawyerMetric = screen.getByText('Total de advogados').closest('article');
+    expect(within(filteredFirmMetric!).getByText('1')).toBeInTheDocument();
+    expect(filteredFirmMetric).toHaveTextContent('No recorte rastreável');
+    expect(within(filteredLawyerMetric!).getByText('1')).toBeInTheDocument();
+    expect(filteredLawyerMetric).toHaveTextContent('No recorte rastreável');
+    const filteredReasons = screen.getByRole('region', {
+      name: 'Motivos que concentram os desvios',
+    });
+    expect(
+      within(filteredReasons)
+        .getByText('Fundamento jurídico ou estratégia processual')
+        .closest('.admin-reason'),
+    ).toHaveTextContent('(1)');
+    expect(
+      within(filteredReasons).queryByText('Baixa confiança do modelo'),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Escritórios' }));
+    const filteredFirms = await screen.findByRole('region', {
+      name: 'Escritórios que mais aderiram',
+    });
+    const filteredFirmRows = within(filteredFirms).getAllByRole('article');
+    expect(filteredFirmRows).toHaveLength(1);
+    expect(filteredFirmRows[0]).toHaveTextContent('1 registro rastreável');
+
+    await user.click(screen.getByRole('tab', { name: 'Advogados' }));
+    const filteredLawyers = await screen.findByRole('region', {
+      name: 'Indicadores por advogado',
+    });
+    const filteredLawyerRows = within(filteredLawyers).getAllByRole('article');
+    expect(filteredLawyerRows).toHaveLength(1);
+    const filteredScopeLabel = within(filteredLawyerRows[0]).getByText('registro rastreável');
+    expect(filteredScopeLabel.parentElement).toHaveTextContent('1');
+  });
+
   it('opens the referenced MOCK pages, confirms defense and shows the same decision to administration', async () => {
     const user = userEvent.setup();
     renderApp();
@@ -151,14 +296,39 @@ describe('application business flows', () => {
       within(dialog).getByRole('combobox', { name: /Minha decisão/ }),
       'DEFESA',
     );
-    await user.selectOptions(
-      within(dialog).getByRole('combobox', { name: /outra decisão/ }),
-      'NOVA_EVIDENCIA',
+    const reasonSelect = within(dialog).getByRole('combobox', { name: /outra decisão/ });
+    for (const label of [
+      'Fato ou documento novo',
+      'Fundamento jurídico ou estratégia processual',
+      'Dado relevante não considerado',
+      'Exceção à regra da política',
+      'Outro motivo verificável',
+    ]) {
+      expect(within(reasonSelect).getByRole('option', { name: label })).toBeInTheDocument();
+    }
+    await user.selectOptions(reasonSelect, 'NOVA_EVIDENCIA');
+    expect(
+      within(dialog).getByText(
+        'Informe o fato ou documento, a data, a página ou origem e como isso muda a decisão.',
+      ),
+    ).toBeInTheDocument();
+    const justificationField = within(dialog).getByRole('textbox', {
+      name: /Explique sua escolha/,
+    });
+    expect(justificationField).toHaveAttribute(
+      'placeholder',
+      'Ex.: novo extrato, página 3, confirma pagamento e altera o risco do caso.',
     );
-    await user.type(
-      within(dialog).getByRole('textbox', { name: /Explique sua escolha/ }),
-      justification,
-    );
+    await user.type(justificationField, 'Documento novo.');
+    await user.click(within(dialog).getByRole('button', { name: 'Salvar minha decisão' }));
+    expect(
+      within(dialog).getByText(
+        'Explique com pelo menos 20 caracteres e inclua um fato verificável.',
+      ),
+    ).toBeInTheDocument();
+    expect(window.localStorage.getItem(DEMO_STORAGE_KEY)).toBeNull();
+    await user.clear(justificationField);
+    await user.type(justificationField, justification);
     await user.click(within(dialog).getByRole('button', { name: 'Salvar minha decisão' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     await screen.findByText('Divergência registrada com motivo e justificativa.');
@@ -180,9 +350,10 @@ describe('application business flows', () => {
     await user.selectOptions(screen.getByRole('combobox', { name: 'UF' }), 'SP');
     expect(screen.getByRole('heading', { name: 'Nenhum registro encontrado' })).toBeInTheDocument();
     await user.click(screen.getAllByRole('button', { name: 'Limpar filtros' })[0]);
+    await user.clear(screen.getByRole('searchbox', { name: 'Buscar processo ou pessoa' }));
     expect(screen.getByRole('row', { name: /0801634-18\.2026\.8\.19\.0001/ })).toBeInTheDocument();
     expect(screen.getByRole('searchbox', { name: 'Buscar processo ou pessoa' })).toHaveValue('');
-  });
+  }, 10_000);
 
   it('requires negotiation amounts, preserves a counteroffer and records the accepted value in administration', async () => {
     const user = userEvent.setup();
@@ -604,6 +775,10 @@ describe('application business flows', () => {
     await user.click(screen.getByRole('button', { name: /Entrar como Administrativo/ }));
     await user.click(await screen.findByRole('link', { name: 'Aderência' }));
 
+    expect(
+      await screen.findByRole('heading', { name: 'Motivos que concentram os desvios' }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('tab', { name: 'Escritórios' }));
     expect(
       await screen.findByRole('heading', { name: 'Escritórios que mais aderiram' }),
     ).toBeInTheDocument();

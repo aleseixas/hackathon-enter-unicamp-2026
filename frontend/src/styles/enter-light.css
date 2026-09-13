@@ -1,0 +1,809 @@
+/* Enter light palette: neutral 00, black typography and orange interaction. */
+:root {
+  color-scheme: light;
+  color: #000;
+  background: #f3f3f3;
+  --bg: #f3f3f3;
+  --sidebar: #fff;
+  --surface: #fff;
+  --surface-raised: #f3f3f3;
+  --surface-soft: #e7e7e7;
+  --ink: #000;
+  --text: #000;
+  --muted: #000000a3;
+  --dim: #00000080;
+  --line: #0003;
+  --line-soft: #00000014;
+  --accent: #ffae35;
+  --amber: #ffae35;
+  --accent-hover: #ffb649;
+  --accent-active: #e99821;
+  --accent-soft: #ffae3524;
+  --on-accent: #000;
+  --shadow: 0 1px 2px #00000014, 0 6px 16px #00000008;
+}
+
+html,
+body,
+#root,
+.app-shell,
+.app-main,
+.login-page {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+body {
+  background: radial-gradient(circle at 82% -12%, #ffae3529, transparent 35rem), var(--bg);
+}
+
+::selection {
+  background: #ffae3580;
+  color: #000;
+}
+
+.brand-logo {
+  color: #000;
+  filter: none;
+}
+
+.app-sidebar {
+  background: #fff;
+  border-color: var(--line-soft);
+  scrollbar-color: #0003 transparent;
+}
+
+.topbar {
+  background: #f3f3f3e8;
+  border-color: var(--line-soft);
+}
+
+.brand-divider,
+.meta-separator {
+  background: #0003;
+}
+
+.brand-module,
+.nav-section-label,
+.sidebar-demo p,
+.sidebar-version,
+.sidebar-profile div > span,
+.breadcrumbs,
+.topbar-context,
+.app-footer,
+.provenance,
+.page-description {
+  color: var(--muted);
+}
+
+.breadcrumbs strong,
+.nav-item,
+.topbar-help,
+.cases-bottom-note strong,
+.case-person,
+.workspace-next-action > strong,
+.decision-basis-glance strong,
+.recommendation-evidence-preview h3,
+.decision-points > h3,
+.decision-point > div > span,
+.defense-prefill-reasons {
+  color: var(--ink);
+}
+
+.nav-item:hover {
+  background: #0000000a;
+  color: #000;
+}
+
+.nav-item.active {
+  background: #ffae3530;
+  color: #000;
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.organization,
+.sidebar-demo,
+.panel,
+.modal,
+.queue-summary,
+.case-context,
+.case-context-brief,
+.documents-panel,
+.evidence-card,
+.comparison-side,
+.comparison-fact,
+.policy-rules article,
+.recommendation-card,
+.decision-point,
+.lawyer-productivity,
+.login-proof,
+.role-card {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+
+.organization-icon,
+.avatar,
+.access-icon,
+.role-icon,
+.queue-icon,
+.queue-icon.amber,
+.queue-icon.green,
+.mini-symbol,
+.document-icon,
+.count-label,
+.document-legend,
+.analysis-tabs > button > span,
+.workspace-tab-count {
+  background: var(--surface-raised);
+  border-color: var(--line);
+}
+
+.sidebar-demo,
+.modal-footer,
+.table-footer,
+.workspace-steps-title,
+.cases-table th {
+  background: #f3f3f3;
+  border-color: var(--line);
+}
+
+.topbar-help,
+.button.secondary,
+.input,
+.select,
+.textarea,
+.search-input,
+.admin-global-filter-grid select,
+.admin-analysis-toolbar select,
+.admin-inline-search {
+  background: #fff;
+  border-color: var(--line);
+  color: #000;
+}
+
+.button.primary {
+  background: #000;
+  border-color: #000;
+  color: #fff;
+  box-shadow: none;
+}
+
+.button.primary:hover:not(:disabled) {
+  background: #171717;
+  border-color: #171717;
+  color: #fff;
+}
+
+.button.accent,
+.quick-start-icon,
+.workspace-step-number,
+.queue-focus-icon,
+.role-lawyer .role-icon {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #000;
+}
+
+.button.secondary:hover:not(:disabled),
+.icon-button:hover,
+.button.ghost:hover:not(:disabled),
+.topbar-help:hover {
+  background: #0000000a;
+  border-color: #0006;
+  color: #000;
+}
+
+.badge {
+  background: #f3f3f3;
+  border-color: var(--line);
+  color: #000000a3;
+}
+
+.notice,
+.pill-neutral {
+  background: #f3f3f3;
+  border-color: var(--line);
+  color: var(--muted);
+}
+
+/* Login */
+.login-story,
+.login-access {
+  background: #fff;
+  border-color: #cfcfcf;
+  color: #000;
+}
+
+.login-access {
+  background: #f7f7f7;
+}
+
+.login-story h1 {
+  letter-spacing: -0.04em;
+}
+
+.login-access h2 {
+  letter-spacing: -0.025em;
+}
+
+.login-story h1,
+.login-story h1 > span,
+.login-intro strong,
+.login-proof,
+.login-principles > span {
+  color: #000;
+}
+
+.login-story h1 > span,
+.eyebrow,
+.quick-start-label,
+.workspace-section-heading > div > span,
+.workspace-steps-title > span {
+  color: #a85f00;
+}
+
+.login-principles > span,
+.login-proof {
+  background: #fff;
+  border-color: #c9c9c9;
+}
+
+.login-principles > span,
+.login-proof,
+.login-access .role-card {
+  box-shadow: 0 1px 2px #00000012;
+}
+
+.login-story-content > p,
+.login-intro,
+.role-copy > span,
+.login-note,
+.login-footer,
+.login-header-meta,
+.brand-module {
+  color: #4d4d4d;
+}
+
+.login-header-meta .pill-neutral {
+  background: #fff;
+  border-color: #bdbdbd;
+  color: #414141;
+}
+
+.login-access .access-icon {
+  background: #fff;
+  border-color: #bdbdbd;
+  color: #a85f00;
+}
+
+.login-access .access-icon svg {
+  width: 34px;
+  height: 34px;
+  stroke-width: 1.9;
+}
+
+.login-access .role-card {
+  border-color: #8a8a8a;
+}
+
+.login-access .role-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px #00000014;
+}
+
+.login-access .role-card:not(.role-lawyer) .role-icon,
+.login-access .role-card:not(.role-lawyer) > svg {
+  color: #3f3f3f;
+}
+
+.login-access .role-icon {
+  border-color: #bdbdbd;
+}
+
+.login-access .role-icon svg {
+  width: 30px;
+  height: 30px;
+  stroke-width: 1.9;
+}
+
+.login-access .role-card > svg {
+  width: 24px;
+  height: 24px;
+  stroke-width: 2;
+}
+
+.login-proof .proof-icon svg {
+  width: 29px;
+  height: 29px;
+  stroke-width: 1.9;
+}
+
+.login-note > svg {
+  color: #555;
+  stroke-width: 2;
+}
+
+.role-card:hover {
+  background: #fff;
+  border-color: #0006;
+}
+
+.login-access .role-lawyer,
+.login-access .role-lawyer:hover {
+  background: var(--accent);
+  border-color: #000;
+  box-shadow: 0 1px 2px #0003;
+}
+
+.role-lawyer .role-copy > span,
+.role-lawyer > svg {
+  color: #000000a3;
+}
+
+@media (min-width: 901px) {
+  .login-page {
+    min-height: 100dvh;
+    height: 100dvh;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .login-header {
+    padding: clamp(14px, 2vh, 26px) clamp(32px, 2.5vw, 52px) 0;
+  }
+
+  .login-header .brand-logo {
+    height: 36px;
+  }
+
+  .login-header .brand-module,
+  .login-header-meta {
+    font-size: 14px;
+  }
+
+  .login-composition,
+  .login-story,
+  .login-access,
+  .login-story-content,
+  .login-access-content {
+    min-height: 0;
+  }
+
+  .login-story,
+  .login-access {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .login-story {
+    padding: clamp(10px, 1.8vh, 18px) clamp(32px, 2.5vw, 52px);
+  }
+
+  .login-access {
+    padding: clamp(16px, 2.5vh, 28px) clamp(30px, 3vw, 64px);
+  }
+
+  .login-story-content > .eyebrow,
+  .login-access-content > .eyebrow {
+    font-size: clamp(14px, min(1vw, 1.9vh), 19px);
+  }
+
+  .login-access-content {
+    width: min(100%, 720px);
+  }
+
+  .login-story h1 {
+    margin-top: clamp(12px, 2vh, 22px);
+    font-size: clamp(68px, min(6vw, 10vh), 118px);
+    line-height: 0.96;
+  }
+
+  .login-story-content > p {
+    margin-top: clamp(14px, 2.4vh, 26px);
+    font-size: clamp(17px, min(1.4vw, 2.8vh), 27px);
+    line-height: 1.45;
+  }
+
+  .login-principles {
+    margin-top: clamp(14px, 2.4vh, 26px);
+    gap: clamp(8px, 1vw, 16px);
+  }
+
+  .login-principles > span {
+    min-height: clamp(44px, 7vh, 62px);
+    padding: clamp(10px, 1.8vh, 16px) clamp(13px, 1vw, 19px);
+    font-size: clamp(16px, min(1.12vw, 2.2vh), 22px);
+  }
+
+  .login-proof {
+    min-height: clamp(72px, 10vh, 96px);
+    margin-top: clamp(14px, 2.2vh, 22px);
+    padding: clamp(13px, 2vh, 20px) clamp(17px, 1.25vw, 24px);
+  }
+
+  .proof-icon {
+    width: clamp(50px, 7vh, 66px);
+    height: clamp(50px, 7vh, 66px);
+  }
+
+  .login-proof strong {
+    font-size: clamp(17px, min(1.2vw, 2.3vh), 23px);
+  }
+
+  .login-proof p {
+    margin-top: clamp(3px, 0.7vh, 7px);
+    font-size: clamp(15px, min(1.05vw, 2vh), 20px);
+    line-height: 1.45;
+  }
+
+  .login-access .access-icon {
+    width: clamp(56px, 8vh, 84px);
+    height: clamp(56px, 8vh, 84px);
+    margin-bottom: clamp(12px, 2.2vh, 22px);
+  }
+
+  .login-access h2 {
+    margin-top: clamp(10px, 1.6vh, 20px);
+    font-size: clamp(48px, min(4.1vw, 7.5vh), 82px);
+    line-height: 1;
+  }
+
+  .login-intro {
+    margin-top: clamp(12px, 1.9vh, 20px);
+    margin-bottom: clamp(18px, 2.6vh, 30px);
+    font-size: clamp(16px, min(1.3vw, 2.4vh), 25px);
+    line-height: 1.45;
+  }
+
+  .login-access .role-card {
+    min-height: clamp(82px, 12vh, 128px);
+    margin-top: clamp(8px, 1.2vh, 12px);
+    padding: clamp(14px, 2vh, 23px) clamp(17px, 1.35vw, 26px);
+    gap: clamp(14px, 1.2vw, 23px);
+  }
+
+  .login-access .role-icon {
+    width: clamp(54px, 7.5vh, 78px);
+    height: clamp(54px, 7.5vh, 78px);
+  }
+
+  .login-access .role-copy strong {
+    font-size: clamp(18px, min(1.35vw, 2.6vh), 26px);
+  }
+
+  .login-access .role-copy > span {
+    margin-top: clamp(3px, 0.8vh, 9px);
+    font-size: clamp(15px, min(1.12vw, 2.1vh), 22px);
+    line-height: 1.4;
+  }
+
+  .login-note {
+    margin-top: clamp(10px, 1.7vh, 18px);
+  }
+
+  .login-note p {
+    font-size: clamp(13px, min(0.98vw, 1.8vh), 18px);
+    line-height: 1.45;
+  }
+
+  .login-footer {
+    min-height: 0;
+    padding: 7px clamp(32px, 2.5vw, 52px) 9px;
+    color: #5c5c5c;
+    font-size: 13px;
+    line-height: 1.2;
+    letter-spacing: 0.045em;
+  }
+}
+
+@media (min-width: 1800px) {
+  .login-header .brand-logo {
+    height: 42px;
+  }
+
+  .login-header .brand-module,
+  .login-header-meta {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 901px) and (max-height: 800px) {
+  .login-header .brand-logo {
+    height: 32px;
+  }
+
+  .login-header .brand-module,
+  .login-header-meta,
+  .login-footer {
+    font-size: 12px;
+  }
+
+  .login-proof > svg,
+  .login-note > svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .login-access .role-card {
+    min-height: clamp(96px, 14.6vh, 112px);
+  }
+}
+
+/* Lawyer queue and workspace */
+.queue-focus,
+.quick-start {
+  background: radial-gradient(circle at 90% 0, #ffae3540, transparent 28rem), #fff;
+  border-color: #ffae35;
+}
+
+.queue-priority-reasons span,
+.case-priority-summary strong,
+.workspace-next-action,
+.decision-basis-toggle,
+.source-button,
+.decision-prefill,
+.contradiction-alert,
+.next-evidence {
+  background: #ffae3524;
+  border-color: #ffae3580;
+  color: #704100;
+}
+
+.queue-priority-reasons span,
+.workspace-next-action > span,
+.contradiction-alert strong,
+.contradiction-alert span > span,
+.next-evidence .eyebrow,
+.next-evidence h3,
+.next-evidence > p,
+.hypothesis p,
+.missing-evidence p {
+  color: #704100;
+}
+
+.workspace-content-tabs {
+  background: #fff;
+  border-color: var(--line);
+}
+
+.workspace-content-tabs button.active {
+  background: #ffae3530;
+  color: #000;
+}
+
+.workspace-tab-count,
+.count-label,
+.document-legend {
+  color: var(--muted);
+}
+
+.decision-basis-glance,
+.decision-point,
+.agreement-prefill-range > button {
+  background: #f3f3f3;
+  border-color: var(--line);
+}
+
+.recommendation-card {
+  background: radial-gradient(circle at 100% 0, #ffae3540, transparent 18rem), #fff;
+  color: #000;
+}
+
+.recommendation-title h2,
+.recommendation-defesa .recommendation-title h2,
+.recommendation-revisar .recommendation-title h2 {
+  color: #000;
+}
+
+.recommendation-subtitle,
+.risk-summary > div > span,
+.risk-caption,
+.cost-summary dt,
+.rec-section-label,
+.settlement-range > div,
+.evidence-card > p,
+.comparison-side > p,
+.comparison-fact > p,
+.decision-point > p,
+.case-context p {
+  color: var(--muted);
+}
+
+.document-item {
+  background: #f3f3f3;
+  border-color: var(--line);
+}
+
+.document-item:hover,
+.document-item:hover:not(:disabled) {
+  background: #ffae3524;
+  border-color: #ffae35;
+}
+
+/* Administrative surface */
+.admin-page {
+  --admin-bg: #f3f3f3;
+  --admin-surface: #fff;
+  --admin-raised: #f3f3f3;
+  --admin-border: #0003;
+  --admin-ink: #000;
+  --admin-muted: #000000a3;
+  --admin-dim: #00000080;
+  --admin-accent: #ffae35;
+  --admin-positive: #171717;
+  --admin-warning: #ffae35;
+  --admin-critical: #3c3c3c;
+  --admin-info: #cecece;
+  color: #000;
+}
+
+.admin-global-filters,
+.admin-metric,
+.admin-panel,
+.admin-decisions-panel,
+.admin-adherence-panel,
+.admin-adherence-panel-profiles,
+.admin-adherence-panel-firms,
+.admin-adherence-panel-model,
+.admin-highlight-card,
+.admin-highlight-card.is-profile,
+.admin-highlight-card.is-firm,
+.admin-highlight-card.is-agreement {
+  background: #fff;
+  border-color: var(--admin-border);
+  color: #000;
+  box-shadow: var(--shadow);
+}
+
+.admin-metric-accent {
+  background: linear-gradient(145deg, #ffae3540, #fff 64%);
+  border-color: #ffae35;
+}
+
+.admin-view-switcher,
+.admin-global-filter-grid,
+.admin-distribution-total,
+.admin-reason-track,
+.admin-ranking-track,
+.admin-confidence-grid article > div,
+.admin-value-comparison i,
+.admin-status-bars i,
+.admin-funnel-row > div,
+.admin-scatter,
+.admin-calibration-track,
+.admin-attention,
+.admin-operational-summary,
+.admin-simulation,
+.admin-end-link,
+.admin-table th,
+.admin-detail-row > td,
+.admin-record-detail,
+.admin-active-filters,
+.admin-adherence-volume > div > div,
+.admin-lawyer-indicators i {
+  background: #f3f3f3;
+  border-color: var(--admin-border);
+}
+
+.admin-view-button.is-active,
+.admin-table tbody > tr:not(.admin-detail-row):hover,
+.admin-table tbody > tr.is-expanded {
+  background: #ffae3524;
+  color: #000;
+}
+
+.admin-filter-chips button,
+.admin-data-label.is-simulation,
+.admin-firm-signal.is-warning {
+  background: #ffae3524;
+  border-color: #ffae3580;
+  color: #704100;
+}
+
+.admin-table td,
+.admin-heatmap th,
+.admin-heatmap td,
+.admin-scatter-grid i {
+  border-color: var(--admin-border);
+}
+
+.admin-heatmap thead th,
+.admin-heatmap tbody th,
+.admin-heatmap td.is-empty,
+.admin-heatmap td.is-neutral {
+  background: #f3f3f3;
+}
+
+.admin-heatmap td.is-positive {
+  background: #0000000a;
+}
+
+.admin-heatmap td.is-critical {
+  background: #ffae3530;
+}
+
+/* Copilot */
+.policy-copilot {
+  background: #fff;
+  border-color: var(--line);
+  color: #000;
+}
+
+.copilot-header,
+.copilot-composer {
+  background: #f3f3f3;
+  border-color: var(--line);
+}
+
+.copilot-context-picker {
+  background: #fff;
+  border-color: var(--line);
+}
+
+.copilot-context-picker label > span,
+.copilot-context-picker p {
+  color: var(--muted);
+}
+
+.copilot-context-picker select {
+  background: #f3f3f3;
+  border-color: var(--line);
+  color: #000;
+}
+
+.copilot-header h2,
+.copilot-close:hover,
+.copilot-suggestions button:hover:not(:disabled),
+.copilot-message.is-assistant > h3,
+.copilot-highlights strong {
+  color: #000;
+}
+
+.copilot-header p,
+.copilot-close,
+.copilot-suggestions h2,
+.copilot-empty,
+.copilot-message > span,
+.copilot-citations > strong,
+.copilot-no-citations,
+.copilot-basis summary,
+.copilot-basis dt,
+.copilot-composer > small {
+  color: var(--muted);
+}
+
+.copilot-notice,
+.copilot-suggestions button,
+.copilot-message.is-assistant,
+.copilot-limitations,
+.copilot-citation,
+.copilot-error,
+.copilot-composer > div {
+  background: #f3f3f3;
+  border-color: var(--line);
+  color: #000000a3;
+}
+
+.copilot-message.is-user,
+.copilot-simulation {
+  background: #ffae3530;
+  border-color: #ffae3580;
+  color: #4f2e00;
+}
+
+.copilot-composer textarea {
+  color: #000;
+}
+
+.copilot-send,
+.copilot-trigger {
+  background: var(--accent);
+  color: #000;
+}
+
+@media (max-width: 900px) {
+  .app-sidebar {
+    background: #fff;
+  }
+}

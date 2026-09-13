@@ -25,6 +25,14 @@ export type PolicyCopilotProps = {
   title: string;
   contextLabel: string;
   sessionKey?: string;
+  contextSelectorLabel?: string;
+  contextOptions?: readonly {
+    value: string;
+    label: string;
+    description?: string;
+  }[];
+  selectedContext?: string;
+  onContextChange?: (value: string) => void;
   suggestions: readonly string[];
   onAsk: (question: string) => Promise<PolicyCopilotResponse>;
   onOpenCitation?: (citation: CopilotCitation) => void;
@@ -200,6 +208,10 @@ function CalculationList({
 function PolicyCopilotSession({
   title,
   contextLabel,
+  contextSelectorLabel = 'Contexto analisado',
+  contextOptions,
+  selectedContext,
+  onContextChange,
   suggestions,
   onAsk,
   onOpenCitation,
@@ -215,6 +227,17 @@ function PolicyCopilotSession({
   const [conversation, setConversation] = useState<ConversationItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const activeContext = contextOptions?.find((option) => option.value === selectedContext);
+
+  function changeContext(value: string) {
+    if (!onContextChange || value === selectedContext) return;
+    setConversation([]);
+    messageSequence.current = 0;
+    setQuestion('');
+    setError('');
+    onContextChange(value);
+    window.setTimeout(() => composerRef.current?.focus(), 0);
+  }
 
   function scrollToLatest() {
     window.setTimeout(() => {
@@ -305,6 +328,26 @@ function PolicyCopilotSession({
           </div>
 
           <div className="copilot-scroll-area">
+            {contextOptions && contextOptions.length > 0 && selectedContext && onContextChange && (
+              <section className="copilot-context-picker" aria-label="Contexto do copiloto">
+                <label htmlFor={`${contentId}-context`}>
+                  <span>{contextSelectorLabel}</span>
+                  <select
+                    id={`${contentId}-context`}
+                    value={selectedContext}
+                    disabled={loading}
+                    onChange={(event) => changeContext(event.target.value)}
+                  >
+                    {contextOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {activeContext?.description && <p>{activeContext.description}</p>}
+              </section>
+            )}
             <section className="copilot-suggestions" aria-labelledby={`${contentId}-suggestions`}>
               <h2 id={`${contentId}-suggestions`}>Perguntas sugeridas</h2>
               <div>
@@ -438,14 +481,14 @@ function PolicyCopilotSession({
               void ask(question);
             }}
           >
-            <label htmlFor={`${contentId}-question`}>Pergunte ao Copiloto da Política</label>
             <div>
               <textarea
                 ref={composerRef}
                 id={`${contentId}-question`}
+                aria-label="Pergunte ao Copiloto da Política"
                 value={question}
                 maxLength={2000}
-                rows={2}
+                rows={4}
                 disabled={loading}
                 placeholder="Digite sua pergunta…"
                 onChange={(event) => setQuestion(event.target.value)}

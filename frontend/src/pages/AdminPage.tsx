@@ -5,6 +5,7 @@ import {
   AlertTriangle,
   ArrowDownLeft,
   ArrowRight,
+  Building2,
   CheckCheck,
   ChevronDown,
   CircleDollarSign,
@@ -56,6 +57,12 @@ type TableFilters = {
 };
 
 const count = (value: number) => new Intl.NumberFormat('pt-BR').format(value);
+const percentagePoints = (value: number) =>
+  new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+    signDisplay: 'always',
+  }).format(value * 100);
 const normalize = (value: string) =>
   value
     .toLocaleLowerCase('pt-BR')
@@ -93,6 +100,12 @@ const sectionCopy: Record<AdminSection, { title: string; description: string }> 
     description: 'Recomendação, decisão e resultado com rastreabilidade por caso.',
   },
 };
+const adminCopilotContexts: AdminSection[] = [
+  'overview',
+  'adherence',
+  'effectiveness',
+  'decisions',
+];
 
 function DemoLabel({ simulation = false }: { simulation?: boolean }) {
   return (
@@ -366,20 +379,43 @@ function GlobalFilters({
   );
 }
 
-function SnapshotNote({ updatedAt }: { updatedAt: string }) {
+function SnapshotNote({
+  updatedAt,
+  aggregateCount,
+  detailedCount,
+}: {
+  updatedAt: string;
+  aggregateCount: number;
+  detailedCount: number;
+}) {
   return (
-    <div className="admin-snapshot-note">
+    <div className="admin-snapshot-note" role="note" aria-label="Escopo dos dados administrativos">
       <Info size={15} aria-hidden="true" />
       <p>
-        Indicadores de um cenário de demonstração. As decisões registradas pelo advogado aparecem na
-        tabela como <strong>“Nesta demo”</strong>.
+        Os indicadores gerais usam <strong>{count(aggregateCount)} decisões simuladas</strong>. As
+        análises por processo usam <strong>{count(detailedCount)} registros rastreáveis</strong>{' '}
+        nesta demonstração; decisões salvas pelo advogado aparecem como{' '}
+        <strong>“Nesta demo”</strong>.
       </p>
       <span>Atualizado {shortDate(updatedAt)}</span>
     </div>
   );
 }
 
-function OverrideReasons({ data }: { data: AdminDashboard['override_reasons'] }) {
+function OverrideReasons({
+  data,
+  aggregateScope,
+  overrideTotal,
+}: {
+  data: AdminDashboard['override_reasons'];
+  aggregateScope: boolean;
+  overrideTotal: number;
+}) {
+  const classifiedTotal = data
+    .filter((item) => item.label !== 'Sem motivo classificado')
+    .reduce((total, item) => total + item.value, 0);
+  const coverage = overrideTotal ? classifiedTotal / overrideTotal : 0;
+
   return (
     <section className="panel admin-panel" aria-labelledby="override-heading">
       <div className="admin-panel-heading">
@@ -393,27 +429,44 @@ function OverrideReasons({ data }: { data: AdminDashboard['override_reasons'] })
         Participação de cada motivo e percentual acumulado no recorte atual.
       </p>
       {data.length ? (
-        <div className="admin-reasons">
-          {data.map((item, index) => {
-            const cumulative = data
-              .slice(0, index + 1)
-              .reduce((total, current) => total + current.percentage, 0);
-            return (
-              <div className="admin-reason" key={item.label}>
-                <div>
-                  <span>{item.label}</span>
-                  <strong>
-                    {percent(item.percentage)} <small>({count(item.value)})</small>
-                  </strong>
+        <>
+          <div className="admin-reason-summary" role="note">
+            <strong>
+              {count(classifiedTotal)}{' '}
+              {classifiedTotal === 1
+                ? 'justificativa classificada'
+                : 'justificativas classificadas'}
+            </strong>
+            <span>
+              {aggregateScope
+                ? `${percent(coverage)} das divergências · classificações históricas da base sintética de 60.000 decisões`
+                : `${percent(coverage)} das divergências do recorte detalhado possuem motivo informado`}
+            </span>
+          </div>
+          <div className="admin-reasons">
+            {data.map((item, index) => {
+              const cumulative = data
+                .slice(0, index + 1)
+                .reduce((total, current) => total + current.percentage, 0);
+              return (
+                <div className="admin-reason" key={item.label}>
+                  <div>
+                    <span>{item.label}</span>
+                    <strong>
+                      {percent(item.percentage)} <small>({count(item.value)})</small>
+                    </strong>
+                  </div>
+                  <div className="admin-reason-track" aria-hidden="true">
+                    <span
+                      style={{ width: `${Math.min(1, Math.max(0, item.percentage)) * 100}%` }}
+                    />
+                  </div>
+                  <small className="admin-reason-cumulative">{percent(cumulative)} acumulado</small>
                 </div>
-                <div className="admin-reason-track" aria-hidden="true">
-                  <span style={{ width: `${Math.min(1, Math.max(0, item.percentage)) * 100}%` }} />
-                </div>
-                <small className="admin-reason-cumulative">{percent(cumulative)} acumulado</small>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        </>
       ) : (
         <p className="admin-chart-empty">Nenhum motivo registrado.</p>
       )}
@@ -600,25 +653,55 @@ function summarizeFirms(rows: AdminDecisionRow[]): FirmSummary[] {
     );
 }
 
+function aggregateLawyerSummaries(
+  data: NonNullable<AdminDashboard['lawyer_adherence']>,
+): LawyerSummary[] {
+  return data.map((lawyer) => ({
+    name: lawyer.name,
+    firmName: lawyer.firm_name,
+    decisions: lawyer.decisions,
+    adherenceRate: lawyer.adherence_rate,
+    agreementRate: lawyer.agreement_rate,
+    highConfidenceRate: lawyer.high_confidence_rate,
+    completeDocumentationRate: lawyer.complete_documentation_rate,
+    avgDecisionMinutes: lawyer.avg_decision_minutes,
+    avgFollowProbability: lawyer.avg_follow_probability,
+  }));
+}
+
+function aggregateFirmSummaries(
+  data: NonNullable<AdminDashboard['firm_adherence']>,
+): FirmSummary[] {
+  return data.map((firm) => ({
+    name: firm.name,
+    decisions: firm.decisions,
+    adherenceRate: firm.adherence_rate,
+    avgDecisionMinutes: firm.avg_decision_minutes,
+    avgFollowProbability: firm.avg_follow_probability,
+    lawyerCount: firm.lawyer_count,
+  }));
+}
+
 function adherenceSignal(rate: number, baseline: number) {
   if (rate >= baseline + 0.08) return { label: 'Acima da média', tone: 'is-positive' };
   if (rate <= baseline - 0.08) return { label: 'Requer atenção', tone: 'is-warning' };
   return { label: 'Próximo da média', tone: 'is-neutral' };
 }
 
-function AdherenceHighlights({ rows }: { rows: AdminDecisionRow[]; overallAdherence: number }) {
-  const metrics = deriveAdminMetrics(rows);
+function AdherenceHighlights({ decisions, overrides }: { decisions: number; overrides: number }) {
+  const adherenceRate = decisions ? (decisions - overrides) / decisions : 0;
+  const overrideRate = decisions ? overrides / decisions : 0;
   const items = [
     {
       label: 'Decisões aderentes',
-      value: metrics.decisions - metrics.overrides,
-      rate: metrics.adherenceRate,
+      value: decisions - overrides,
+      rate: adherenceRate,
       tone: 'is-adherent',
     },
     {
       label: 'Divergências',
-      value: metrics.overrides,
-      rate: metrics.overrideRate,
+      value: overrides,
+      rate: overrideRate,
       tone: 'is-override',
     },
   ];
@@ -642,11 +725,11 @@ function AdherenceHighlights({ rows }: { rows: AdminDecisionRow[]; overallAdhere
 }
 
 function AdherenceHighlightsPanel({
-  rows,
-  overallAdherence,
+  decisions,
+  overrides,
 }: {
-  rows: AdminDecisionRow[];
-  overallAdherence: number;
+  decisions: number;
+  overrides: number;
 }) {
   return (
     <section
@@ -663,16 +746,24 @@ function AdherenceHighlightsPanel({
       <p className="admin-panel-description">
         Comparação direta entre decisões que seguiram a recomendação e divergências registradas.
       </p>
-      <AdherenceHighlights rows={rows} overallAdherence={overallAdherence} />
+      <AdherenceHighlights decisions={decisions} overrides={overrides} />
     </section>
   );
 }
 
-function LawyerBehaviorPanel({ rows }: { rows: AdminDecisionRow[] }) {
+function LawyerBehaviorPanel({
+  summaries,
+  overallAdherence,
+  aggregateScope,
+}: {
+  summaries: LawyerSummary[];
+  overallAdherence: number;
+  aggregateScope: boolean;
+}) {
   const [order, setOrder] = useState<'risk' | 'volume' | 'adherence'>('adherence');
   const [query, setQuery] = useState('');
-  const baseline = deriveAdminMetrics(rows).adherenceRate;
-  const lawyers = summarizeLawyers(rows)
+  const totalDecisions = summaries.reduce((total, lawyer) => total + lawyer.decisions, 0);
+  const lawyers = summaries
     .filter((lawyer) => normalize(`${lawyer.name} ${lawyer.firmName}`).includes(normalize(query)))
     .sort((left, right) => {
       if (order === 'volume') return right.decisions - left.decisions;
@@ -692,8 +783,10 @@ function LawyerBehaviorPanel({ rows }: { rows: AdminDecisionRow[] }) {
         <Users size={21} aria-hidden="true" />
       </div>
       <p className="admin-panel-description">
-        Percentuais calculados a partir das decisões, sem rótulos de personalidade. A amostra fica
-        visível para evitar conclusões sobre poucos casos.
+        {aggregateScope
+          ? `Base agregada completa: ${count(summaries.length)} ${summaries.length === 1 ? 'advogado' : 'advogados'} e ${count(totalDecisions)} ${totalDecisions === 1 ? 'decisão' : 'decisões'}, sem corte por quantidade.`
+          : `Recorte filtrado: ${count(summaries.length)} ${summaries.length === 1 ? 'advogado' : 'advogados'} e ${count(totalDecisions)} ${totalDecisions === 1 ? 'registro rastreável' : 'registros rastreáveis'}.`}{' '}
+        A amostra de cada advogado permanece visível.
       </p>
       <div className="admin-analysis-toolbar">
         <label className="admin-inline-search">
@@ -716,7 +809,7 @@ function LawyerBehaviorPanel({ rows }: { rows: AdminDecisionRow[] }) {
       </div>
       <div className="admin-ranking-list">
         {lawyers.map((lawyer) => {
-          const delta = lawyer.adherenceRate - baseline;
+          const delta = lawyer.adherenceRate - overallAdherence;
           const indicators = [
             { label: 'Aderência observada', value: lawyer.adherenceRate },
             { label: 'Propensão estimada', value: lawyer.avgFollowProbability },
@@ -732,7 +825,15 @@ function LawyerBehaviorPanel({ rows }: { rows: AdminDecisionRow[] }) {
                 </div>
                 <div>
                   <strong>{count(lawyer.decisions)}</strong>
-                  <span>decisões</span>
+                  <span>
+                    {aggregateScope
+                      ? lawyer.decisions === 1
+                        ? 'decisão na base'
+                        : 'decisões na base'
+                      : lawyer.decisions === 1
+                        ? 'registro rastreável'
+                        : 'registros rastreáveis'}
+                  </span>
                 </div>
                 <div>
                   <strong className={delta < -0.08 ? 'is-critical' : ''}>
@@ -771,15 +872,18 @@ function LawyerBehaviorPanel({ rows }: { rows: AdminDecisionRow[] }) {
 }
 
 function FirmComparisonPanel({
-  rows,
+  summaries,
   overallAdherence,
+  aggregateScope,
 }: {
-  rows: AdminDecisionRow[];
+  summaries: FirmSummary[];
   overallAdherence: number;
+  aggregateScope: boolean;
 }) {
   const [order, setOrder] = useState<'risk' | 'volume' | 'adherence'>('adherence');
   const [query, setQuery] = useState('');
-  const firms = summarizeFirms(rows)
+  const totalDecisions = summaries.reduce((total, firm) => total + firm.decisions, 0);
+  const firms = summaries
     .filter((firm) => normalize(firm.name).includes(normalize(query)))
     .sort((left, right) => {
       if (order === 'volume') return right.decisions - left.decisions;
@@ -799,8 +903,10 @@ function FirmComparisonPanel({
         <GitBranch size={19} aria-hidden="true" />
       </div>
       <p className="admin-panel-description">
-        Ranking pela taxa observada, acompanhado do volume de decisões e da quantidade de advogados
-        avaliados.
+        {aggregateScope
+          ? `Base agregada completa: ${count(summaries.length)} ${summaries.length === 1 ? 'escritório' : 'escritórios'} e ${count(totalDecisions)} ${totalDecisions === 1 ? 'decisão' : 'decisões'}, sem corte por quantidade.`
+          : `Recorte filtrado: ${count(summaries.length)} ${summaries.length === 1 ? 'escritório' : 'escritórios'} e ${count(totalDecisions)} ${totalDecisions === 1 ? 'registro rastreável' : 'registros rastreáveis'}.`}{' '}
+        O ranking mostra o volume e a quantidade de advogados avaliados.
       </p>
       <div className="admin-analysis-toolbar">
         <label className="admin-inline-search">
@@ -833,26 +939,53 @@ function FirmComparisonPanel({
               </div>
               <div className="admin-ranking-visual">
                 <div className="admin-ranking-values">
-                  <strong>{percent(firm.adherenceRate)}</strong>
+                  <strong className="admin-ranking-rate">{percent(firm.adherenceRate)}</strong>
                   <span
-                    className={delta < -0.08 ? 'is-critical' : delta > 0.08 ? 'is-positive' : ''}
+                    className={`admin-ranking-delta${delta < -0.08 ? ' is-critical' : delta > 0.08 ? ' is-positive' : ''}`}
                   >
-                    {delta >= 0 ? '+' : ''}
-                    {(delta * 100).toFixed(1)} p.p.
+                    {percentagePoints(delta)} p.p. vs. média
                   </span>
-                  <small>{count(firm.decisions)} decisões</small>
+                  <small className="admin-ranking-sample">
+                    {count(firm.decisions)}{' '}
+                    {aggregateScope
+                      ? firm.decisions === 1
+                        ? 'decisão na base'
+                        : 'decisões na base'
+                      : firm.decisions === 1
+                        ? 'registro rastreável'
+                        : 'registros rastreáveis'}
+                  </small>
                   <span className={`admin-firm-signal ${signal.tone}`}>{signal.label}</span>
                 </div>
-                <div className="admin-ranking-track" aria-hidden="true">
+                <div className="admin-ranking-scale" aria-hidden="true">
+                  <span>Aderência do escritório</span>
+                  <span style={{ left: `${overallAdherence * 100}%` }}>
+                    Média geral · {percent(overallAdherence)}
+                  </span>
+                </div>
+                <div
+                  className="admin-ranking-track"
+                  role="meter"
+                  aria-label={`Aderência ${percent(firm.adherenceRate)}. Média geral ${percent(overallAdherence)}.`}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={Number((firm.adherenceRate * 100).toFixed(1))}
+                >
                   <i style={{ left: `${overallAdherence * 100}%` }} />
                   <span style={{ width: `${firm.adherenceRate * 100}%` }} />
                 </div>
                 <div className="admin-ranking-meta">
                   {firm.avgDecisionMinutes != null && (
-                    <span>{count(Math.round(firm.avgDecisionMinutes))} min para decidir</span>
+                    <span>
+                      <small>Tempo médio</small>
+                      <strong>{count(Math.round(firm.avgDecisionMinutes))} min</strong>
+                    </span>
                   )}
                   {firm.avgFollowProbability != null && (
-                    <span>{percent(firm.avgFollowProbability)} de propensão estimada</span>
+                    <span>
+                      <small>Propensão estimada</small>
+                      <strong>{percent(firm.avgFollowProbability)}</strong>
+                    </span>
                   )}
                 </div>
               </div>
@@ -1053,7 +1186,8 @@ function DecisionTable({ rows }: { rows: AdminDecisionRow[] }) {
           <p>Explore cada processo e acompanhe a decisão registrada.</p>
         </div>
         <span className="admin-record-count" aria-live="polite">
-          {count(filteredRows.length)} {filteredRows.length === 1 ? 'registro' : 'registros'}
+          {count(filteredRows.length)}{' '}
+          {filteredRows.length === 1 ? 'registro rastreável' : 'registros rastreáveis'}
           {hasFilters && ` de ${count(rows.length)}`}
         </span>
       </div>
@@ -1394,10 +1528,26 @@ function Decisions({ rows }: { rows: AdminDecisionRow[] }) {
   );
 }
 
-function Overview({ data, rows }: { data: AdminDashboard; rows: AdminDecisionRow[] }) {
+function Overview({
+  data,
+  rows,
+  aggregateScope,
+}: {
+  data: AdminDashboard;
+  rows: AdminDecisionRow[];
+  aggregateScope: boolean;
+}) {
   type OverviewView = 'adherence' | 'firms' | 'savings';
   const metrics = deriveAdminMetrics(rows);
   const financials = scopedFinancials(data, rows);
+  const decisions = aggregateScope ? data.metrics.decisions : metrics.decisions;
+  const adherenceRate = aggregateScope ? data.metrics.adherence_rate : metrics.adherenceRate;
+  const overrides = aggregateScope ? data.metrics.overrides : metrics.overrides;
+  const overrideRate = decisions > 0 ? overrides / decisions : 0;
+  const usesAggregateFirms = aggregateScope && Boolean(data.firm_adherence?.length);
+  const firmSummaries = usesAggregateFirms
+    ? aggregateFirmSummaries(data.firm_adherence!)
+    : summarizeFirms(rows);
   const [activeView, setActiveView] = useQueryView<OverviewView>('adherence', [
     'adherence',
     'firms',
@@ -1408,22 +1558,26 @@ function Overview({ data, rows }: { data: AdminDashboard; rows: AdminDecisionRow
       <MetricGrid
         items={[
           {
-            label: 'Decisões registradas',
-            value: count(metrics.decisions),
-            hint: `${percent(metrics.highConfidenceRate)} com alta confiança`,
+            label: aggregateScope ? 'Decisões na base agregada' : 'Registros no recorte detalhado',
+            value: count(decisions),
+            hint: aggregateScope
+              ? `${count(rows.length)} registros rastreáveis disponíveis`
+              : `${percent(metrics.highConfidenceRate)} com alta confiança`,
             icon: Users,
           },
           {
             label: 'Aderência geral',
-            value: percent(metrics.adherenceRate),
-            hint: `${percent(metrics.completeRate)} com documentação completa`,
+            value: percent(adherenceRate),
+            hint: aggregateScope
+              ? 'Indicador da base sintética completa'
+              : `${percent(metrics.completeRate)} com documentação completa`,
             icon: ShieldCheck,
             accent: true,
           },
           {
             label: 'Taxa de divergência',
-            value: percent(metrics.overrideRate),
-            hint: `${count(metrics.overrides)} decisões fora da recomendação`,
+            value: percent(overrideRate),
+            hint: `${count(overrides)} decisões fora da recomendação`,
             icon: GitBranch,
           },
           {
@@ -1448,10 +1602,14 @@ function Overview({ data, rows }: { data: AdminDashboard; rows: AdminDecisionRow
       />
       <div className="admin-view-stage">
         {activeView === 'adherence' && (
-          <AdherenceHighlightsPanel rows={rows} overallAdherence={metrics.adherenceRate} />
+          <AdherenceHighlightsPanel decisions={decisions} overrides={overrides} />
         )}
         {activeView === 'firms' && (
-          <FirmComparisonPanel rows={rows} overallAdherence={metrics.adherenceRate} />
+          <FirmComparisonPanel
+            summaries={firmSummaries}
+            overallAdherence={adherenceRate}
+            aggregateScope={usesAggregateFirms}
+          />
         )}
         {activeView === 'savings' && (
           <SavingsFlowChart
@@ -1467,14 +1625,62 @@ function Overview({ data, rows }: { data: AdminDashboard; rows: AdminDecisionRow
     </>
   );
 }
-function Adherence({ rows }: { rows: AdminDecisionRow[] }) {
+function Adherence({
+  data,
+  rows,
+  aggregateScope,
+}: {
+  data: AdminDashboard;
+  rows: AdminDecisionRow[];
+  aggregateScope: boolean;
+}) {
   type AdherenceView = 'firms' | 'lawyers' | 'overrides';
   const target = 0.7;
-  const metrics = deriveAdminMetrics(rows);
-  const [activeView, setActiveView] = useQueryView<AdherenceView>('firms', [
+  const detailedMetrics = deriveAdminMetrics(rows);
+  const reasonData = aggregateScope ? data.override_reasons : createOverrideReasons(rows);
+  const classifiedReasons = reasonData
+    .filter((item) => item.label !== 'Sem motivo classificado')
+    .reduce((total, item) => total + item.value, 0);
+  const detailedFirmCount = new Set(rows.map((row) => row.firm_name)).size;
+  const detailedLawyerCount = new Set(rows.map((row) => `${row.lawyer_name}::${row.firm_name}`))
+    .size;
+  const usesAggregateFirms = aggregateScope && Boolean(data.firm_adherence?.length);
+  const usesAggregateLawyers = aggregateScope && Boolean(data.lawyer_adherence?.length);
+  const firmSummaries = usesAggregateFirms
+    ? aggregateFirmSummaries(data.firm_adherence!)
+    : summarizeFirms(rows);
+  const lawyerSummaries = usesAggregateLawyers
+    ? aggregateLawyerSummaries(data.lawyer_adherence!)
+    : summarizeLawyers(rows);
+  const hasAggregateFirmCount =
+    usesAggregateFirms || (aggregateScope && data.metrics.firm_count != null);
+  const hasAggregateLawyerCount =
+    usesAggregateLawyers || (aggregateScope && data.metrics.lawyer_count != null);
+  const firmCount = usesAggregateFirms
+    ? firmSummaries.length
+    : aggregateScope
+      ? (data.metrics.firm_count ?? detailedFirmCount)
+      : detailedFirmCount;
+  const lawyerCount = usesAggregateLawyers
+    ? lawyerSummaries.length
+    : aggregateScope
+      ? (data.metrics.lawyer_count ?? detailedLawyerCount)
+      : detailedLawyerCount;
+  const metrics = aggregateScope
+    ? {
+        decisions: data.metrics.decisions,
+        adherenceRate: data.metrics.adherence_rate,
+        overrides: data.metrics.overrides,
+        overrideRate: data.metrics.overrides / data.metrics.decisions,
+        justificationCoverage: data.metrics.overrides
+          ? classifiedReasons / data.metrics.overrides
+          : 0,
+      }
+    : detailedMetrics;
+  const [activeView, setActiveView] = useQueryView<AdherenceView>('overrides', [
+    'overrides',
     'firms',
     'lawyers',
-    'overrides',
   ]);
   return (
     <>
@@ -1483,15 +1689,9 @@ function Adherence({ rows }: { rows: AdminDecisionRow[] }) {
           {
             label: 'Aderência geral',
             value: percent(metrics.adherenceRate),
-            hint: `${count(metrics.decisions)} decisões no recorte`,
+            hint: `${count(metrics.decisions)} ${metrics.decisions === 1 ? 'decisão' : 'decisões'} no recorte`,
             icon: ShieldCheck,
             accent: true,
-          },
-          {
-            label: 'Diferença para a meta',
-            value: `${metrics.adherenceRate - target >= 0 ? '+' : ''}${((metrics.adherenceRate - target) * 100).toFixed(1)} p.p.`,
-            hint: `Meta operacional de ${percent(target)}`,
-            icon: Target,
           },
           {
             label: 'Divergências registradas',
@@ -1500,32 +1700,74 @@ function Adherence({ rows }: { rows: AdminDecisionRow[] }) {
             icon: GitBranch,
           },
           {
-            label: 'Sem justificativa',
-            value: count(metrics.overridesWithoutJustification),
-            hint: `${percent(metrics.justificationCoverage)} de cobertura`,
+            label: aggregateScope ? 'Justificativas classificadas' : 'Justificativas informadas',
+            value: count(classifiedReasons),
+            hint: aggregateScope
+              ? `${reasonData.length} motivos históricos no recorte`
+              : `${percent(metrics.justificationCoverage)} de cobertura`,
             icon: AlertTriangle,
+          },
+          {
+            label: 'Total de escritórios',
+            value: count(firmCount),
+            hint: hasAggregateFirmCount ? 'Na base agregada' : 'No recorte rastreável',
+            icon: Building2,
+          },
+          {
+            label: 'Total de advogados',
+            value: count(lawyerCount),
+            hint: hasAggregateLawyerCount ? 'Na base agregada' : 'No recorte rastreável',
+            icon: Users,
+          },
+          {
+            label: 'Diferença para a meta',
+            value: `${metrics.adherenceRate - target >= 0 ? '+' : ''}${((metrics.adherenceRate - target) * 100).toFixed(1)} p.p.`,
+            hint: `Meta operacional de ${percent(target)}`,
+            icon: Target,
           },
         ]}
       />
       <ViewSwitcher
         label="Visualizações da aderência"
         options={[
+          { id: 'overrides', label: 'Justificativas' },
           { id: 'firms', label: 'Escritórios' },
           { id: 'lawyers', label: 'Advogados' },
-          { id: 'overrides', label: 'Justificativas' },
         ]}
         value={activeView}
         onChange={(id) => setActiveView(id as AdherenceView)}
       />
       <div className="admin-view-stage">
         {activeView === 'firms' && (
-          <FirmComparisonPanel rows={rows} overallAdherence={metrics.adherenceRate} />
+          <FirmComparisonPanel
+            summaries={firmSummaries}
+            overallAdherence={metrics.adherenceRate}
+            aggregateScope={usesAggregateFirms}
+          />
         )}
-        {activeView === 'lawyers' && <LawyerBehaviorPanel rows={rows} />}
-        {activeView === 'overrides' && <OverrideReasons data={createOverrideReasons(rows)} />}
+        {activeView === 'lawyers' && (
+          <LawyerBehaviorPanel
+            summaries={lawyerSummaries}
+            overallAdherence={metrics.adherenceRate}
+            aggregateScope={usesAggregateLawyers}
+          />
+        )}
+        {activeView === 'overrides' && (
+          <OverrideReasons
+            data={reasonData}
+            aggregateScope={aggregateScope}
+            overrideTotal={metrics.overrides}
+          />
+        )}
       </div>
       <div className="admin-end-link">
-        <span>As análises mantêm o tamanho da amostra visível e podem ser auditadas por caso.</span>
+        <span>
+          {aggregateScope
+            ? usesAggregateFirms && usesAggregateLawyers
+              ? 'KPIs, justificativas e comparações por advogado e escritório usam a base agregada completa, sem corte por quantidade.'
+              : 'KPIs e justificativas usam as 60.000 decisões; comparações sem agregado disponível usam os registros rastreáveis.'
+            : 'Com filtros ativos, os resultados usam somente os registros rastreáveis do recorte.'}
+        </span>
         <Link className="admin-text-link" to="/admin/decisions">
           Explorar decisões <ArrowRight size={16} aria-hidden="true" />
         </Link>
@@ -1628,7 +1870,15 @@ function CriticalDecisions({ rows }: { rows: AdminDecisionRow[] }) {
   );
 }
 
-function Effectiveness({ data, rows }: { data: AdminDashboard; rows: AdminDecisionRow[] }) {
+function Effectiveness({
+  data,
+  rows,
+  aggregateScope,
+}: {
+  data: AdminDashboard;
+  rows: AdminDecisionRow[];
+  aggregateScope: boolean;
+}) {
   type EffectivenessView = 'savings' | 'outcomes' | 'timeline';
   const metrics = deriveAdminMetrics(rows);
   const financials = scopedFinancials(data, rows);
@@ -1637,7 +1887,18 @@ function Effectiveness({ data, rows }: { data: AdminDashboard; rows: AdminDecisi
     'outcomes',
     'timeline',
   ]);
-  const savingsPerAgreement = metrics.accepted ? financials.estimatedSavings / metrics.accepted : 0;
+  const accepted = aggregateScope ? data.metrics.settlements : metrics.accepted;
+  const proposals = aggregateScope ? data.metrics.agreement_proposals : metrics.proposals;
+  const acceptanceRate = aggregateScope ? data.metrics.acceptance_rate : metrics.acceptanceRate;
+  const averageDiscountRate = aggregateScope
+    ? data.metrics.average_offered_value > 0
+      ? (data.metrics.average_offered_value - data.metrics.average_closed_value) /
+        data.metrics.average_offered_value
+      : 0
+    : (metrics.averageDiscountRate ?? 0);
+  const savingsPerAgreement = accepted ? financials.estimatedSavings / accepted : 0;
+  const outcomes = aggregateScope ? data.effectiveness_outcomes : createOutcomeDistribution(rows);
+  const timeline = aggregateScope ? data.effectiveness_timeline : createEffectivenessTimeline(rows);
   const savingsFlow = [
     { label: 'Custo sem política', value: financials.baselineCost },
     { label: 'Economia estimada', value: financials.estimatedSavings },
@@ -1671,14 +1932,14 @@ function Effectiveness({ data, rows }: { data: AdminDashboard; rows: AdminDecisi
           },
           {
             label: 'Taxa de aceitação',
-            value: percent(metrics.acceptanceRate),
-            hint: `${count(metrics.accepted)} de ${count(metrics.proposals)} propostas`,
+            value: percent(acceptanceRate),
+            hint: `${count(accepted)} de ${count(proposals)} propostas`,
             icon: Handshake,
           },
           {
             label: 'Economia média por acordo',
             value: money(savingsPerAgreement, true),
-            hint: `${percent(metrics.averageDiscountRate ?? 0)} de desconto médio observado`,
+            hint: `${percent(averageDiscountRate)} de desconto médio observado`,
             icon: CircleDollarSign,
           },
         ]}
@@ -1703,12 +1964,8 @@ function Effectiveness({ data, rows }: { data: AdminDashboard; rows: AdminDecisi
       />
       <div className="admin-view-stage admin-effectiveness-stage">
         {activeView === 'savings' && <SavingsFlowChart data={savingsFlow} />}
-        {activeView === 'outcomes' && (
-          <EffectivenessOutcomeChart data={createOutcomeDistribution(rows)} />
-        )}
-        {activeView === 'timeline' && (
-          <EffectivenessTimeline data={createEffectivenessTimeline(rows)} />
-        )}
+        {activeView === 'outcomes' && <EffectivenessOutcomeChart data={outcomes} />}
+        {activeView === 'timeline' && <EffectivenessTimeline data={timeline} />}
       </div>
       <div className="admin-end-link">
         <span>Os resultados individuais continuam disponiveis no registro da operacao.</span>
@@ -1726,6 +1983,12 @@ export default function AdminPage() {
     sectionParam && Object.hasOwn(sectionCopy, sectionParam)
       ? (sectionParam as AdminSection)
       : 'overview';
+  const [copilotChoice, setCopilotChoice] = useState({
+    pageSection: section,
+    contextSection: section,
+  });
+  const copilotSection =
+    copilotChoice.pageSection === section ? copilotChoice.contextSection : section;
   const [data, setData] = useState<AdminDashboard | null>(null);
   const [refreshing, setRefreshing] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -1839,7 +2102,11 @@ export default function AdminPage() {
               </button>
             </div>
           )}
-          <SnapshotNote updatedAt={data.updated_at} />
+          <SnapshotNote
+            updatedAt={data.updated_at}
+            aggregateCount={data.metrics.decisions}
+            detailedCount={data.decisions.length}
+          />
           <GlobalFilters
             rows={data.decisions}
             filters={filters}
@@ -1848,19 +2115,53 @@ export default function AdminPage() {
           />
           <div className="admin-scope-line" aria-live="polite">
             <span>
-              {count(filteredRows.length)} {filteredRows.length === 1 ? 'decisão' : 'decisões'} no
+              {count(filteredRows.length)}{' '}
+              {filteredRows.length === 1 ? 'registro rastreável' : 'registros rastreáveis'} no
               recorte atual
+              {!hasActiveAdminFilters(filters) &&
+                ` · indicadores gerais: ${count(data.metrics.decisions)} decisões simuladas`}
             </span>
             {hasActiveAdminFilters(filters) && <strong>Filtros globais ativos</strong>}
           </div>
-          {section === 'overview' && <Overview data={data} rows={filteredRows} />}
-          {section === 'adherence' && <Adherence rows={filteredRows} />}
-          {section === 'effectiveness' && <Effectiveness data={data} rows={filteredRows} />}
+          {section === 'overview' && (
+            <Overview
+              data={data}
+              rows={filteredRows}
+              aggregateScope={!hasActiveAdminFilters(filters)}
+            />
+          )}
+          {section === 'adherence' && (
+            <Adherence
+              data={data}
+              rows={filteredRows}
+              aggregateScope={!hasActiveAdminFilters(filters)}
+            />
+          )}
+          {section === 'effectiveness' && (
+            <Effectiveness
+              data={data}
+              rows={filteredRows}
+              aggregateScope={!hasActiveAdminFilters(filters)}
+            />
+          )}
           {section === 'decisions' && <Decisions rows={filteredRows} />}
           <PolicyCopilot
             title="Copiloto da política"
-            contextLabel={`${sectionCopy[section].title} · ${count(filteredRows.length)} ${filteredRows.length === 1 ? 'decisão' : 'decisões'} no recorte detalhado`}
+            contextLabel={`${sectionCopy[copilotSection].title} · ${count(filteredRows.length)} ${filteredRows.length === 1 ? 'decisão' : 'decisões'} no recorte detalhado`}
             sessionKey={`${section}:${data.updated_at}:${JSON.stringify(filters)}`}
+            contextSelectorLabel="Dashboard ou aba analisada"
+            selectedContext={copilotSection}
+            contextOptions={adminCopilotContexts.map((item) => ({
+              value: item,
+              label: sectionCopy[item].title,
+              description: sectionCopy[item].description,
+            }))}
+            onContextChange={(value) =>
+              setCopilotChoice({
+                pageSection: section,
+                contextSection: value as AdminSection,
+              })
+            }
             suggestions={[
               'Por que a aderência caiu?',
               'Onde a política está funcionando pior?',
@@ -1879,9 +2180,9 @@ export default function AdminPage() {
                   rows: filteredRows,
                   rowScope: {
                     description: hasActiveAdminFilters(filters)
-                      ? `Filtros ativos em ${sectionCopy[section].title}`
-                      : `Amostra detalhada em ${sectionCopy[section].title}`,
-                    filters: { ...filters, section },
+                      ? `Filtros ativos em ${sectionCopy[copilotSection].title}`
+                      : `Amostra detalhada em ${sectionCopy[copilotSection].title}`,
+                    filters: { ...filters, section: copilotSection },
                   },
                 },
                 ...(scenario ? { scenario } : {}),

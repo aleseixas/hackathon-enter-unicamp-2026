@@ -34,7 +34,7 @@ Abra a URL indicada pelo Vite no terminal. O modo mock funciona sem arquivo de a
 4. No caso 2, confira a faixa de **R$ 4.500 / R$ 5.200 / R$ 6.500** para abertura, alvo e teto. Os valores de condenação e custo esperado de defesa, **R$ 10.500 / R$ 7.560**, já vêm da fixture. Confirme a decisão de acordo e registre uma negociação. Para demonstrar uma conclusão, informe proposta de R$ 4.500, situação aceita e valor final de R$ 5.200. Pendência, recusa e contraproposta também têm estados próprios.
 5. Saia pelo menu lateral e entre como **Administrativo**. Consulte **Visão geral**, **Aderência**, **Efetividade** e **Decisões**. Os registros salvos no navegador aparecem na tabela. Os KPIs e graficos foram alinhados a uma base sintetica maior, enquanto a simulacao historica continua separada dos registros feitos no navegador.
 
-O `caso-3` demonstra a recomendação **Revisar**, com dados numéricos indisponíveis e documentação insuficiente. A seção sobre a próxima evidência mostra uma **SIMULAÇÃO** textual; nenhuma interação executa um modelo ou recalcula a recomendação.
+O `caso-3` demonstra a recomendação **Revisar**, com dados numéricos indisponíveis e documentação insuficiente. A seção sobre a próxima evidência mostra uma **SIMULAÇÃO** textual fixa e não recalcula a recomendação. Separadamente, o chatbot pode consultar a OpenAI quando o backend estiver configurado.
 
 ## Persistência e restauração
 
@@ -52,9 +52,9 @@ Os casos originais usam sete categorias documentais com estados **Presente**, **
 
 Para documentos disponibilizados em `CaseDocument.url`, inclusive os dois dossiês de exemplo, o visualizador usa um `iframe` e acrescenta a página ao fragmento da URL, como `#page=2`. O comportamento de PDFs depende do visualizador do navegador e da permissão de incorporação do servidor de origem. A URL também pode ser aberta separadamente.
 
-Os indicadores agregados e graficos administrativos representam um cenario sintetico maior e nao sao totais da tabela visivel. Registros locais atualizam a tabela e seu estado, sem recalcular KPIs financeiros. A simulacao historica permanece separada e nao representa economia realizada.
+Os indicadores agregados e gráficos administrativos representam um cenário sintético maior e não são totais da tabela visível. As comparações de aderência incluem os 6 escritórios e 36 advogados da base completa, sem truncar o ranking; os volumes de ambos os recortes somam 60.000 decisões. Filtros explícitos passam a usar os registros rastreáveis disponíveis e são identificados como recorte detalhado. Registros locais atualizam a tabela e seu estado, sem recalcular KPIs financeiros. A simulação histórica permanece separada e não representa economia realizada.
 
-## Integração futura
+## Integração de dados e chatbot
 
 Todas as chamadas estão em [`src/services/api.ts`](src/services/api.ts), com contratos em [`src/types/index.ts`](src/types/index.ts). Os componentes não fazem `fetch` diretamente. Por padrão, o serviço retorna cópias dos mocks comportamentais em [`src/mocks/behavioralFixtures.ts`](src/mocks/behavioralFixtures.ts), com pequena latência simulada.
 
@@ -64,9 +64,9 @@ Para direcionar o frontend a uma API, crie `frontend/.env.local` a partir da rai
 VITE_API_BASE_URL=/api
 ```
 
-Reinicie o Vite depois de alterar o ambiente. O valor pode ser o prefixo relativo de um serviço disponibilizado na mesma origem ou a URL-base de uma API. Este projeto não cria um backend nem configura automaticamente um proxy para `/api`. Ao definir essa variável, o serviço passa a usar requisições GET/POST centralizadas; falhas da API não são substituídas silenciosamente por mocks.
+Reinicie o Vite depois de alterar o ambiente. O valor pode ser o prefixo relativo de um serviço disponibilizado na mesma origem ou a URL-base de uma API. Ao definir essa variável, o serviço passa a usar requisições GET/POST centralizadas; falhas da API não são substituídas silenciosamente por mocks. O backend incluído em `backend/` atende somente ao chatbot, não aos endpoints de casos e dashboard de `VITE_API_BASE_URL`.
 
-O [contrato de integração](docs/frontend-api.md) descreve os endpoints, retornos, validações, eventos e o formato dos registros. Autenticação, autorização, auditoria durável, processamento de documentos e execução de modelos são responsabilidades de uma integração futura.
+Para ativar o chatbot com a OpenAI, mantenha `VITE_COPILOT_API_URL=/api/copilot`, configure `OPENAI_API_KEY` em `backend/.env` e inicie o backend na porta 8787. O proxy do Vite encaminha `/api` durante o desenvolvimento. Consulte o [backend](../backend/README.md) e o [contrato de integração](docs/frontend-api.md). Autenticação, autorização, auditoria durável e processamento real de documentos continuam fora do protótipo.
 
 ## Organização
 

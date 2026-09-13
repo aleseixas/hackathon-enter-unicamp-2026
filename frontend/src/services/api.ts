@@ -9,10 +9,15 @@ import type {
   NegotiationRecord,
   NegotiationStatus,
   OverrideInput,
-  OverrideReason,
   Recommendation,
   RecommendationResponse,
 } from '../types';
+import {
+  isMeaningfulOverrideJustification,
+  isOverrideReason,
+  MIN_OVERRIDE_JUSTIFICATION_LENGTH,
+  overrideReasonLabel,
+} from '../lib/overrideReasons';
 import {
   demoAdminDashboard,
   demoCases,
@@ -28,13 +33,6 @@ export const DATA_CHANGED_EVENT = 'policy:data-changed';
 export const DEMO_STORAGE_KEY = 'policy:demo-data:v1';
 const MOCK_DELAY_MS = 100;
 const recommendations: Recommendation[] = ['ACORDO', 'DEFESA', 'REVISAR'];
-const overrideReasons: OverrideReason[] = [
-  'NOVA_EVIDENCIA',
-  'ESTRATEGIA_PROCESSUAL',
-  'INFORMACAO_NAO_CONSIDERADA',
-  'POLITICA_INADEQUADA',
-  'OUTRO',
-];
 const negotiationStatuses: NegotiationStatus[] = [
   'PENDENTE',
   'ACEITA',
@@ -84,7 +82,7 @@ function validStoredDecision(value: unknown, caseId: string): value is DecisionR
     isDate(value.created_at) &&
     (value.notes === undefined || typeof value.notes === 'string') &&
     (value.justification === undefined || typeof value.justification === 'string') &&
-    (value.reason === undefined || overrideReasons.includes(value.reason as OverrideReason))
+    (value.reason === undefined || isOverrideReason(value.reason))
   );
 }
 
@@ -453,11 +451,16 @@ export async function submitLawyerDecision(input: LawyerDecisionInput): Promise<
 
 export async function submitOverride(input: OverrideInput): Promise<DecisionRecord> {
   const normalized = normalizeDecision(input);
-  if (!overrideReasons.includes(input.reason))
+  if (!isOverrideReason(input.reason))
     throw new ApiError('Selecione um motivo válido para a divergência.', 400);
   const justification = optionalText(input.justification, 'A justificativa');
   if (!justification)
     throw new ApiError('Explique a justificativa para divergir da recomendação.', 400);
+  if (!isMeaningfulOverrideJustification(justification))
+    throw new ApiError(
+      `Explique a justificativa com pelo menos ${MIN_OVERRIDE_JUSTIFICATION_LENGTH} caracteres e inclua um fato verificável.`,
+      400,
+    );
   const override = { reason: input.reason, justification };
   if (!isMockMode) {
     const record = await request<DecisionRecord>(
@@ -550,7 +553,7 @@ export async function getAdminDashboard(): Promise<AdminDashboard> {
       follow_probability: decision.follow_probability ?? null,
       decision_minutes: decision.decision_minutes ?? null,
       decision_explanation: decision.simulated_decision_explanation,
-      override_reason_label: decision.reason ?? null,
+      override_reason_label: decision.reason ? overrideReasonLabel(decision.reason) : null,
       ...(decision.justification ? { justification: decision.justification } : {}),
     };
     rows.set(caseId, row);

@@ -175,6 +175,25 @@ export interface AdminDecisionRow {
   decision_explanation?: string;
   override_reason_label?: string | null;
 }
+export interface AdminFirmAdherenceSummary {
+  name: string;
+  decisions: number;
+  adherence_rate: number;
+  avg_decision_minutes: number | null;
+  avg_follow_probability: number | null;
+  lawyer_count: number;
+}
+export interface AdminLawyerAdherenceSummary {
+  name: string;
+  firm_name: string;
+  decisions: number;
+  adherence_rate: number;
+  agreement_rate: number;
+  high_confidence_rate: number;
+  complete_documentation_rate: number;
+  avg_decision_minutes: number | null;
+  avg_follow_probability: number | null;
+}
 export interface AdminDashboard {
   demo_data: boolean;
   period: string;
@@ -194,6 +213,8 @@ export interface AdminDashboard {
     projected_cost: number;
     estimated_savings: number;
     estimated_savings_rate: number;
+    firm_count?: number;
+    lawyer_count?: number;
   };
   distribution: { label: string; value: number; percentage: number }[];
   evolution: { label: string; agreement: number; defense: number }[];
@@ -205,6 +226,8 @@ export interface AdminDashboard {
     savings: number;
     acceptance_rate: number;
   }[];
+  firm_adherence?: AdminFirmAdherenceSummary[];
+  lawyer_adherence?: AdminLawyerAdherenceSummary[];
   historical_simulation: {
     sample_size: number;
     acceptance_assumption: number;

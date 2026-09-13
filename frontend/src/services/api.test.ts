@@ -139,6 +139,14 @@ describe('demonstration API', () => {
       }),
     ).rejects.toThrow('justificativa');
     await expect(
+      submitOverride({
+        case_id: 'caso-1',
+        decision: 'ACORDO',
+        reason: 'OUTRO',
+        justification: 'Documento novo.',
+      }),
+    ).rejects.toThrow('20 caracteres');
+    await expect(
       submitNegotiation({ case_id: 'caso-1', proposal_value: 3000, status: 'PENDENTE' }),
     ).rejects.toThrow('decisão de acordo');
     await expect(
@@ -164,7 +172,7 @@ describe('demonstration API', () => {
         case_id: 'caso-2',
         decision: 'DEFESA',
         reason: 'NOVA_EVIDENCIA',
-        justification: 'Documento novo.',
+        justification: 'Documento novo apresentado na página 3.',
       });
       const dashboard = await getAdminDashboard();
       expect(dashboard.decisions.filter((item) => item.case_id === 'caso-2')).toHaveLength(1);
@@ -174,7 +182,8 @@ describe('demonstration API', () => {
         recommendation: 'ACORDO',
         adherent: false,
         is_local: true,
-        justification: 'Documento novo.',
+        justification: 'Documento novo apresentado na página 3.',
+        override_reason_label: 'Fato ou documento novo',
       });
       expect(dashboard.metrics).toEqual(before.metrics);
       expect(dashboard.historical_simulation).toEqual(before.historical_simulation);

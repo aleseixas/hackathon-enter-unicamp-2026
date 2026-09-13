@@ -676,20 +676,136 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
     overrides = [row for row in records if row["override"] == 1]
     accepted = [row for row in agreements if row["resultado_negociacao"] == "aceito"]
 
-    by_lawyer: dict[str, dict[str, float | int | str]] = {}
+    by_lawyer: dict[str, dict[str, object]] = {}
+    by_office: dict[str, dict[str, object]] = {}
     for row in records:
         lawyer_id = str(row["advogado_id"])
+        office_id = str(row["escritorio_id"])
+        adherent = int(row["aderente"])
+        agreement = int(row["acao_tomada"] == "acordo")
+        confidence = row.get("score_confianca")
+        high_confidence = int(
+            isinstance(confidence, (int, float)) and float(confidence) >= 0.85
+        )
+        complete_documentation = int(
+            str(row.get("faixa_completude", "")).strip().lower() == "alta"
+        )
+        decision_minutes = row.get("tempo_decisao_min")
+        follow_probability = row.get("probabilidade_seguir")
+
         lawyer_bucket = by_lawyer.setdefault(
             lawyer_id,
             {
                 "advogado_nome": str(row["advogado_nome"]),
+                "escritorio_id": office_id,
                 "escritorio_nome": str(row["escritorio_nome"]),
                 "total": 0,
                 "aderentes": 0,
+                "acordos": 0,
+                "alta_confianca": 0,
+                "documentacao_completa": 0,
+                "tempo_decisao_total": 0.0,
+                "tempo_decisao_quantidade": 0,
+                "probabilidade_seguir_total": 0.0,
+                "probabilidade_seguir_quantidade": 0,
             },
         )
         lawyer_bucket["total"] += 1
-        lawyer_bucket["aderentes"] += int(row["aderente"])
+        lawyer_bucket["aderentes"] += adherent
+        lawyer_bucket["acordos"] += agreement
+        lawyer_bucket["alta_confianca"] += high_confidence
+        lawyer_bucket["documentacao_completa"] += complete_documentation
+        if isinstance(decision_minutes, (int, float)):
+            lawyer_bucket["tempo_decisao_total"] += float(decision_minutes)
+            lawyer_bucket["tempo_decisao_quantidade"] += 1
+        if isinstance(follow_probability, (int, float)):
+            lawyer_bucket["probabilidade_seguir_total"] += float(follow_probability)
+            lawyer_bucket["probabilidade_seguir_quantidade"] += 1
+
+        office_bucket = by_office.setdefault(
+            office_id,
+            {
+                "escritorio_nome": str(row["escritorio_nome"]),
+                "advogados": set(),
+                "total": 0,
+                "aderentes": 0,
+                "acordos": 0,
+                "alta_confianca": 0,
+                "documentacao_completa": 0,
+                "tempo_decisao_total": 0.0,
+                "tempo_decisao_quantidade": 0,
+                "probabilidade_seguir_total": 0.0,
+                "probabilidade_seguir_quantidade": 0,
+            },
+        )
+        office_bucket["advogados"].add(lawyer_id)
+        office_bucket["total"] += 1
+        office_bucket["aderentes"] += adherent
+        office_bucket["acordos"] += agreement
+        office_bucket["alta_confianca"] += high_confidence
+        office_bucket["documentacao_completa"] += complete_documentation
+        if isinstance(decision_minutes, (int, float)):
+            office_bucket["tempo_decisao_total"] += float(decision_minutes)
+            office_bucket["tempo_decisao_quantidade"] += 1
+        if isinstance(follow_probability, (int, float)):
+            office_bucket["probabilidade_seguir_total"] += float(follow_probability)
+            office_bucket["probabilidade_seguir_quantidade"] += 1
+
+    def aggregate_rates(bucket: dict[str, object]) -> dict[str, float | int]:
+        bucket_total = int(bucket["total"])
+        adherent_total = int(bucket["aderentes"])
+        agreement_total = int(bucket["acordos"])
+        high_confidence_total = int(bucket["alta_confianca"])
+        complete_documentation_total = int(bucket["documentacao_completa"])
+        decision_minutes_count = int(bucket["tempo_decisao_quantidade"])
+        follow_probability_count = int(bucket["probabilidade_seguir_quantidade"])
+        return {
+            "total_decisoes": bucket_total,
+            "total_aderentes": adherent_total,
+            "total_divergencias": bucket_total - adherent_total,
+            "taxa_aderencia": round(adherent_total / bucket_total, 4) if bucket_total else 0.0,
+            "total_acordos": agreement_total,
+            "taxa_acordo": round(agreement_total / bucket_total, 4) if bucket_total else 0.0,
+            "total_alta_confianca": high_confidence_total,
+            "taxa_alta_confianca": (
+                round(high_confidence_total / bucket_total, 4) if bucket_total else 0.0
+            ),
+            "total_documentacao_completa": complete_documentation_total,
+            "taxa_documentacao_completa": (
+                round(complete_documentation_total / bucket_total, 4) if bucket_total else 0.0
+            ),
+            "tempo_decisao_medio_min": (
+                round(float(bucket["tempo_decisao_total"]) / decision_minutes_count, 2)
+                if decision_minutes_count
+                else 0.0
+            ),
+            "probabilidade_media_seguir": (
+                round(float(bucket["probabilidade_seguir_total"]) / follow_probability_count, 4)
+                if follow_probability_count
+                else 0.0
+            ),
+        }
+
+    lawyer_totals = [
+        {
+            "advogado_id": lawyer_id,
+            "advogado_nome": str(bucket["advogado_nome"]),
+            "escritorio_id": str(bucket["escritorio_id"]),
+            "escritorio_nome": str(bucket["escritorio_nome"]),
+            **aggregate_rates(bucket),
+        }
+        for lawyer_id, bucket in sorted(by_lawyer.items())
+    ]
+
+    office_totals = [
+        {
+            "escritorio_id": office_id,
+            "escritorio_nome": str(bucket["escritorio_nome"]),
+            "total_advogados": len(bucket["advogados"]),
+            **aggregate_rates(bucket),
+        }
+        for office_id, bucket in sorted(by_office.items())
+    ]
 
     lawyer_ranking = sorted(
         [
@@ -717,6 +833,8 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
         "taxa_aceite_acordos": round(len(accepted) / len(agreements), 4) if agreements else 0.0,
         "tempo_decisao_medio_min": round(sum(int(row["tempo_decisao_min"]) for row in records) / total, 2) if total else 0.0,
         "razoes_override": override_distribution,
+        "totais_por_advogado": lawyer_totals,
+        "totais_por_escritorio": office_totals,
         "piores_advogados": lawyer_ranking[:5],
         "melhores_advogados": lawyer_ranking[-5:][::-1],
     }

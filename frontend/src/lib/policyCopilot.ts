@@ -21,6 +21,7 @@ import type {
   PolicyCopilotResponse,
   ResolvedCopilotIntent,
 } from './policyCopilot.types';
+import { overrideReasonLabel } from './overrideReasons';
 
 const currency = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
@@ -291,9 +292,10 @@ function selectEvidenceForQuestion(request: LawyerCopilotRequest): EvidenceSelec
     ]),
   ];
   const documentPassages = documents.flatMap((document) => {
-    const pages = page === null
-      ? (document.demo_pages?.slice(0, 1) ?? [])
-      : (document.demo_pages?.filter((item) => item.page === page) ?? []);
+    const pages =
+      page === null
+        ? (document.demo_pages?.slice(0, 1) ?? [])
+        : (document.demo_pages?.filter((item) => item.page === page) ?? []);
     return pages.map((documentPage) => {
       const text = [
         documentPage.title,
@@ -564,12 +566,17 @@ function lawyerIntent(request: LawyerCopilotRequest): ResolvedCopilotIntent {
     ].some((token) => question.includes(token))
   )
     return 'CASE_SUMMARY';
-  if (/\brisco\b/.test(question) || question.includes('probabilidade de perda') || question.includes('fatores'))
+  if (
+    /\brisco\b/.test(question) ||
+    question.includes('probabilidade de perda') ||
+    question.includes('fatores')
+  )
     return 'RECOMMENDATION';
   if (
     ['evidencia', 'documento', 'prova', 'fonte', 'contradicao', 'lacuna', 'pagina'].some((token) =>
       question.includes(token),
-    ) || questionTargetsKnownCaseMaterial(request)
+    ) ||
+    questionTargetsKnownCaseMaterial(request)
   )
     return 'EVIDENCE';
   if (
@@ -1027,8 +1034,10 @@ function answerLawyer(request: LawyerCopilotRequest): PolicyCopilotResponse {
       ...selected.documentPassages.map(
         (passage) => `${passage.document.name}, página ${passage.page}: ${passage.text}.`,
       ),
-      selected.documents.length && !selected.evidence.length && !selected.contradictions.length
-        && !selected.documentPassages.length
+      selected.documents.length &&
+      !selected.evidence.length &&
+      !selected.contradictions.length &&
+      !selected.documentPassages.length
         ? `Documentos localizados: ${selected.documents.map((item) => item.name).join(', ')}.`
         : '',
       !selected.focused && recommendation.missing_evidence.length
@@ -1374,13 +1383,7 @@ function validateAdminContext(request: AdminCopilotRequest) {
   }
 }
 
-type SegmentDimension =
-  | 'FIRM'
-  | 'LAWYER'
-  | 'UF'
-  | 'PROFILE'
-  | 'POLICY_VERSION'
-  | 'MODEL_VERSION';
+type SegmentDimension = 'FIRM' | 'LAWYER' | 'UF' | 'PROFILE' | 'POLICY_VERSION' | 'MODEL_VERSION';
 
 function segmentDimension(question: string): SegmentDimension {
   const normalized = normalize(question);
@@ -1427,17 +1430,10 @@ function summarizeSegments(rows: AdminDecisionRow[], dimension: SegmentDimension
 
 function summarizeRowOverrideReasons(rows: AdminDecisionRow[]) {
   const reasons = new Map<string, number>();
-  const reasonLabels: Record<string, string> = {
-    NOVA_EVIDENCIA: 'Nova evidência',
-    ESTRATEGIA_PROCESSUAL: 'Estratégia processual',
-    INFORMACAO_NAO_CONSIDERADA: 'Informação não considerada',
-    POLITICA_INADEQUADA: 'Política inadequada',
-    OUTRO: 'Outro',
-  };
   for (const row of rows) {
     if (row.adherent || !row.override_reason_label?.trim()) continue;
     const rawLabel = row.override_reason_label.trim();
-    const label = reasonLabels[rawLabel] ?? rawLabel;
+    const label = overrideReasonLabel(rawLabel);
     reasons.set(label, (reasons.get(label) ?? 0) + 1);
   }
   return [...reasons.entries()]
@@ -1494,9 +1490,7 @@ function adminProvenance(request: AdminCopilotRequest, includeRowVersions = fals
     ...(versions.policyVersions.length
       ? { policyVersion: versions.policyVersions.join(', ') }
       : {}),
-    ...(versions.modelVersions.length
-      ? { modelVersion: versions.modelVersions.join(', ') }
-      : {}),
+    ...(versions.modelVersions.length ? { modelVersion: versions.modelVersions.join(', ') } : {}),
     dataUpdatedAt: request.context.dashboard.updated_at,
     dashboardUpdatedAt: request.context.dashboard.updated_at,
   };
@@ -1841,7 +1835,7 @@ function answerAdmin(request: AdminCopilotRequest): PolicyCopilotResponse {
               ? 'versão da política'
               : dimension === 'MODEL_VERSION'
                 ? 'versão do modelo'
-              : 'escritório';
+                : 'escritório';
     title = `Divergência por ${dimensionLabel}`;
     facts.push(
       fact('segment', dimensionLabel, selected.label, selected.label, 'ADMIN_DECISION_ROW'),
@@ -1870,10 +1864,9 @@ function answerAdmin(request: AdminCopilotRequest): PolicyCopilotResponse {
     extraLimitations.push(
       'A comparação usa a taxa de divergência como indicador operacional; ela não mede resultado financeiro ou judicial por segmento.',
     );
-    answer =
-      segments.every((segment) => segment.overrides === 0)
-        ? `No recorte “${rowScope.description}” (N=${amount(rows.length)}), não há divergências registradas; por isso não é possível apontar um segmento com desempenho ${wantsBest ? 'melhor' : 'pior'} por esse indicador.`
-        : segments.every((segment) => segment.overrideRate === selected.overrideRate)
+    answer = segments.every((segment) => segment.overrides === 0)
+      ? `No recorte “${rowScope.description}” (N=${amount(rows.length)}), não há divergências registradas; por isso não é possível apontar um segmento com desempenho ${wantsBest ? 'melhor' : 'pior'} por esse indicador.`
+      : segments.every((segment) => segment.overrideRate === selected.overrideRate)
         ? `No recorte “${rowScope.description}” (N=${amount(rows.length)}), todos os segmentos comparados têm a mesma taxa de divergência (${percent(selected.overrideRate)}); não há um segmento isolado com desempenho ${wantsBest ? 'melhor' : 'pior'} por esse indicador.`
         : `No recorte “${rowScope.description}” (N=${amount(rows.length)}), ${selected.label} tem a ${wantsBest ? 'menor' : 'maior'} taxa de divergência na dimensão “${dimensionLabel}”: ${percent(selected.overrideRate)} (${amount(selected.overrides)} de ${amount(selected.decisions)} decisões).`;
   } else if (intent === 'OVERRIDE_REASONS') {

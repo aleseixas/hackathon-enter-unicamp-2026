@@ -1,4 +1,5 @@
 import type { AdminDecisionRow, Recommendation } from '../types';
+import { overrideReasonLabel } from './overrideReasons';
 
 export type AdminPeriod = 'all' | '30' | '90' | '180';
 
@@ -178,7 +179,8 @@ export function createOverrideReasons(rows: AdminDecisionRow[]) {
   const reasons = new Map<string, number>();
   for (const row of rows) {
     if (row.adherent) continue;
-    const label = row.override_reason_label || 'Sem motivo classificado';
+    const rawLabel = row.override_reason_label?.trim();
+    const label = rawLabel ? overrideReasonLabel(rawLabel) : 'Sem motivo classificado';
     reasons.set(label, (reasons.get(label) ?? 0) + 1);
   }
   const total = [...reasons.values()].reduce((sum, value) => sum + value, 0);

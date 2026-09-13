@@ -27,6 +27,8 @@ Para integrar um serviço real, configure, por exemplo, `VITE_API_BASE_URL=/api`
 
 ## Copiloto da Política
 
+O protótipo inclui uma implementação local em `backend/`. Ela usa a OpenAI Responses API, carrega as fixtures demonstrativas no servidor e mantém cálculos, fontes e proveniência sob controle da aplicação. Configure `OPENAI_API_KEY` em `backend/.env`; a chave não é enviada ao navegador.
+
 `src/services/policyCopilot.ts` expõe a fronteira assíncrona do copiloto. Sem `VITE_COPILOT_API_URL`, `createPolicyCopilotProvider()` usa o provider determinístico local. Para integrar um backend, configure a base do serviço, por exemplo:
 
 ```env
@@ -54,5 +56,9 @@ O estado do caso passa para `EM_NEGOCIACAO` após decisão de acordo e para `CON
 ## Dashboard demonstrativo
 
 Os KPIs, séries, distribuição, motivos de divergência e a simulação histórica são valores sintéticos de um cenário demonstrativo maior, não totais da tabela visível. Taxas e `percentage` usam a escala de 0 a 1. A interface deve rotular esses agregados como demonstração; a simulação histórica é separada dos registros efetivamente inseridos no navegador e não representa economia realizada.
+
+`metrics.firm_count` e `metrics.lawyer_count` informam, quando disponíveis, as quantidades únicas na base agregada. Com filtros detalhados, a interface recalcula essas quantidades a partir dos registros rastreáveis do recorte.
+
+`firm_adherence` e `lawyer_adherence` trazem os recortes completos por escritório e advogado, sem limite de ranking. O volume de decisões de cada uma dessas listas deve somar `metrics.decisions`. Sem filtros globais, as comparações de aderência usam esses agregados; com filtros explícitos, usam somente os registros rastreáveis compatíveis e identificam esse escopo na tela.
 
 `getAdminDashboard()` combina as linhas iniciais com a última decisão/negociação local por caso, sem duplicar o caso. `is_local: true` identifica linhas com interação persistida no navegador, ainda dentro da demonstração. A tabela e `updated_at` acompanham essas gravações; KPIs financeiros, séries e premissas históricas não são recalculados.

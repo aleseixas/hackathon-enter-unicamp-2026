@@ -285,15 +285,11 @@ describe('deterministic policy copilot', () => {
   });
 
   it('answers natural document and contradiction questions from matching case material', () => {
-    const contract = respondWithPolicyCopilot(
-      lawyerRequest({ question: 'O que diz o contrato?' }),
-    );
+    const contract = respondWithPolicyCopilot(lawyerRequest({ question: 'O que diz o contrato?' }));
     const contradiction = respondWithPolicyCopilot(
       lawyerRequest({ question: 'Qual é a contradição sobre a titularidade da conta?' }),
     );
-    const page = respondWithPolicyCopilot(
-      lawyerRequest({ question: 'O que consta na página 2?' }),
-    );
+    const page = respondWithPolicyCopilot(lawyerRequest({ question: 'O que consta na página 2?' }));
 
     expect(contract).toMatchObject({ intent: 'EVIDENCE', status: 'ANSWERED' });
     expect(contract.answer).toContain('O contrato não contém validação independente');
@@ -385,9 +381,7 @@ describe('deterministic policy copilot', () => {
     const range = respondWithPolicyCopilot(
       lawyerRequest({ question: 'Qual é a faixa, abertura e teto?' }),
     );
-    const risk = respondWithPolicyCopilot(
-      lawyerRequest({ question: 'Explique o risco.' }),
-    );
+    const risk = respondWithPolicyCopilot(lawyerRequest({ question: 'Explique o risco.' }));
     const suggestedValue = respondWithPolicyCopilot(
       lawyerRequest({ question: 'Qual é o valor sugerido?' }),
     );
@@ -405,7 +399,9 @@ describe('deterministic policy copilot', () => {
     expect(risk.facts.find((item) => item.key === 'loss_probability')?.value).toBe(0.72);
     expect(risk.facts.find((item) => item.key === 'expected_defense_cost')?.value).toBe(9_072);
     expect(suggestedValue).toMatchObject({ intent: 'SETTLEMENT_RANGE' });
-    expect(suggestedValue.facts.find((item) => item.key === 'settlement_target')?.value).toBe(6_000);
+    expect(suggestedValue.facts.find((item) => item.key === 'settlement_target')?.value).toBe(
+      6_000,
+    );
   });
 
   it('blocks a case that is not assigned to the lawyer before producing any answer', () => {
@@ -566,8 +562,8 @@ describe('deterministic policy copilot', () => {
     expect(reasons.intent).toBe('OVERRIDE_REASONS');
     expect(reasons.answer).toContain('N=3');
     expect(reasons.facts.map((item) => item.label)).toEqual([
-      'Estratégia processual',
-      'Nova evidência',
+      'Fato ou documento novo',
+      'Fundamento jurídico ou estratégia processual',
     ]);
     expect(review.intent).toBe('REVIEW');
     expect(review.facts.find((item) => item.key === 'overrides_without_justification')?.value).toBe(
@@ -590,7 +586,10 @@ describe('deterministic policy copilot', () => {
       }),
     );
     expect(normalizedReasons.facts).toEqual([
-      expect.objectContaining({ label: 'Estratégia processual', value: 2 }),
+      expect.objectContaining({
+        label: 'Fundamento jurídico ou estratégia processual',
+        value: 2,
+      }),
     ]);
   });
 
@@ -809,9 +808,7 @@ describe('deterministic policy copilot', () => {
     expect(parseAdminWhatIfScenario('A taxa atual de aceite é 65%?')).toBeNull();
 
     expect(
-      respondWithPolicyCopilot(
-        adminRequest({ question: 'A taxa atual de aceite é 65%?' }),
-      ).mode,
+      respondWithPolicyCopilot(adminRequest({ question: 'A taxa atual de aceite é 65%?' })).mode,
     ).toBe('FACTUAL');
 
     const parsed = respondWithPolicyCopilot(

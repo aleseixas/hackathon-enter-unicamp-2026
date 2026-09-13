@@ -80,7 +80,28 @@ O diretório `data/local/` é ignorado pelo Git e serve para execuções explora
 
 `src/adherence_dashboard.py` é um legado desativado e encerra imediatamente com uma orientação para usar o frontend React. Ele não deve ser usado para iniciar a aplicação.
 
-## 3. Agente de teste de usabilidade
+## 3. Backend OpenAI do chatbot
+
+O chatbot pode usar a OpenAI por meio do backend local. Copie o ambiente e preencha sua chave:
+
+```powershell
+Copy-Item backend/.env.example backend/.env
+notepad backend/.env
+```
+
+Instale e inicie o servidor:
+
+```powershell
+cd backend
+npm install
+npm run dev
+```
+
+Mantenha-o ativo em `http://127.0.0.1:8787`. Em outro terminal, inicie o frontend normalmente. `frontend/.env.local` define `VITE_COPILOT_API_URL=/api/copilot`, e o proxy do Vite encaminha as chamadas ao backend.
+
+Não use `VITE_OPENAI_API_KEY`: toda variável `VITE_*` é entregue ao navegador. Consulte [backend/README.md](backend/README.md) para as rotas e verificações.
+
+## 4. Agente de teste de usabilidade
 
 Mantenha o frontend ativo em `http://127.0.0.1:5173`. Em outro terminal:
 
@@ -147,6 +168,9 @@ Consulte [usability-agent/README.md](usability-agent/README.md) para os contrato
 | Variável | Componente | Obrigatória |
 | --- | --- | --- |
 | `VITE_API_BASE_URL` | Frontend | Não; vazia usa mocks locais |
+| `VITE_COPILOT_API_URL` | Frontend | Não; vazia usa o copiloto determinístico |
+| `OPENAI_API_KEY` | Backend do chatbot | Sim, para chamar a OpenAI |
+| `OPENAI_MODEL` | Backend do chatbot | Não; padrão em `backend/.env.example` |
 | `OPENAI_API_KEY` | Agente de usabilidade | Sim, exceto no dry-run |
 | `OPENAI_MODEL` | Agente de usabilidade | Não |
 

@@ -74,6 +74,9 @@ frontend/                 aplicação React e experiência dos dois perfis
   ├─ src/mocks/           casos e indicadores demonstrativos
   ├─ src/services/        contrato de API e persistência local
   └─ docs/                contrato para integração futura
+backend/                  API do copiloto integrada à OpenAI
+  ├─ src/                 servidor, contexto e cliente da Responses API
+  └─ test/                testes HTTP e de contrato
 usability-agent/          agente screen-only de avaliação de UX
   ├─ prompts/             papel e critérios do advogado simulado
   ├─ tests/               contratos, validações e testes do runner
@@ -89,6 +92,8 @@ SETUP.md                  instalação, execução e solução de problemas
 
 **Frontend** · React 19 · TypeScript 6 · Vite 8 · React Router · Radix UI · Lucide
 
+**Backend do chatbot** · Node.js · TypeScript · OpenAI Responses API · Structured Outputs
+
 **Dados demonstrativos** · Python 3.10+ · biblioteca padrão · XLSX · JSON · CSV
 
 **Avaliação de UX** · Python · Playwright · OpenAI Responses API · visão · Structured Outputs
@@ -98,6 +103,14 @@ SETUP.md                  instalação, execução e solução de problemas
 ---
 
 ## Testes
+
+### Backend do chatbot
+
+```bash
+cd backend
+npm run check
+npm test
+```
 
 ### Frontend
 
@@ -123,6 +136,7 @@ O dry-run valida os seis contratos de tarefa, a normalização das notas, o isol
 ## Documentação adicional
 
 - [`frontend/README.md`](frontend/README.md) — roteiro da demonstração e comportamento dos mocks.
+- [`backend/README.md`](backend/README.md) — configuração da OpenAI e execução do chatbot.
 - [`frontend/docs/frontend-api.md`](frontend/docs/frontend-api.md) — contrato de integração futura.
 - [`usability-agent/README.md`](usability-agent/README.md) — configuração, execução e formato dos relatórios de UX.
 - [`docs/behavioral_adherence_model.md`](docs/behavioral_adherence_model.md) — geração da camada sintética de aderência.
@@ -140,4 +154,4 @@ O dry-run valida os seis contratos de tarefa, a normalização das notas, o isol
 
 ## Escopo atual
 
-Este repositório entrega um **protótipo demonstrativo**. Não há autenticação de servidor, backend de produção, banco de dados, leitura real de documentos ou execução online de uma política de decisão. Casos, nomes, documentos e valores da interface são fictícios; decisões feitas durante a demonstração ficam no navegador.
+Este repositório entrega um **protótipo demonstrativo** com um backend local opcional para o chatbot da OpenAI. Não há autenticação de produção, banco de dados, leitura real de documentos ou execução online de uma política de decisão. Casos, nomes, documentos e valores da interface são fictícios; decisões feitas durante a demonstração ficam no navegador.

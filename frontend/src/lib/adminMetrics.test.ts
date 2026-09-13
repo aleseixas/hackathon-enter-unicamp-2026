@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { AdminDecisionRow } from '../types';
 import {
+  createOverrideReasons,
   deriveAdminMetrics,
   emptyAdminFilters,
   filterAdminRows,
@@ -77,5 +78,19 @@ describe('admin metrics', () => {
     );
 
     expect(result.map((item) => item.id)).toEqual(['1']);
+  });
+
+  it('groups an override code and its human label as the same reason', () => {
+    const result = createOverrideReasons([
+      row({ id: '1', adherent: false, override_reason_label: 'NOVA_EVIDENCIA' }),
+      row({ id: '2', adherent: false, override_reason_label: 'Fato ou documento novo' }),
+      row({ id: '3', adherent: false, override_reason_label: 'Nova evidência' }),
+      row({ id: '4', adherent: false, override_reason_label: null }),
+    ]);
+
+    expect(result).toEqual([
+      { label: 'Fato ou documento novo', value: 3, percentage: 3 / 4 },
+      { label: 'Sem motivo classificado', value: 1, percentage: 1 / 4 },
+    ]);
   });
 });

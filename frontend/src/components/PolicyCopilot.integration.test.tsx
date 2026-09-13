@@ -40,16 +40,29 @@ describe('Policy Copilot in each profile', () => {
 
     await user.click(screen.getByRole('button', { name: 'Copiloto da Política' }));
     const dialog = screen.getByRole('dialog', { name: 'Copiloto deste caso' });
-    expect(within(dialog).getByText(/0801634-18\.2026\.8\.19\.0001/)).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(/0801634-18\.2026\.8\.19\.0001/, {
+        selector: '.copilot-header p',
+      }),
+    ).toBeInTheDocument();
+    const caseSelector = within(dialog).getByRole('combobox', {
+      name: 'Caso analisado pelo copiloto',
+    });
+    expect(within(caseSelector).getAllByRole('option').length).toBeGreaterThan(1);
     expect(
       within(dialog).queryByRole('button', { name: 'Qual escritório mais diverge?' }),
     ).not.toBeInTheDocument();
 
+    await user.selectOptions(caseSelector, 'caso-anexo-01');
+    expect(caseSelector).toHaveValue('caso-anexo-01');
+    expect(
+      within(dialog).getByText(/0801234-56\.2024\.8\.10\.0001 · Maria das Graças Silva Pereira/),
+    ).toBeInTheDocument();
     await user.click(
-      within(dialog).getByRole('button', { name: 'Por que foi recomendado acordo?' }),
+      within(dialog).getByRole('button', { name: 'Por que esta recomendação foi indicada?' }),
     );
     expect(await within(dialog).findByText('Leitura da recomendação')).toBeInTheDocument();
-    expect(within(dialog).getByText(/A política recomenda ACORDO/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/A política recomenda DEFESA/)).toBeInTheDocument();
     expect(within(dialog).getByText(/Risco estimado de perda:/)).toBeInTheDocument();
     expect(within(dialog).getByText('politica-demo-v1.0')).toBeInTheDocument();
     expect(within(dialog).getByText('modelo-simulado-v1.0')).toBeInTheDocument();
@@ -59,7 +72,7 @@ describe('Policy Copilot in each profile', () => {
     await user.click(source!);
 
     const viewer = await screen.findByRole('dialog', {
-      name: /Petição inicial|Comprovante|Consulta BACEN|Biometria|Laudo/i,
+      name: /Autos|Contrato|Extrato|Comprovante|Dossiê|Demonstrativo|Laudo/i,
     });
     expect(within(viewer).getByRole('combobox', { name: 'Página do documento' })).toBeVisible();
     expect(window.localStorage.getItem(DEMO_STORAGE_KEY)).toBeNull();
@@ -76,11 +89,17 @@ describe('Policy Copilot in each profile', () => {
     await screen.findByRole('heading', { name: 'Visão geral' });
     await user.click(await screen.findByRole('button', { name: 'Refinar análise' }));
     await user.selectOptions(screen.getByRole('combobox', { name: 'UF global' }), 'SP');
-    await screen.findByText(/1 decisão no\s*recorte atual/);
+    await screen.findByText(/1 registro rastreável no\s*recorte atual/);
 
     await user.click(screen.getByRole('button', { name: 'Copiloto da Política' }));
     const dialog = screen.getByRole('dialog', { name: 'Copiloto da política' });
     expect(within(dialog).getByText(/1 decisão no recorte detalhado/)).toBeInTheDocument();
+    const dashboardSelector = within(dialog).getByRole('combobox', {
+      name: 'Dashboard ou aba analisada',
+    });
+    await user.selectOptions(dashboardSelector, 'adherence');
+    expect(dashboardSelector).toHaveValue('adherence');
+    expect(within(dialog).getByText(/Aderência à política · 1 decisão/)).toBeInTheDocument();
     expect(
       within(dialog).queryByRole('button', { name: /Por que foi recomendado/ }),
     ).not.toBeInTheDocument();

@@ -381,6 +381,23 @@
   gap: 19px;
   margin-top: 26px;
 }
+.admin-reason-summary {
+  display: grid;
+  gap: 6px;
+  margin-top: 22px;
+  padding: 16px 18px;
+  border: 1px solid var(--line, #e5e2da);
+  border-radius: 10px;
+}
+.admin-reason-summary strong {
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+.admin-reason-summary span {
+  color: var(--muted, #77766d);
+  font-size: 12px;
+  line-height: 1.5;
+}
 .admin-reason > div:first-child {
   display: flex;
   gap: 15px;

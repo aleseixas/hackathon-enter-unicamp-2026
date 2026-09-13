@@ -5,6 +5,8 @@ import type {
   DecisionRecord,
   RecommendationResponse,
 } from '../types';
+import { overrideReasonLabel } from '../lib/overrideReasons';
+import { historicalFirmAdherence, historicalLawyerAdherence } from './syntheticAdherenceAggregates';
 import {
   DEMO_GENERATED_AT,
   DEMO_MODEL_VERSION,
@@ -207,14 +209,6 @@ const behaviorByCaseId: Record<string, BehaviorMeta> = {
   },
 };
 
-const overrideReasonLabels = {
-  NOVA_EVIDENCIA: 'Nova evidencia',
-  ESTRATEGIA_PROCESSUAL: 'Estrategia processual',
-  INFORMACAO_NAO_CONSIDERADA: 'Informacao nao considerada',
-  POLITICA_INADEQUADA: 'Politica inadequada',
-  OUTRO: 'Outro',
-} as const;
-
 export { DEMO_GENERATED_AT, DEMO_MODEL_VERSION, DEMO_POLICY_VERSION, demoNegotiations };
 
 export const demoCases: CaseDetail[] = baseCases.map((item) => {
@@ -294,9 +288,24 @@ const demoAdminRows: AdminDecisionRow[] = demoDecisions.map((decision) => {
     follow_probability: decision.follow_probability ?? null,
     decision_minutes: decision.decision_minutes ?? null,
     decision_explanation: decision.simulated_decision_explanation,
-    override_reason_label: decision.reason ? overrideReasonLabels[decision.reason] : null,
+    override_reason_label: decision.reason ? overrideReasonLabel(decision.reason) : null,
   };
 });
+
+const historicalOverrideReasons = [
+  { label: 'Baixa confiança do modelo', value: 12820 },
+  { label: 'Caso de alto valor exigiu avaliação própria', value: 5192 },
+  { label: 'Avaliação jurídica individual', value: 3631 },
+  { label: 'Perfil mais negociador do advogado', value: 2185 },
+  { label: 'Estratégia do escritório', value: 1003 },
+  { label: 'Informação nova na análise', value: 963 },
+  { label: 'Estratégia autônoma do advogado', value: 355 },
+] as const;
+
+const historicalOverrideTotal = historicalOverrideReasons.reduce(
+  (total, reason) => total + reason.value,
+  0,
+);
 
 export const demoAdminDashboard: AdminDashboard = {
   demo_data: true,
@@ -305,7 +314,7 @@ export const demoAdminDashboard: AdminDashboard = {
   metrics: {
     decisions: 60000,
     adherence_rate: 0.5642,
-    overrides: 26148,
+    overrides: historicalOverrideTotal,
     settlements: 18372,
     agreement_proposals: 31700,
     acceptance_rate: 0.5793,
@@ -317,6 +326,8 @@ export const demoAdminDashboard: AdminDashboard = {
     projected_cost: 95260000,
     estimated_savings: 23140000,
     estimated_savings_rate: 0.1954,
+    firm_count: 6,
+    lawyer_count: 36,
   },
   distribution: [
     { label: 'Acordo', value: 31700, percentage: 0.5283 },
@@ -331,13 +342,10 @@ export const demoAdminDashboard: AdminDashboard = {
     { label: 'Ago', agreement: 6120, defense: 4320 },
     { label: 'Set', agreement: 6620, defense: 4380 },
   ],
-  override_reasons: [
-    { label: 'Baixa confianca do modelo', value: 12820, percentage: 0.4903 },
-    { label: 'Caso caro exigiu postura propria', value: 5192, percentage: 0.1986 },
-    { label: 'Avaliacao juridica individual', value: 3631, percentage: 0.1389 },
-    { label: 'Advogado mais negociador', value: 2185, percentage: 0.0836 },
-    { label: 'Estrategia do escritorio', value: 1003, percentage: 0.0384 },
-  ],
+  override_reasons: historicalOverrideReasons.map((reason) => ({
+    ...reason,
+    percentage: reason.value / historicalOverrideTotal,
+  })),
   effectiveness_outcomes: [
     { label: 'Acordos aceitos', value: 18372, percentage: 0.5793 },
     { label: 'Recusas', value: 8127, percentage: 0.2564 },
@@ -356,6 +364,8 @@ export const demoAdminDashboard: AdminDashboard = {
     { label: 'Ago', savings: 4580000, acceptance_rate: 0.6 },
     { label: 'Set', savings: 5150000, acceptance_rate: 0.61 },
   ],
+  firm_adherence: historicalFirmAdherence,
+  lawyer_adherence: historicalLawyerAdherence,
   historical_simulation: {
     sample_size: 60000,
     acceptance_assumption: 0.5793,

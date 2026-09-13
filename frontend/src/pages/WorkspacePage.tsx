@@ -11,9 +11,10 @@ import {
   ShieldCheck,
   Sparkles,
 } from 'lucide-react';
-import { getCase, getDecision, getNegotiation, getRecommendation } from '../services/api';
+import { getCase, getCases, getDecision, getNegotiation, getRecommendation } from '../services/api';
 import type {
   CaseDocument,
+  CaseSummary,
   DecisionRecord,
   NegotiationRecord,
   RecommendationResponse,
@@ -217,14 +218,18 @@ export default function WorkspacePage() {
       ? (requestedList as keyof typeof listLabels)
       : '/minha-fila';
   const returnLabel = listLabels[returnTo];
+  const [copilotCaseChoice, setCopilotCaseChoice] = useState({ routeCaseId: caseId, caseId });
+  const copilotCaseId =
+    copilotCaseChoice.routeCaseId === caseId ? copilotCaseChoice.caseId : caseId;
   const loader = useCallback(async () => {
-    const [caseDetail, recommendation, decision, negotiation] = await Promise.all([
+    const [caseDetail, recommendation, decision, negotiation, cases] = await Promise.all([
       getCase(caseId),
       getRecommendation(caseId),
       getDecision(caseId),
       getNegotiation(caseId),
+      getCases(),
     ]);
-    return { caseDetail, recommendation, decision, negotiation };
+    return { caseDetail, recommendation, decision, negotiation, cases };
   }, [caseId]);
   const { data, loading, error, reload } = useAsync(loader);
   const [viewer, setViewer] = useState<{ document: CaseDocument; page: number } | null>(null);
@@ -258,9 +263,15 @@ export default function WorkspacePage() {
       </>
     );
   if (!data) return null;
-  const { caseDetail, recommendation, decision, negotiation } = data;
+  const { caseDetail, recommendation, decision, negotiation, cases } = data;
+  const lawyerCases = cases.filter((item) => item.assigned_to_me);
+  const activeCopilotCaseId = lawyerCases.some((item) => item.case_id === copilotCaseId)
+    ? copilotCaseId
+    : caseDetail.case_id;
+  const activeCopilotCase =
+    lawyerCases.find((item) => item.case_id === activeCopilotCaseId) ?? caseDetail;
   const copilotSuggestions = [
-    `Por que foi recomendado ${recommendation.recommendation.toLocaleLowerCase('pt-BR')}?`,
+    'Por que esta recomendação foi indicada?',
     'Quais são os 3 pontos mais importantes?',
     'O que favorece a defesa?',
     'O que ainda preciso confirmar?',
@@ -271,6 +282,26 @@ export default function WorkspacePage() {
     else {
       setMessageTone('warning');
       setMessage('O documento desta fonte ainda não está disponível no acervo.');
+    }
+  }
+  async function viewCopilotSource(source: SourceReference) {
+    if (activeCopilotCaseId === caseDetail.case_id) {
+      viewSource(source);
+      return;
+    }
+    try {
+      const selectedRecommendation = await getRecommendation(activeCopilotCaseId);
+      const document = selectedRecommendation.documents.find(
+        (item) => item.id === source.document_id,
+      );
+      if (document && document.status !== 'AUSENTE') setViewer({ document, page: source.page });
+      else {
+        setMessageTone('warning');
+        setMessage('O documento desta fonte ainda não está disponível no acervo.');
+      }
+    } catch {
+      setMessageTone('warning');
+      setMessage('Não foi possível abrir a fonte do caso selecionado.');
     }
   }
   function saved(text: string) {
@@ -511,21 +542,50 @@ export default function WorkspacePage() {
       )}
       <PolicyCopilot
         title="Copiloto deste caso"
-        contextLabel={`${caseDetail.case_number} · ${caseDetail.plaintiff}`}
+        contextLabel={`${activeCopilotCase.case_number} · ${activeCopilotCase.plaintiff}`}
         sessionKey={`${caseDetail.case_id}:${decision?.id ?? 'sem-decisao'}:${negotiation?.updated_at ?? 'sem-negociacao'}`}
+        contextSelectorLabel="Caso analisado pelo copiloto"
+        selectedContext={activeCopilotCaseId}
+        contextOptions={lawyerCases.map((item: CaseSummary) => ({
+          value: item.case_id,
+          label: `${item.case_number} — ${item.plaintiff}`,
+          description: `${item.city}/${item.uf} · ${item.recommendation}`,
+        }))}
+        onContextChange={(value) => setCopilotCaseChoice({ routeCaseId: caseId, caseId: value })}
         suggestions={copilotSuggestions}
         notice="O copiloto explica os dados disponíveis; a decisão continua sendo sua. Cada pergunta é analisada de forma independente."
-        onAsk={(question) => {
+        onAsk={async (question) => {
+          const selectedContext =
+            activeCopilotCaseId === caseDetail.case_id
+              ? { caseDetail, recommendation, decision, negotiation }
+              : await Promise.all([
+                  getCase(activeCopilotCaseId),
+                  getRecommendation(activeCopilotCaseId),
+                  getDecision(activeCopilotCaseId),
+                  getNegotiation(activeCopilotCaseId),
+                ]).then(
+                  ([
+                    selectedCaseDetail,
+                    selectedRecommendation,
+                    selectedDecision,
+                    selectedNegotiation,
+                  ]) => ({
+                    caseDetail: selectedCaseDetail,
+                    recommendation: selectedRecommendation,
+                    decision: selectedDecision,
+                    negotiation: selectedNegotiation,
+                  }),
+                );
           const scenario = parseLawyerWhatIfScenario(question);
           return policyCopilotProvider.respond({
             audience: 'LAWYER',
             question,
-            context: { caseDetail, recommendation, decision, negotiation },
+            context: selectedContext,
             ...(scenario ? { scenario } : {}),
           });
         }}
         onOpenCitation={(citation) =>
-          viewSource({
+          void viewCopilotSource({
             document_id: citation.documentId,
             document_name: citation.documentName,
             page: citation.page,

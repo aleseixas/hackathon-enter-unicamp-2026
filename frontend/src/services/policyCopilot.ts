@@ -511,7 +511,8 @@ export class HttpPolicyCopilotProvider implements PolicyCopilotProvider {
   }
 }
 
-const configuredApiUrl = (import.meta.env.VITE_COPILOT_API_URL ?? '').trim();
+const configuredApiUrl =
+  import.meta.env.MODE === 'test' ? '' : (import.meta.env.VITE_COPILOT_API_URL ?? '').trim();
 
 /** Empty URL keeps the fully grounded deterministic demonstration provider. */
 export function createPolicyCopilotProvider(

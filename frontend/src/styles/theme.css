@@ -1,24 +1,25 @@
 /*
- * Dark visual system inspired by the challenge reference.
- * The interface keeps its own information architecture and brand while using
- * the reference's black surfaces, cool neutrals and amber interaction color.
+ * Enter's inverted brand palette, adapted to the product interface.
+ * Core tokens mirror the public site: black, neutral 90/80, white and orange.
  */
 
 :root {
   color-scheme: dark;
-  color: #fafafa;
+  color: #f3f3f3;
   background: #000;
   --bg: #000;
-  --sidebar: #050505;
-  --surface: #0a0a0a;
-  --surface-raised: #111;
-  --surface-soft: #171717;
-  --ink: #fafafa;
-  --muted: #a1a1a1;
-  --dim: #777;
-  --line: #262626;
-  --line-soft: #1a1a1a;
+  --sidebar: #0a0a0a;
+  --surface: #171717;
+  --surface-raised: #3c3c3c;
+  --surface-soft: #3c3c3c;
+  --ink: #fff;
+  --text: var(--ink);
+  --muted: #ffffffa3;
+  --dim: #ffffff80;
+  --line: #fff3;
+  --line-soft: #ffffff14;
   --accent: #ffae35;
+  --amber: var(--accent);
   --accent-hover: #ffc266;
   --accent-active: #e69d30;
   --accent-soft: #ffae3517;
@@ -26,8 +27,8 @@
   --green: #4ade80;
   --red: #f87171;
   --warning: #fbbf24;
-  --radius: 10px;
-  --shadow: none;
+  --radius: 12px;
+  --shadow: 0 1px 0 #ffffff0a, 0 18px 48px #0000002e;
   --font-heading: 'Geist Variable', Arial, sans-serif;
   --page-gutter: clamp(24px, 1.8vw, 40px);
 }
@@ -39,7 +40,9 @@ html {
 
 body {
   min-width: 320px;
-  background: radial-gradient(circle at 78% -10%, #ffae350d, transparent 34rem), var(--bg);
+  background:
+    radial-gradient(circle at 80% -12%, #ffae3514, transparent 36rem),
+    radial-gradient(circle at 12% 110%, #ffffff08, transparent 28rem), var(--bg);
   color: var(--ink);
   font-size: 16px;
 }
@@ -3364,5 +3367,317 @@ textarea:focus-visible {
 
   .admin-local-label {
     font-size: clamp(15px, 0.92vw, 18px);
+  }
+}
+
+/* Comfortable scale for the current administrative views and their CSS charts. */
+@media (min-width: 901px) {
+  .app-shell .admin-page {
+    --admin-meta-size: clamp(14px, 0.78vw, 17px);
+    --admin-body-size: clamp(16px, 0.95vw, 20px);
+    --admin-emphasis-size: clamp(18px, 1.08vw, 22px);
+    container: admin-page / inline-size;
+  }
+
+  .app-shell .admin-page .admin-heading-eyebrow .eyebrow,
+  .app-shell .admin-page .admin-data-label,
+  .app-shell .admin-page .admin-period,
+  .app-shell .admin-page .admin-section-kicker,
+  .app-shell .admin-page .admin-record-count,
+  .app-shell .admin-page .admin-cell-state,
+  .app-shell .admin-page .admin-local-label,
+  .app-shell .admin-page .admin-ranking-values > span,
+  .app-shell .admin-page .admin-ranking-values small,
+  .app-shell .admin-page .admin-ranking-scale,
+  .app-shell .admin-page .admin-ranking-meta span,
+  .app-shell .admin-page .admin-lawyer-heading span,
+  .app-shell .admin-page .admin-lawyer-row footer span,
+  .app-shell .admin-page .admin-reason-cumulative,
+  .app-shell .admin-page .admin-active-filters {
+    font-size: var(--admin-meta-size);
+  }
+
+  .app-shell .admin-page .admin-snapshot-note,
+  .app-shell .admin-page .admin-reason-summary,
+  .app-shell .admin-page .admin-reason-summary span,
+  .app-shell .admin-page .admin-filter-summary strong,
+  .app-shell .admin-page .admin-filter-summary span,
+  .app-shell .admin-page .admin-filter-toggle,
+  .app-shell .admin-page .admin-global-filter-grid label > span,
+  .app-shell .admin-page .admin-analysis-toolbar label > span,
+  .app-shell .admin-page .admin-global-filter-grid select,
+  .app-shell .admin-page .admin-analysis-toolbar select,
+  .app-shell .admin-page .admin-inline-search,
+  .app-shell .admin-page .admin-filter-chips button,
+  .app-shell .admin-page .admin-scope-line,
+  .app-shell .admin-page .admin-view-button,
+  .app-shell .admin-page .admin-ranking-copy span,
+  .app-shell .admin-page .admin-reason > div:first-child,
+  .app-shell .admin-page .admin-reason small,
+  .app-shell .admin-page .admin-attention-grid article p,
+  .app-shell .admin-page .admin-critical-list article span,
+  .app-shell .admin-page .admin-table,
+  .app-shell .admin-page .admin-table th,
+  .app-shell .admin-page .admin-table-filters .field > span,
+  .app-shell .admin-page .admin-table-filters .input,
+  .app-shell .admin-page .admin-table-filters .select,
+  .app-shell .admin-page .admin-cell-primary,
+  .app-shell .admin-page .admin-cell-secondary,
+  .app-shell .admin-page .admin-adherence,
+  .app-shell .admin-page .admin-record-detail p,
+  .app-shell .admin-page .admin-record-detail dt,
+  .app-shell .admin-page .admin-record-detail dd,
+  .app-shell .admin-page .admin-table-footer,
+  .app-shell .admin-page .admin-pagination,
+  .app-shell .admin-page .admin-pagination button,
+  .app-shell .admin-page .admin-operational-summary,
+  .app-shell .admin-page .admin-end-link,
+  .app-shell .admin-page .admin-text-link {
+    font-size: var(--admin-body-size);
+  }
+
+  .app-shell .admin-page .admin-view-stage .admin-panel h2,
+  .app-shell .admin-page .admin-table-heading h2,
+  .app-shell .admin-page .admin-subsection-heading h2,
+  .app-shell .admin-page .admin-attention-heading h2 {
+    font-size: clamp(25px, 1.55vw, 32px);
+  }
+
+  .app-shell .admin-page .admin-metric {
+    min-height: clamp(178px, 11vw, 214px);
+    padding: clamp(24px, 1.55vw, 32px);
+  }
+
+  .app-shell .admin-page .admin-metric-top,
+  .app-shell .admin-page .admin-metric-hint {
+    font-size: var(--admin-body-size);
+  }
+
+  .app-shell .admin-page .admin-metric-top svg,
+  .app-shell .admin-page .admin-panel-heading > svg,
+  .app-shell .admin-page .admin-subsection-heading svg {
+    width: clamp(25px, 1.45vw, 32px);
+    height: clamp(25px, 1.45vw, 32px);
+  }
+
+  .app-shell .admin-page .admin-data-label svg {
+    width: clamp(17px, 1vw, 21px);
+    height: clamp(17px, 1vw, 21px);
+  }
+
+  .app-shell .admin-page .admin-filter-summary svg,
+  .app-shell .admin-page .admin-snapshot-note > svg,
+  .app-shell .admin-page .admin-operational-summary > svg,
+  .app-shell .admin-page .admin-end-link svg,
+  .app-shell .admin-page .admin-case-button svg {
+    width: clamp(20px, 1.2vw, 25px);
+    height: clamp(20px, 1.2vw, 25px);
+  }
+
+  .app-shell .admin-page .admin-filter-summary {
+    min-height: clamp(68px, 4vw, 78px);
+    padding-inline: clamp(18px, 1.4vw, 28px);
+  }
+
+  .app-shell .admin-page .admin-filter-toggle,
+  .app-shell .admin-page .admin-global-filter-grid select,
+  .app-shell .admin-page .admin-analysis-toolbar select,
+  .app-shell .admin-page .admin-inline-search,
+  .app-shell .admin-page .admin-view-button,
+  .app-shell .admin-page .admin-table-filters .input,
+  .app-shell .admin-page .admin-table-filters .select,
+  .app-shell .admin-page .admin-pagination button {
+    min-height: clamp(48px, 3vw, 56px);
+  }
+
+  .app-shell .admin-page .admin-view-button {
+    padding-inline: clamp(18px, 1.25vw, 25px);
+  }
+
+  .app-shell .admin-page .admin-view-stage > .admin-panel {
+    min-height: clamp(500px, 32vw, 640px);
+    padding: clamp(32px, 2.2vw, 46px);
+  }
+
+  .app-shell .admin-page .admin-adherence-volume {
+    gap: clamp(38px, 2.7vw, 54px);
+    margin-top: clamp(44px, 3vw, 62px);
+  }
+
+  .app-shell .admin-page .admin-adherence-volume header > span {
+    font-size: var(--admin-emphasis-size);
+  }
+
+  .app-shell .admin-page .admin-adherence-volume header > strong {
+    font-size: clamp(40px, 2.7vw, 54px);
+  }
+
+  .app-shell .admin-page .admin-adherence-volume header > b {
+    font-size: clamp(22px, 1.4vw, 28px);
+  }
+
+  .app-shell .admin-page .admin-adherence-volume > div > div {
+    height: clamp(30px, 1.9vw, 38px);
+  }
+
+  .app-shell .admin-page .admin-ranking-row,
+  .app-shell .admin-page .admin-lawyer-row {
+    padding-block: clamp(25px, 1.8vw, 34px);
+  }
+
+  .app-shell .admin-page .admin-ranking-copy strong,
+  .app-shell .admin-page .admin-lawyer-heading strong,
+  .app-shell .admin-page .admin-critical-list article strong {
+    font-size: var(--admin-emphasis-size);
+  }
+
+  .app-shell .admin-page .admin-ranking-values strong {
+    font-size: clamp(25px, 1.6vw, 32px);
+  }
+
+  .app-shell .admin-page .admin-ranking-track {
+    height: clamp(16px, 1vw, 20px);
+    margin: 2px 0 clamp(16px, 1vw, 20px);
+  }
+
+  .app-shell .admin-page .admin-ranking-track > i {
+    top: -5px;
+    height: clamp(27px, 1.7vw, 34px);
+  }
+
+  .app-shell .admin-page .admin-lawyer-indicators span,
+  .app-shell .admin-page .admin-lawyer-indicators strong {
+    font-size: var(--admin-body-size);
+  }
+
+  .app-shell .admin-page .admin-lawyer-indicators i {
+    height: clamp(13px, 0.85vw, 17px);
+  }
+
+  .app-shell .admin-page .admin-reasons {
+    gap: clamp(28px, 1.8vw, 38px);
+  }
+
+  .app-shell .admin-page .admin-reason-summary {
+    padding: clamp(18px, 1.2vw, 24px);
+  }
+
+  .app-shell .admin-page .admin-reason-summary strong {
+    font-size: var(--admin-emphasis-size);
+  }
+
+  .app-shell .admin-page .admin-reason strong {
+    font-size: var(--admin-emphasis-size);
+  }
+
+  .app-shell .admin-page .admin-reason-track {
+    height: clamp(14px, 0.85vw, 18px);
+  }
+
+  .app-shell .admin-page .admin-distribution-total {
+    height: clamp(56px, 3.5vw, 72px);
+  }
+
+  .app-shell .admin-page .admin-distribution-row,
+  .app-shell .admin-page .admin-distribution-row strong,
+  .app-shell .admin-page .admin-distribution-percent {
+    font-size: var(--admin-emphasis-size);
+  }
+
+  .app-shell .admin-page .admin-distribution-row {
+    gap: 15px;
+    padding-block: clamp(18px, 1.2vw, 24px);
+  }
+
+  .app-shell .admin-page .admin-chart-dot {
+    width: clamp(13px, 0.8vw, 16px);
+    height: clamp(13px, 0.8vw, 16px);
+  }
+
+  .app-shell .admin-page .admin-attention {
+    padding: clamp(24px, 1.7vw, 34px);
+  }
+
+  .app-shell .admin-page .admin-attention-grid {
+    gap: clamp(14px, 1vw, 20px);
+  }
+
+  .app-shell .admin-page .admin-attention-grid article {
+    gap: 14px;
+    padding: clamp(20px, 1.35vw, 27px);
+  }
+
+  .app-shell .admin-page .admin-attention-grid article > svg {
+    width: clamp(26px, 1.5vw, 32px);
+    height: clamp(26px, 1.5vw, 32px);
+  }
+
+  .app-shell .admin-page .admin-attention-grid article strong {
+    font-size: var(--admin-emphasis-size);
+  }
+
+  .app-shell .admin-page .admin-waterfall {
+    height: clamp(440px, 28vw, 560px);
+    gap: clamp(24px, 2vw, 42px);
+    margin-top: clamp(40px, 2.8vw, 56px);
+  }
+
+  .app-shell .admin-page .admin-waterfall-column > span {
+    width: min(clamp(180px, 13vw, 280px), 84%);
+  }
+
+  .app-shell .admin-page .admin-waterfall-item > strong {
+    font-size: clamp(21px, 1.45vw, 29px);
+  }
+
+  .app-shell .admin-page .admin-waterfall-item > span {
+    font-size: var(--admin-body-size);
+  }
+
+  .app-shell .admin-page .admin-effectiveness-timeline {
+    height: clamp(420px, 27vw, 540px);
+    gap: clamp(18px, 1.6vw, 32px);
+    margin-top: clamp(42px, 2.8vw, 56px);
+  }
+
+  .app-shell .admin-page .admin-effectiveness-bar-wrap {
+    height: clamp(310px, 20vw, 400px);
+  }
+
+  .app-shell .admin-page .admin-effectiveness-bar {
+    width: min(clamp(68px, 5vw, 120px), 82%);
+  }
+
+  .app-shell .admin-page .admin-effectiveness-bar-wrap > span,
+  .app-shell .admin-page .admin-effectiveness-period strong,
+  .app-shell .admin-page .admin-effectiveness-period > span:last-child {
+    font-size: var(--admin-body-size);
+  }
+
+  .app-shell .admin-page .admin-table th {
+    padding: clamp(17px, 1.1vw, 22px) clamp(18px, 1.2vw, 24px);
+  }
+
+  .app-shell .admin-page .admin-table td {
+    padding: clamp(23px, 1.55vw, 31px) clamp(18px, 1.2vw, 24px);
+  }
+
+  .app-shell .admin-page .admin-record-detail {
+    gap: clamp(30px, 2vw, 42px);
+    padding-block: clamp(24px, 1.6vw, 32px);
+  }
+}
+
+@container admin-page (max-width: 1180px) {
+  .admin-page .admin-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-page .admin-lawyer-indicators {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-page .admin-attention-grid {
+    grid-template-columns: 1fr;
   }
 }

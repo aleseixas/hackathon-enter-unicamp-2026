@@ -12,15 +12,13 @@ import type {
 } from '../types';
 import { submitLawyerDecision, submitNegotiation, submitOverride } from '../services/api';
 import { money, shortDate } from '../lib/format';
+import {
+  getOverrideReasonDefinition,
+  isMeaningfulOverrideJustification,
+  MIN_OVERRIDE_JUSTIFICATION_LENGTH,
+  overrideReasonDefinitions,
+} from '../lib/overrideReasons';
 import { Badge, Button, Modal, Notice } from './ui';
-
-const overrideReasons: { value: OverrideReason; label: string }[] = [
-  { value: 'NOVA_EVIDENCIA', label: 'Nova evidência' },
-  { value: 'ESTRATEGIA_PROCESSUAL', label: 'Estratégia processual' },
-  { value: 'INFORMACAO_NAO_CONSIDERADA', label: 'Informação não considerada' },
-  { value: 'POLITICA_INADEQUADA', label: 'Política inadequada ao caso' },
-  { value: 'OUTRO', label: 'Outro' },
-];
 
 export function DecisionActions({
   recommendation,
@@ -46,6 +44,7 @@ export function DecisionActions({
     !decision &&
     recommendation.recommendation === 'ACORDO' &&
     recommendation.settlement !== null;
+  const selectedOverrideReason = getOverrideReasonDefinition(reason);
   const open = (kind: 'follow' | 'override') => {
     setChosen(decision?.is_override ? decision.decision : '');
     setReason(decision?.is_override ? decision.reason || '' : '');
@@ -70,8 +69,11 @@ export function DecisionActions({
     if (modal === 'override') {
       if (!chosen) nextErrors.decision = 'Escolha a decisão que deseja registrar.';
       if (!reason) nextErrors.reason = 'Selecione o motivo da divergência.';
-      if (!justification.trim())
+      if (!justification.trim()) {
         nextErrors.justification = 'A justificativa é obrigatória para divergir.';
+      } else if (!isMeaningfulOverrideJustification(justification)) {
+        nextErrors.justification = `Explique com pelo menos ${MIN_OVERRIDE_JUSTIFICATION_LENGTH} caracteres e inclua um fato verificável.`;
+      }
     }
     if (registersProposal) {
       const value = Number(agreementValue);
@@ -338,19 +340,32 @@ export function DecisionActions({
                     aria-label="Por que você escolheu outra decisão?"
                     value={reason}
                     aria-invalid={!!errors.reason}
-                    aria-describedby={errors.reason ? 'reason-error' : undefined}
+                    aria-describedby={
+                      selectedOverrideReason
+                        ? errors.reason
+                          ? 'override-reason-guidance reason-error'
+                          : 'override-reason-guidance'
+                        : errors.reason
+                          ? 'reason-error'
+                          : undefined
+                    }
                     onChange={(event) => {
                       setReason(event.target.value as OverrideReason);
                       setErrors({});
                     }}
                   >
                     <option value="">Selecione um motivo</option>
-                    {overrideReasons.map((item) => (
+                    {overrideReasonDefinitions.map((item) => (
                       <option value={item.value} key={item.value}>
                         {item.label}
                       </option>
                     ))}
                   </select>
+                  {selectedOverrideReason && (
+                    <span className="field-help" id="override-reason-guidance">
+                      {selectedOverrideReason.guidance}
+                    </span>
+                  )}
                   {errors.reason && (
                     <span className="field-error" id="reason-error">
                       {errors.reason}
@@ -361,14 +376,29 @@ export function DecisionActions({
                   Explique sua escolha <span className="field-help">Obrigatório</span>
                   <textarea
                     required
+                    minLength={MIN_OVERRIDE_JUSTIFICATION_LENGTH}
                     className="textarea"
                     aria-label="Explique sua escolha"
                     value={justification}
-                    onChange={(event) => setJustification(event.target.value)}
-                    placeholder="Explique por que esta decisão é mais adequada ao caso…"
+                    onChange={(event) => {
+                      setJustification(event.target.value);
+                      setErrors((current) => ({ ...current, justification: '' }));
+                    }}
+                    placeholder={
+                      selectedOverrideReason?.placeholder ??
+                      'Explique por que esta decisão é mais adequada ao caso…'
+                    }
                     aria-invalid={!!errors.justification}
-                    aria-describedby={errors.justification ? 'justification-error' : undefined}
+                    aria-describedby={
+                      errors.justification
+                        ? 'justification-help justification-error'
+                        : 'justification-help'
+                    }
                   />
+                  <span className="field-help" id="justification-help">
+                    Mínimo de {MIN_OVERRIDE_JUSTIFICATION_LENGTH} caracteres. Inclua o fato e a
+                    fonte quando disponível.
+                  </span>
                   {errors.justification && (
                     <span className="field-error" id="justification-error">
                       {errors.justification}
