@@ -34,25 +34,30 @@ export function DecisionActions({
   onSaved: (message: string) => void;
 }) {
   const [modal, setModal] = useState<'follow' | 'override' | null>(null);
-  const [chosen, setChosen] = useState<Recommendation>(
-    recommendation.recommendation === 'ACORDO' ? 'DEFESA' : 'ACORDO',
-  );
+  const [chosen, setChosen] = useState<Recommendation | ''>('');
   const [reason, setReason] = useState<OverrideReason | ''>('');
   const [justification, setJustification] = useState('');
   const [notes, setNotes] = useState('');
+  const [agreementValue, setAgreementValue] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+  const registersProposal =
+    modal === 'follow' &&
+    !decision &&
+    recommendation.recommendation === 'ACORDO' &&
+    recommendation.settlement !== null;
   const open = (kind: 'follow' | 'override') => {
-    setChosen(
-      decision?.is_override
-        ? decision.decision
-        : recommendation.recommendation === 'ACORDO'
-          ? 'DEFESA'
-          : 'ACORDO',
-    );
+    setChosen(decision?.is_override ? decision.decision : '');
     setReason(decision?.is_override ? decision.reason || '' : '');
     setJustification(decision?.is_override ? decision.justification || '' : '');
     setNotes(decision?.notes || '');
+    setAgreementValue(
+      negotiation?.proposal_value
+        ? String(negotiation.proposal_value)
+        : recommendation.settlement
+          ? String(recommendation.settlement.target)
+          : '',
+    );
     setErrors({});
     setModal(kind);
   };
@@ -63,15 +68,27 @@ export function DecisionActions({
     event.preventDefault();
     const nextErrors: Record<string, string> = {};
     if (modal === 'override') {
+      if (!chosen) nextErrors.decision = 'Escolha a decisão que deseja registrar.';
       if (!reason) nextErrors.reason = 'Selecione o motivo da divergência.';
       if (!justification.trim())
         nextErrors.justification = 'A justificativa é obrigatória para divergir.';
+    }
+    if (registersProposal) {
+      const value = Number(agreementValue);
+      if (!Number.isFinite(value) || value <= 0) {
+        nextErrors.agreementValue = 'Informe o valor que deseja propor.';
+      } else if (
+        recommendation.settlement &&
+        (value < recommendation.settlement.opening || value > recommendation.settlement.ceiling)
+      ) {
+        nextErrors.agreementValue = `Escolha um valor entre ${money(recommendation.settlement.opening)} e ${money(recommendation.settlement.ceiling)}.`;
+      }
     }
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
     setBusy(true);
     try {
-      if (modal === 'override' && reason)
+      if (modal === 'override' && chosen && reason)
         await submitOverride({
           case_id: recommendation.case_id,
           decision: chosen,
@@ -84,11 +101,20 @@ export function DecisionActions({
           decision: recommendation.recommendation,
           notes,
         });
+      if (registersProposal) {
+        await submitNegotiation({
+          case_id: recommendation.case_id,
+          proposal_value: Number(agreementValue),
+          status: 'PENDENTE',
+        });
+      }
       setModal(null);
       onSaved(
         modal === 'override'
           ? 'Divergência registrada com motivo e justificativa.'
-          : 'Decisão registrada. Você seguiu a recomendação da política.',
+          : registersProposal
+            ? 'Acordo e proposta registrados. Aguardando resposta da outra parte.'
+            : 'Decisão registrada. Você seguiu a recomendação da política.',
       );
     } catch (error) {
       setErrors({
@@ -149,9 +175,7 @@ export function DecisionActions({
               <span>Escolha uma opção. Nada será salvo sem sua confirmação.</span>
             </div>
             <Button className="full accent" onClick={() => open('follow')}>
-              {recommendation.recommendation === 'REVISAR'
-                ? 'Encaminhar para revisão'
-                : 'Seguir recomendação'}
+              Seguir recomendação
               <ArrowRight size={15} />
             </Button>
             <Button variant="secondary" className="full" onClick={() => open('override')}>
@@ -180,15 +204,108 @@ export function DecisionActions({
                 <span>Recomendação da política</span>
                 <Badge value={recommendation.recommendation} />
               </div>
-              {modal === 'follow' &&
-                recommendation.recommendation === 'ACORDO' &&
-                recommendation.settlement && (
-                  <div>
-                    <span>Valor sugerido · alvo</span>
-                    <strong>{money(recommendation.settlement.target)}</strong>
+            </div>
+            {modal === 'follow' &&
+              !decision &&
+              recommendation.recommendation === 'ACORDO' &&
+              recommendation.settlement && (
+                <section className="decision-prefill" aria-label="Faixa sugerida para acordo">
+                  <div className="decision-prefill-heading">
+                    <strong>Escolha o valor da proposta</strong>
+                    <span>Faixa definida pela política</span>
+                  </div>
+                  <div className="agreement-prefill-range">
+                    {[
+                      ['Abertura', recommendation.settlement.opening],
+                      ['Alvo', recommendation.settlement.target],
+                      ['Teto', recommendation.settlement.ceiling],
+                    ].map(([label, value]) => (
+                      <button
+                        type="button"
+                        key={label}
+                        className={Number(agreementValue) === value ? 'is-selected' : undefined}
+                        onClick={() => {
+                          setAgreementValue(String(value));
+                          setErrors((current) => ({ ...current, agreementValue: '' }));
+                        }}
+                        aria-pressed={Number(agreementValue) === value}
+                        aria-label={`Usar ${String(label).toLocaleLowerCase('pt-BR')}: ${money(value as number)}`}
+                      >
+                        <span>{label}</span>
+                        <strong>{money(value as number)}</strong>
+                        <small>
+                          {Number(agreementValue) === value ? 'Selecionado' : 'Escolher'}
+                        </small>
+                      </button>
+                    ))}
+                  </div>
+                  <label className="field agreement-value-field">
+                    Valor da proposta (R$)
+                    <input
+                      className="input"
+                      type="number"
+                      inputMode="decimal"
+                      min={recommendation.settlement.opening}
+                      max={recommendation.settlement.ceiling}
+                      step="0.01"
+                      required
+                      value={agreementValue}
+                      onChange={(event) => {
+                        setAgreementValue(event.target.value);
+                        setErrors((current) => ({ ...current, agreementValue: '' }));
+                      }}
+                      aria-invalid={!!errors.agreementValue}
+                      aria-describedby={errors.agreementValue ? 'agreement-value-error' : undefined}
+                    />
+                    <span className="field-help">
+                      Digite qualquer valor dentro da faixa da política.
+                    </span>
+                    {errors.agreementValue && (
+                      <span className="field-error" id="agreement-value-error">
+                        {errors.agreementValue}
+                      </span>
+                    )}
+                  </label>
+                </section>
+              )}
+            {modal === 'follow' && recommendation.recommendation === 'DEFESA' && (
+              <section className="decision-prefill" aria-label="Fundamentos para a defesa">
+                <div className="decision-prefill-heading">
+                  <strong>Fundamentos prontos para conferência</strong>
+                  <span>Conteúdo do caso, sem alterar sua observação</span>
+                </div>
+                <ul className="defense-prefill-reasons">
+                  {recommendation.reasons.slice(0, 3).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+                {recommendation.evidence.some((item) => item.kind === 'FAVORAVEL') && (
+                  <div className="defense-prefill-sources">
+                    {recommendation.evidence
+                      .filter((item) => item.kind === 'FAVORAVEL')
+                      .slice(0, 2)
+                      .map((item) => (
+                        <span key={item.id}>
+                          {item.title} · {item.source.document_name}, página {item.source.page}
+                          {' · '}
+                          {item.source.origin}
+                        </span>
+                      ))}
                   </div>
                 )}
-            </div>
+              </section>
+            )}
+            {modal === 'follow' &&
+              recommendation.recommendation === 'REVISAR' &&
+              recommendation.missing_evidence[0] && (
+                <section className="decision-prefill" aria-label="Evidência a solicitar">
+                  <div className="decision-prefill-heading">
+                    <strong>Evidência a solicitar</strong>
+                    <span>Ponto ainda não confirmado</span>
+                  </div>
+                  <p>{recommendation.missing_evidence[0]}</p>
+                </section>
+              )}
             {modal === 'override' ? (
               <>
                 <label className="field">
@@ -196,8 +313,9 @@ export function DecisionActions({
                   <select
                     className="select"
                     value={chosen}
-                    onChange={(event) => setChosen(event.target.value as Recommendation)}
+                    onChange={(event) => setChosen(event.target.value as Recommendation | '')}
                   >
+                    <option value="">Selecione sua decisão</option>
                     {(['ACORDO', 'DEFESA', 'REVISAR'] as const)
                       .filter((value) => value !== recommendation.recommendation)
                       .map((value) => (
@@ -210,6 +328,7 @@ export function DecisionActions({
                         </option>
                       ))}
                   </select>
+                  {errors.decision && <span className="field-error">{errors.decision}</span>}
                 </label>
                 <label className="field">
                   Por que você escolheu outra decisão? <span className="sr-only">obrigatório</span>
@@ -270,7 +389,9 @@ export function DecisionActions({
                 </label>
                 <Notice>
                   {recommendation.recommendation === 'ACORDO'
-                    ? 'Após confirmar, registre a proposta e acompanhe o resultado da negociação.'
+                    ? registersProposal
+                      ? 'A decisão e esta proposta serão registradas juntas. Depois, acompanhe o retorno da outra parte.'
+                      : 'Acompanhe o resultado da negociação já registrada.'
                     : recommendation.recommendation === 'REVISAR'
                       ? 'O caso ficará registrado para revisão. As informações faltantes permanecem destacadas na análise.'
                       : 'A decisão ficará disponível para acompanhamento na central administrativa.'}
@@ -288,7 +409,13 @@ export function DecisionActions({
               Cancelar
             </Button>
             <Button type="submit" loading={busy}>
-              {modal === 'override' ? 'Salvar minha decisão' : 'Confirmar decisão'}
+              {modal === 'override'
+                ? 'Salvar minha decisão'
+                : !decision &&
+                    recommendation.recommendation === 'ACORDO' &&
+                    recommendation.settlement
+                  ? 'Confirmar acordo e proposta'
+                  : 'Confirmar decisão'}
             </Button>
           </div>
         </form>
@@ -409,8 +536,17 @@ export function NegotiationPanel({
           <ArrowRight size={14} />
         </Button>
         {negotiation && (
-          <Link className="negotiation-next-case" to="/minha-fila">
-            Voltar à minha fila
+          <Link
+            className="negotiation-next-case"
+            to={
+              negotiation.status === 'ACEITA' || negotiation.status === 'RECUSADA'
+                ? '/finalizados'
+                : '/em-andamento'
+            }
+          >
+            {negotiation.status === 'ACEITA' || negotiation.status === 'RECUSADA'
+              ? 'Ver casos finalizados'
+              : 'Voltar aos casos em andamento'}
             <ArrowRight size={14} aria-hidden="true" />
           </Link>
         )}
@@ -444,6 +580,12 @@ export function NegotiationPanel({
                   </button>
                 ))}
               </div>
+            )}
+            {!recommendation.settlement && (
+              <Notice tone="warning">
+                A recomendação original não definiu uma faixa de acordo. Informe o valor conforme
+                sua alçada e registre o contexto da proposta.
+              </Notice>
             )}
             <label className="field">
               Valor da proposta (R$)

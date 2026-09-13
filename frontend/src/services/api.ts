@@ -514,6 +514,7 @@ export async function getAdminDashboard(): Promise<AdminDashboard> {
   ]);
   for (const caseId of localCaseIds) {
     const caseDetail = requireCase(caseId);
+    const recommendation = demoRecommendations[caseId];
     const decision = decisionFrom(state, caseId);
     if (!decision) continue;
     const negotiation = decision.decision === 'ACORDO' ? negotiationFrom(state, caseId) : null;
@@ -521,6 +522,8 @@ export async function getAdminDashboard(): Promise<AdminDashboard> {
       id: decision.id,
       case_id: caseId,
       case_number: caseDetail.case_number,
+      policy_version: recommendation.policy_version,
+      model_version: recommendation.model_version,
       plaintiff: caseDetail.plaintiff,
       lawyer_name: caseDetail.lawyer_name,
       firm_name: caseDetail.firm_name,
@@ -528,18 +531,18 @@ export async function getAdminDashboard(): Promise<AdminDashboard> {
       recommendation: decision.recommendation,
       decision: decision.decision,
       adherent: !decision.is_override,
-      suggested_value: demoRecommendations[caseId].settlement?.target ?? null,
+      suggested_value: recommendation.settlement?.target ?? null,
       realized_value: negotiation?.status === 'ACEITA' ? (negotiation.final_value ?? null) : null,
       status: negotiation?.status ?? 'DECISAO_REGISTRADA',
       created_at: decision.created_at,
       is_local: true,
       lawyer_profile_label: caseDetail.lawyer_profile_label,
       lawyer_profile_description: caseDetail.lawyer_profile_description,
-      confidence_score: demoRecommendations[caseId].confidence_score ?? null,
-      confidence_band: demoRecommendations[caseId].confidence_band ?? null,
-      subsidy_count: demoRecommendations[caseId].subsidy_count ?? null,
-      critical_subsidy_count: demoRecommendations[caseId].critical_subsidy_count ?? null,
-      completeness_band: demoRecommendations[caseId].completeness_band ?? null,
+      confidence_score: recommendation.confidence_score ?? null,
+      confidence_band: recommendation.confidence_band ?? null,
+      subsidy_count: recommendation.subsidy_count ?? null,
+      critical_subsidy_count: recommendation.critical_subsidy_count ?? null,
+      completeness_band: recommendation.completeness_band ?? null,
       follow_probability: decision.follow_probability ?? null,
       decision_minutes: decision.decision_minutes ?? null,
       decision_explanation: decision.simulated_decision_explanation,

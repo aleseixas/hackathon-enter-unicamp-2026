@@ -148,6 +148,8 @@ export interface AdminDecisionRow {
   id: string;
   case_id: string;
   case_number: string;
+  policy_version?: string;
+  model_version?: string;
   plaintiff: string;
   lawyer_name: string;
   firm_name: string;

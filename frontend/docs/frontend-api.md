@@ -25,6 +25,22 @@ Também são exportados `isMockMode`, `DATA_CHANGED_EVENT`, `DEMO_STORAGE_KEY` e
 
 Para integrar um serviço real, configure, por exemplo, `VITE_API_BASE_URL=/api` no ambiente Vite. O prefixo é concatenado aos endpoints acima. A camada central oferece GET/POST tipados e timeout de 15 segundos. Autenticação, autorização, auditoria durável e validação do contrato recebido pertencem à integração futura; os tipos de resposta são contratos de compilação, não validadores de schema em runtime. Não há fallback automático para mocks se a API real falhar.
 
+## Copiloto da Política
+
+`src/services/policyCopilot.ts` expõe a fronteira assíncrona do copiloto. Sem `VITE_COPILOT_API_URL`, `createPolicyCopilotProvider()` usa o provider determinístico local. Para integrar um backend, configure a base do serviço, por exemplo:
+
+```env
+VITE_COPILOT_API_URL=/api/copilot
+```
+
+Com essa configuração, o provider HTTP usa `POST /api/copilot/lawyer` para o advogado e `POST /api/copilot/admin` para o administrativo. O corpo contém somente `question`, `intent`, `case_id` quando aplicável, `context_ref`, os filtros escalares do recorte administrativo em `scope.filters` e `scenario` quando houver. O frontend não envia o objeto de contexto, dashboard, documentos, perfil ou `audience`; a escolha do endpoint, o identificador de correlação e os filtros recebidos não são uma autorização confiável.
+
+O backend deve autenticar a sessão, obter o perfil autorizado no servidor e carregar o contexto permitido. No endpoint do advogado, deve ainda validar a atribuição do `case_id` antes de consultar o caso, documentos ou evidências. No endpoint administrativo, deve validar cada filtro recebido, reaplicar o recorte no servidor e calcular métricas e simulações em funções controladas pelo sistema. O modelo apenas cruza, resume e explica os resultados dessas funções. Respostas documentais devem preservar documento, página e origem; respostas administrativas devem informar período, tamanho da base, versões disponíveis e limitações. Toda hipótese precisa ser marcada como `SIMULAÇÃO`.
+
+Os endpoints retornam `PolicyCopilotResponse` em JSON, sem envelope, com `provenance.engine` igual a `remote-policy-copilot`. O backend deve ecoar o `context_ref` recebido em `provenance.contextRef`; ele serve apenas para correlacionar a resposta ao processo/recorte e nunca substitui autorização no servidor. O provider valida a estrutura, as fontes permitidas por perfil, a audiência e essa correlação antes de exibir a resposta. Erros HTTP, timeout, falha de rede ou JSON inválido são apresentados como erro; quando a URL remota está configurada, não existe fallback silencioso para o provider local.
+
+O navegador envia as credenciais da sessão com a chamada, mas nunca deve receber uma chave do provedor de modelo. Variáveis `VITE_*` fazem parte do bundle público: não coloque `OPENAI_API_KEY`, tokens ou outros segredos nelas. A chamada ao modelo e suas credenciais pertencem exclusivamente ao backend.
+
 ## Gravação e atualização
 
 As decisões e negociações locais são persistidas em `localStorage['policy:demo-data:v1']`, com versão de schema. A última decisão e a última negociação de cada caso são mantidas entre recargas. Os registros iniciais de demonstração são usados quando não existe gravação local. A restauração remove somente essa chave e repõe as fixtures. Objetos retornados no modo mock são cópias, para evitar alteração acidental das fixtures. Erros de armazenamento são apresentados como falhas, sem afirmar que um registro foi salvo.

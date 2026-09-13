@@ -413,18 +413,40 @@
   font-size: 11px;
   line-height: 1.6;
 }
-.document-viewer {
-  width: 880px;
+.modal.document-viewer {
+  width: min(1720px, calc(100vw - 32px));
+  max-width: none;
+  height: min(94dvh, 1120px);
+  max-height: calc(100dvh - 24px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.document-viewer .modal-header {
+  flex: 0 0 auto;
+  padding: 22px 28px 18px;
+}
+.document-viewer .modal-title {
+  font-size: clamp(21px, 1.5vw, 27px);
+}
+.document-viewer .modal-description {
+  margin-top: 7px;
+  font-size: clamp(13px, 0.85vw, 15px);
+}
+.document-viewer .modal-header .icon-button {
+  width: 42px;
+  height: 42px;
 }
 .viewer-toolbar {
+  flex: 0 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 11px 23px;
+  padding: 13px 28px;
   background: #fafaf7;
   gap: 14px;
   border-bottom: 1px solid var(--line);
-  font-size: 11px;
+  font-size: 14px;
   color: #636856;
 }
 .viewer-toolbar > span,
@@ -432,6 +454,10 @@
   display: flex;
   align-items: center;
   gap: 7px;
+}
+.viewer-toolbar .icon-button {
+  width: 38px;
+  height: 38px;
 }
 .page-selector {
   display: flex;
@@ -441,20 +467,22 @@
 }
 .page-selector select {
   border: 1px solid #dedfd4;
-  border-radius: 5px;
-  padding: 6px;
+  border-radius: 7px;
+  padding: 8px 10px;
   background: #fff;
-  font-size: 12px;
+  font-size: 14px;
 }
 .document-canvas {
-  padding: 28px;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 32px;
   background: #ebece6;
-  max-height: 60dvh;
+  max-height: none;
   overflow: auto;
 }
 .document-paper {
-  max-width: 630px;
-  min-height: 560px;
+  max-width: 880px;
+  min-height: 680px;
   margin: 0 auto;
   background: #fffefb;
   box-shadow: 0 2px 12px #0000000b;
@@ -465,20 +493,20 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 0.7px;
   color: #676856;
   padding-bottom: 21px;
   border-bottom: 1px solid #eae9df;
 }
 .paper-reference {
-  font-size: 11px;
+  font-size: 13px;
   color: #646853;
   margin-top: 32px;
 }
 .document-paper h2 {
   font-family: var(--font-heading);
-  font-size: 23px;
+  font-size: 28px;
   font-weight: 400;
   line-height: 1.5;
   margin-top: 10px;
@@ -486,8 +514,8 @@
 }
 .document-paper > p {
   font-family: var(--font-heading);
-  font-size: 13px;
-  line-height: 2;
+  font-size: 16px;
+  line-height: 1.8;
   color: #646857;
   margin-top: 18px;
 }
@@ -503,7 +531,7 @@
   gap: 15px;
   padding: 11px 0;
   border-bottom: 1px solid #eeede5;
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.6;
 }
 .document-fields > div:last-child {
@@ -524,29 +552,36 @@
   display: flex;
   justify-content: space-between;
   gap: 20px;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.7;
   color: #686855;
 }
 .viewer-footer {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 16px 24px;
+  padding: 14px 28px;
   border-top: 1px solid var(--line);
 }
 .viewer-footer > span {
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.7;
   color: #646855;
 }
+.viewer-footer .button {
+  min-height: 48px;
+  padding: 12px 22px;
+  font-size: 15px;
+}
 .pdf-frame {
+  flex: 1 1 auto;
+  min-height: 0;
   display: block;
   border: 0;
   width: 100%;
-  height: 60dvh;
-  min-height: 300px;
+  height: auto;
 }
 @media (min-width: 1550px) {
   .evidence-grid {
@@ -575,6 +610,21 @@
   }
 }
 @media (max-width: 550px) {
+  .modal.document-viewer {
+    width: calc(100vw - 12px);
+    height: calc(100dvh - 12px);
+    max-height: none;
+    border-radius: 10px;
+  }
+  .document-viewer .modal-header {
+    padding: 16px 18px 13px;
+  }
+  .document-viewer .modal-title {
+    font-size: 19px;
+  }
+  .document-viewer .modal-description {
+    font-size: 12px;
+  }
   .analysis-tabs {
     gap: 17px;
   }
@@ -606,7 +656,11 @@
     flex-wrap: wrap;
   }
   .viewer-footer > span {
-    width: 100%;
+    display: none;
+  }
+  .viewer-footer .button {
+    flex: 1;
+    min-width: 138px;
   }
   .document-paper > header {
     flex-wrap: wrap;

@@ -5,7 +5,9 @@ import {
   Building2,
   ChartNoAxesCombined,
   ChevronRight,
+  CircleCheckBig,
   CircleHelp,
+  Clock3,
   FileCheck2,
   Files,
   LayoutDashboard,
@@ -73,12 +75,18 @@ export default function AppShell() {
       ]
     : [
         { to: '/minha-fila', label: 'Para analisar', icon: ListFilter },
-        { to: '/processos', label: 'Enviados', icon: Files },
+        { to: '/em-andamento', label: 'Em andamento', icon: Clock3 },
+        { to: '/finalizados', label: 'Finalizados', icon: CircleCheckBig },
       ];
   const adminFilterParams = new URLSearchParams(location.search);
   adminFilterParams.delete('view');
   const adminFilterSearch = adminFilterParams.toString();
   const workspace = location.pathname.startsWith('/processos/');
+  const workspaceParent = ['/minha-fila', '/em-andamento', '/finalizados'].includes(
+    location.state?.caseList,
+  )
+    ? location.state.caseList
+    : '/minha-fila';
   const currentLabel = workspace
     ? 'Análise do processo'
     : links.find((link) => link.to === location.pathname)?.label || 'Processos';
@@ -123,7 +131,7 @@ export default function AppShell() {
               to={admin && adminFilterSearch ? `${to}?${adminFilterSearch}` : to}
               onClick={() => setMobileOpen(false)}
               className={({ isActive }) =>
-                `nav-item ${isActive || (to === '/processos' && workspace) ? 'active' : ''}`
+                `nav-item ${isActive || (workspace && to === workspaceParent) ? 'active' : ''}`
               }
               end
             >

@@ -31,6 +31,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { Badge, ErrorState, LoadingState } from '../components/ui';
+import PolicyCopilot from '../components/PolicyCopilot';
 import {
   createEffectivenessTimeline,
   createMonthlyEvolution,
@@ -46,6 +47,8 @@ import {
 } from '../lib/adminMetrics';
 import { money, percent, shortDate } from '../lib/format';
 import { getAdminDashboard } from '../services/api';
+import { parseAdminWhatIfScenario } from '../lib/policyCopilot';
+import { policyCopilotProvider } from '../services/policyCopilot';
 import type { AdminDashboard, AdminDecisionRow } from '../types';
 import '../styles/admin.css';
 import '../styles/admin-dark.css';
@@ -2560,13 +2563,47 @@ export default function AdminPage() {
             onClear={clearFilters}
           />
           <div className="admin-scope-line" aria-live="polite">
-            <span>{count(filteredRows.length)} decisões no recorte atual</span>
+            <span>
+              {count(filteredRows.length)} {filteredRows.length === 1 ? 'decisão' : 'decisões'} no
+              recorte atual
+            </span>
             {hasActiveAdminFilters(filters) && <strong>Filtros globais ativos</strong>}
           </div>
           {section === 'overview' && <Overview data={data} rows={filteredRows} />}
           {section === 'adherence' && <Adherence rows={filteredRows} />}
           {section === 'effectiveness' && <Effectiveness data={data} rows={filteredRows} />}
           {section === 'decisions' && <Decisions rows={filteredRows} />}
+          <PolicyCopilot
+            title="Copiloto da política"
+            contextLabel={`${sectionCopy[section].title} · ${count(filteredRows.length)} ${filteredRows.length === 1 ? 'decisão' : 'decisões'} no recorte detalhado`}
+            sessionKey={`${section}:${data.updated_at}:${JSON.stringify(filters)}`}
+            suggestions={[
+              'Por que a aderência caiu?',
+              'Onde a política está funcionando pior?',
+              'Qual escritório mais diverge?',
+              'O que devemos revisar na próxima versão?',
+              'SIMULAÇÃO: e se a taxa de aceite fosse 65%?',
+            ]}
+            notice="Comparações usam o recorte atual; KPIs e simulações usam a base agregada indicada. Cada pergunta é independente."
+            onAsk={(question) => {
+              const scenario = parseAdminWhatIfScenario(question);
+              return policyCopilotProvider.respond({
+                audience: 'ADMIN',
+                question,
+                context: {
+                  dashboard: data,
+                  rows: filteredRows,
+                  rowScope: {
+                    description: hasActiveAdminFilters(filters)
+                      ? `Filtros ativos em ${sectionCopy[section].title}`
+                      : `Amostra detalhada em ${sectionCopy[section].title}`,
+                    filters: { ...filters, section },
+                  },
+                },
+                ...(scenario ? { scenario } : {}),
+              });
+            }}
+          />
         </>
       ) : null}
     </div>

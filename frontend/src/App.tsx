@@ -43,8 +43,10 @@ export function AppRoutes() {
       <Route path="/" element={<LoginPage />} />
       <Route element={<RequireRole role="ADVOGADO" />}>
         <Route element={<AppShell />}>
-          <Route path="/processos" element={<CasesPage mode="sent" />} />
-          <Route path="/minha-fila" element={<CasesPage mode="queue" />} />
+          <Route path="/minha-fila" element={<CasesPage mode="analysis" />} />
+          <Route path="/em-andamento" element={<CasesPage mode="progress" />} />
+          <Route path="/finalizados" element={<CasesPage mode="finished" />} />
+          <Route path="/processos" element={<Navigate to="/finalizados" replace />} />
           <Route path="/processos/:caseId" element={<WorkspacePage />} />
         </Route>
       </Route>

@@ -271,6 +271,8 @@ const demoAdminRows: AdminDecisionRow[] = demoDecisions.map((decision) => {
     id: decision.id,
     case_id: decision.case_id,
     case_number: caseDetail.case_number,
+    policy_version: recommendation.policy_version,
+    model_version: recommendation.model_version,
     plaintiff: caseDetail.plaintiff,
     lawyer_name: caseDetail.lawyer_name,
     firm_name: caseDetail.firm_name,

@@ -32,7 +32,7 @@ async function openLawyerCase(user: User, plaintiff: string) {
   await user.click(
     await screen.findByRole('link', {
       name: new RegExp(
-        `^(Analisar agora|Continuar análise|Ver decisão|Registrar proposta|Continuar negociação|Ver processo): processo de ${plaintiff}$`,
+        `^(Analisar agora|Continuar análise|Pedir evidência|Ver decisão|Registrar proposta|Continuar negociação|Ver processo): processo de ${plaintiff}$`,
       ),
     }),
   );
@@ -61,6 +61,7 @@ describe('application business flows', () => {
     const user = userEvent.setup();
     renderApp();
     await openLawyerCase(user, 'Maria Aparecida Santos');
+    await user.click(screen.getByRole('tab', { name: /^Evidências/ }));
 
     await user.click(
       screen.getByRole('button', {
@@ -90,8 +91,21 @@ describe('application business flows', () => {
       '1',
     );
     await user.click(within(document).getByRole('button', { name: 'Voltar à análise' }));
+    await user.click(screen.getByRole('tab', { name: 'Resumo' }));
 
-    await followRecommendation(user);
+    await user.click(screen.getByRole('button', { name: 'Seguir recomendação' }));
+    const defenseDialog = screen.getByRole('dialog', { name: 'Confirmar decisão' });
+    const defensePrefill = within(defenseDialog).getByRole('region', {
+      name: 'Fundamentos para a defesa',
+    });
+    expect(defensePrefill).toHaveTextContent(
+      'Contrato e comprovante de crédito constam no conjunto documental demonstrativo.',
+    );
+    expect(defensePrefill).toHaveTextContent('Contrato · MOCK, página 1');
+    expect(within(defenseDialog).getByRole('textbox', { name: /Observação/ })).toHaveValue('');
+    await user.click(within(defenseDialog).getByRole('button', { name: 'Confirmar decisão' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    await screen.findByText('Decisão registrada. Você seguiu a recomendação da política.');
     await screen.findByText('Sua decisão:');
     expect(screen.getByRole('heading', { name: 'DEFESA' })).toBeInTheDocument();
     await openAdminDecisions(user);
@@ -107,6 +121,7 @@ describe('application business flows', () => {
     const user = userEvent.setup();
     renderApp();
     await openLawyerCase(user, 'José Carlos Oliveira');
+    await user.click(screen.getByRole('tab', { name: /^Evidências/ }));
     await user.click(screen.getByRole('button', { name: /^Contradições/ }));
     expect(screen.getByText('O autor afirma não possuir conta na Caixa.')).toBeInTheDocument();
     await user.click(
@@ -119,10 +134,12 @@ describe('application business flows', () => {
       ),
     ).toBeInTheDocument();
     await user.click(within(document).getByRole('button', { name: 'Voltar à análise' }));
+    await user.click(screen.getByRole('tab', { name: 'Resumo' }));
 
     await user.click(screen.getByRole('button', { name: 'Divergir' }));
     const dialog = screen.getByRole('dialog', { name: 'Divergir da recomendação' });
     await user.click(within(dialog).getByRole('button', { name: 'Salvar minha decisão' }));
+    expect(within(dialog).getByText('Escolha a decisão que deseja registrar.')).toBeInTheDocument();
     expect(within(dialog).getByText('Selecione o motivo da divergência.')).toBeInTheDocument();
     expect(
       within(dialog).getByText('A justificativa é obrigatória para divergir.'),
@@ -171,24 +188,50 @@ describe('application business flows', () => {
     const user = userEvent.setup();
     renderApp();
     await openLawyerCase(user, 'José Carlos Oliveira');
-    await followRecommendation(user);
-    await user.click(await screen.findByRole('button', { name: 'Registrar proposta' }));
-    let dialog = screen.getByRole('dialog', { name: 'Registrar proposta' });
+    await user.click(screen.getByRole('button', { name: 'Seguir recomendação' }));
+    const agreementDialog = screen.getByRole('dialog', { name: 'Confirmar decisão' });
+    const agreementPrefill = within(agreementDialog).getByRole('region', {
+      name: 'Faixa sugerida para acordo',
+    });
+    expect(agreementPrefill).toHaveTextContent('R$ 4.500,00');
+    expect(agreementPrefill).toHaveTextContent('R$ 5.200,00');
+    expect(agreementPrefill).toHaveTextContent('R$ 6.500,00');
+    const initialProposal = within(agreementDialog).getByRole('spinbutton', {
+      name: /Valor da proposta/,
+    });
+    expect(initialProposal).toHaveValue(5200);
+    await user.clear(initialProposal);
+    await user.type(initialProposal, '7000');
+    await user.click(
+      within(agreementDialog).getByRole('button', { name: 'Confirmar acordo e proposta' }),
+    );
+    expect(
+      within(agreementDialog).getByText('Escolha um valor entre R$ 4.500,00 e R$ 6.500,00.'),
+    ).toBeInTheDocument();
+    await user.clear(initialProposal);
+    await user.type(initialProposal, '6000');
+    await user.click(
+      within(agreementDialog).getByRole('button', { name: 'Confirmar acordo e proposta' }),
+    );
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    await screen.findByText('Acordo e proposta registrados. Aguardando resposta da outra parte.');
+    await user.click(await screen.findByRole('button', { name: 'Atualizar negociação' }));
+    let dialog = screen.getByRole('dialog', { name: 'Atualizar negociação' });
     const proposal = within(dialog).getByRole('spinbutton', { name: /Valor da proposta/ });
-    expect(proposal).toHaveValue(5200);
+    expect(proposal).toHaveValue(6000);
     await user.clear(proposal);
     await user.type(proposal, '4500');
     await user.selectOptions(
       within(dialog).getByRole('combobox', { name: 'Resultado da negociação' }),
       'CONTRAPROPOSTA',
     );
-    await user.click(within(dialog).getByRole('button', { name: 'Registrar proposta' }));
+    await user.click(within(dialog).getByRole('button', { name: 'Salvar negociação' }));
     expect(within(dialog).getByText('Informe o valor da contraproposta.')).toBeInTheDocument();
     await user.type(
       within(dialog).getByRole('spinbutton', { name: /Valor da contraproposta/ }),
       '5600',
     );
-    await user.click(within(dialog).getByRole('button', { name: 'Registrar proposta' }));
+    await user.click(within(dialog).getByRole('button', { name: 'Salvar negociação' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     await screen.findByText('Contraproposta recebida');
 
@@ -214,11 +257,11 @@ describe('application business flows', () => {
     expect(screen.getByRole('heading', { name: 'ACORDO' })).toBeInTheDocument();
 
     await user.click(screen.getByText('Para analisar', { selector: 'a.back-link' }));
-    await waitFor(() =>
-      expect(screen.queryByRole('row', { name: /José Carlos Oliveira/ })).not.toBeInTheDocument(),
-    );
+    await screen.findByRole('heading', { name: 'Casos aguardando sua análise' });
+    expect(screen.queryByRole('row', { name: /José Carlos Oliveira/ })).not.toBeInTheDocument();
+    expect(screen.getByText('Concluídos hoje').parentElement).toHaveTextContent('1');
     const lawyerNavigation = screen.getByRole('navigation', { name: 'Navegação principal' });
-    await user.click(within(lawyerNavigation).getByRole('link', { name: 'Enviados' }));
+    await user.click(within(lawyerNavigation).getByRole('link', { name: 'Finalizados' }));
     const completedAgreement = await screen.findByRole('row', { name: /José Carlos Oliveira/ });
     expect(within(completedAgreement).getByText('Concluído')).toBeInTheDocument();
     expect(
@@ -260,7 +303,7 @@ describe('application business flows', () => {
     await screen.findByText(justification);
 
     const navigation = screen.getByRole('navigation', { name: 'Navegação principal' });
-    await user.click(within(navigation).getByRole('link', { name: 'Enviados' }));
+    await user.click(within(navigation).getByRole('link', { name: 'Finalizados' }));
     await user.click(
       await screen.findByRole('link', {
         name: /^(Analisar agora|Continuar análise|Ver decisão): processo de José Carlos Oliveira$/,
@@ -367,7 +410,7 @@ describe('application business flows', () => {
     );
 
     const navigation = screen.getByRole('navigation', { name: 'Navegação principal' });
-    await user.click(within(navigation).getByRole('link', { name: 'Enviados' }));
+    await user.click(within(navigation).getByRole('link', { name: 'Finalizados' }));
     mariaRow = await screen.findByRole('row', { name: /Maria Aparecida Santos/ });
     expect(within(mariaRow).getByText('Decisão registrada')).toBeInTheDocument();
     expect(
@@ -375,7 +418,8 @@ describe('application business flows', () => {
         name: 'Ver decisão: processo de Maria Aparecida Santos',
       }),
     ).toBeInTheDocument();
-    const negotiationRow = screen.getByRole('row', { name: /Luciana Martins Ferreira/ });
+    await user.click(within(navigation).getByRole('link', { name: 'Em andamento' }));
+    const negotiationRow = await screen.findByRole('row', { name: /Luciana Martins Ferreira/ });
     expect(within(negotiationRow).getByText('Em negociação')).toBeInTheDocument();
     expect(
       within(negotiationRow).getByRole('link', {
@@ -402,6 +446,7 @@ describe('application business flows', () => {
       }),
     );
     await screen.findByRole('heading', { name: 'Maria das Graças Silva Pereira', level: 1 });
+    await user.click(screen.getByRole('tab', { name: /^Evidências/ }));
     await user.click(
       screen.getByRole('button', { name: 'Ver evidência: Extrato bancário, página 1' }),
     );
@@ -416,7 +461,7 @@ describe('application business flows', () => {
     await user.click(screen.getByText('Para analisar', { selector: 'a.back-link' }));
 
     const navigation = screen.getByRole('navigation', { name: 'Navegação principal' });
-    await user.click(within(navigation).getByRole('link', { name: 'Enviados' }));
+    await user.click(within(navigation).getByRole('link', { name: 'Em andamento' }));
     expect(
       screen.queryByRole('row', { name: /0801234-56\.2024\.8\.10\.0001/ }),
     ).not.toBeInTheDocument();
@@ -426,27 +471,131 @@ describe('application business flows', () => {
     expect(
       await screen.findByRole('row', { name: /Luciana Martins Ferreira/ }),
     ).toBeInTheDocument();
+    await user.click(within(navigation).getByRole('link', { name: 'Finalizados' }));
+    expect(
+      screen.queryByRole('row', { name: /0801234-56\.2024\.8\.10\.0001/ }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('row', { name: /0654321-09\.2024\.8\.04\.0001/ }),
+    ).not.toBeInTheDocument();
   });
 
-  it('moves an agreement decision to sent items and keeps the next action visible', async () => {
+  it('registers the chosen agreement value and moves the case to work in progress', async () => {
     const user = userEvent.setup();
     renderApp();
     await openLawyerCase(user, 'José Carlos Oliveira');
-    await followRecommendation(user);
+    await user.click(screen.getByRole('button', { name: 'Seguir recomendação' }));
+    const agreementDialog = screen.getByRole('dialog', { name: 'Confirmar decisão' });
+    await user.click(
+      within(agreementDialog).getByRole('button', {
+        name: /Usar abertura: R\$\s*4\.500,00/,
+      }),
+    );
+    expect(
+      within(agreementDialog).getByRole('spinbutton', { name: /Valor da proposta/ }),
+    ).toHaveValue(4500);
+    await user.click(
+      within(agreementDialog).getByRole('button', { name: 'Confirmar acordo e proposta' }),
+    );
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    await screen.findByText('Acordo e proposta registrados. Aguardando resposta da outra parte.');
 
     await user.click(screen.getByText('Para analisar', { selector: 'a.back-link' }));
-    await waitFor(() =>
-      expect(screen.queryByRole('row', { name: /José Carlos Oliveira/ })).not.toBeInTheDocument(),
+    await screen.findByRole('heading', { name: 'Casos aguardando sua análise' });
+    expect(screen.queryByRole('row', { name: /José Carlos Oliveira/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Minha produtividade' })).toHaveTextContent(
+      'Pendentes',
     );
+
     const navigation = screen.getByRole('navigation', { name: 'Navegação principal' });
-    await user.click(within(navigation).getByRole('link', { name: 'Enviados' }));
+    await user.click(within(navigation).getByRole('link', { name: 'Em andamento' }));
     const agreementRow = await screen.findByRole('row', { name: /José Carlos Oliveira/ });
-    expect(within(agreementRow).getByText('Decisão registrada')).toBeInTheDocument();
     expect(
       within(agreementRow).getByRole('link', {
-        name: 'Registrar proposta: processo de José Carlos Oliveira',
+        name: 'Continuar negociação: processo de José Carlos Oliveira',
       }),
     ).toBeInTheDocument();
+  });
+
+  it('shows a prioritized queue, discreet productivity and sourced decision points', async () => {
+    const user = userEvent.setup();
+    renderApp();
+    await user.click(screen.getByRole('button', { name: /Entrar como Advogado/ }));
+
+    const queueFocus = await screen.findByRole('region', {
+      name: 'Comece por José Raimundo Oliveira Costa',
+    });
+    expect(within(queueFocus).getByText('Risco alto')).toBeInTheDocument();
+    expect(within(queueFocus).getByText('3 pontos a confirmar')).toBeInTheDocument();
+    expect(
+      within(queueFocus).getByRole('link', {
+        name: 'Próxima ação: Analisar agora no processo de José Raimundo Oliveira Costa',
+      }),
+    ).toBeInTheDocument();
+
+    const productivity = screen.getByRole('region', { name: 'Minha produtividade' });
+    expect(within(productivity).getByText('Pendentes').parentElement).toHaveTextContent('5');
+    expect(within(productivity).getByText('Em negociação').parentElement).toHaveTextContent('1');
+    expect(within(productivity).getByText('Concluídos hoje').parentElement).toHaveTextContent('0');
+    expect(within(productivity).getByText('Aderência pessoal').parentElement).toHaveTextContent(
+      '100%',
+    );
+
+    const firstDataRow = within(screen.getByRole('table')).getAllByRole('row')[1];
+    expect(firstDataRow).toHaveTextContent('José Raimundo Oliveira Costa');
+    expect(firstDataRow).toHaveTextContent('Prioridade alta');
+
+    await user.click(
+      screen.getByRole('link', {
+        name: 'Analisar agora: processo de José Raimundo Oliveira Costa',
+      }),
+    );
+    await user.click(await screen.findByRole('button', { name: 'Ver análise completa' }));
+    const points = await screen.findByRole('region', { name: '3 pontos antes de decidir' });
+    expect(within(points).getByText('A favor de acordo')).toBeInTheDocument();
+    expect(within(points).getByText('A favor de defesa')).toBeInTheDocument();
+    expect(within(points).getByText('Pode mudar a decisão')).toBeInTheDocument();
+    expect(within(points).getByText('Risco para a defesa')).toBeInTheDocument();
+    await user.click(
+      within(points).getByRole('button', {
+        name: 'Abrir fonte de A favor de defesa: Comprovante de crédito BACEN, página 1',
+      }),
+    );
+    expect(
+      screen.getByRole('dialog', { name: 'Comprovante de crédito BACEN' }),
+    ).toBeInTheDocument();
+  });
+
+  it('keeps the summary compact and exposes supporting content from tabs at the top', async () => {
+    const user = userEvent.setup();
+    renderApp();
+    await openLawyerCase(user, 'Maria Aparecida Santos');
+
+    const navigation = screen.getByRole('tablist', { name: 'Conteúdo do processo' });
+    const summaryTab = within(navigation).getByRole('tab', { name: 'Resumo' });
+    expect(summaryTab).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('button', { name: 'Ver análise completa' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
+    expect(
+      screen.queryByRole('region', { name: '3 pontos antes de decidir' }),
+    ).not.toBeInTheDocument();
+
+    await user.click(within(navigation).getByRole('tab', { name: /^Evidências/ }));
+    expect(await screen.findByRole('button', { name: /^Pontos importantes/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Seguir recomendação' })).not.toBeInTheDocument();
+
+    await user.click(within(navigation).getByRole('tab', { name: /^Documentos/ }));
+    expect(
+      screen.getByRole('complementary', { name: 'Documentos do processo' }),
+    ).toBeInTheDocument();
+
+    await user.click(within(navigation).getByRole('tab', { name: 'Detalhes' }));
+    expect(screen.getByRole('heading', { name: 'Detalhes do processo' })).toBeInTheDocument();
+
+    await user.click(summaryTab);
+    expect(await screen.findByRole('button', { name: 'Seguir recomendação' })).toBeInTheDocument();
   });
 
   it('keeps policy definition and operational monitoring separate from the lawyer flow', async () => {
@@ -464,7 +613,6 @@ describe('application business flows', () => {
     expect(
       screen.getByRole('heading', { name: 'Do custo-base ao custo projetado' }),
     ).toBeInTheDocument();
-
     await user.click(screen.getByRole('tab', { name: 'Resultados' }));
     expect(
       screen.getByRole('heading', { name: 'Como as propostas terminaram' }),

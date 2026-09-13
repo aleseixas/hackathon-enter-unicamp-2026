@@ -4,13 +4,12 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
   Check,
-  CircleHelp,
+  ChevronDown,
   FileSearch,
   MapPin,
   Scale,
   ShieldCheck,
   Sparkles,
-  TriangleAlert,
 } from 'lucide-react';
 import { getCase, getDecision, getNegotiation, getRecommendation } from '../services/api';
 import type {
@@ -23,9 +22,13 @@ import type {
 import { useAsync } from '../hooks/useAsync';
 import { money, percent, shortDate } from '../lib/format';
 import { markCaseAsViewed } from '../lib/caseProgress';
+import { buildDecisionPoints } from '../lib/lawyerExperience';
 import { Badge, ErrorState, LoadingState, Notice, Provenance } from '../components/ui';
 import { DocumentsPanel, DocumentViewer, EvidencePanel } from '../components/Evidence';
 import { DecisionActions, NegotiationPanel } from '../components/DecisionActions';
+import PolicyCopilot from '../components/PolicyCopilot';
+import { parseLawyerWhatIfScenario } from '../lib/policyCopilot';
+import { policyCopilotProvider } from '../services/policyCopilot';
 import '../styles/workspace.css';
 
 function RecommendationCard({
@@ -40,6 +43,9 @@ function RecommendationCard({
   onViewSource: (source: SourceReference) => void;
 }) {
   const review = data.recommendation === 'REVISAR';
+  const decisionPoints = buildDecisionPoints(data);
+  const [showDecisionBasis, setShowDecisionBasis] = useState(false);
+  const attentionPoint = decisionPoints.find((point) => point.id === 'change');
   return (
     <div className={`recommendation-card recommendation-${data.recommendation.toLowerCase()}`}>
       <div className="recommendation-primary-row">
@@ -83,61 +89,104 @@ function RecommendationCard({
           <div className="recommended-value">
             <span>Valor sugerido</span>
             <strong>{data.settlement ? money(data.settlement.target) : 'Não se aplica'}</strong>
+            {data.settlement && (
+              <small>
+                Faixa {money(data.settlement.opening)}–{money(data.settlement.ceiling)}
+              </small>
+            )}
           </div>
         </div>
         <div id="decision-actions">{actions}</div>
       </div>
 
-      <div className="decision-brief-grid">
-        <section className="recommendation-rationale" aria-labelledby="reasons-heading">
-          <h3 id="reasons-heading">Por que esta é a melhor opção</h3>
-          {data.reasons.slice(0, 3).map((reason) => (
-            <p key={reason}>
-              <Check size={16} />
-              <span>{reason}</span>
-            </p>
-          ))}
-        </section>
-        <section className="recommendation-evidence-preview" aria-labelledby="sources-heading">
-          <h3 id="sources-heading">Evidências principais</h3>
-          {data.evidence.slice(0, 3).map((evidence) => (
-            <button
-              key={evidence.id}
-              type="button"
-              onClick={() => onViewSource(evidence.source)}
-              aria-label={`Abrir fonte: ${evidence.source.document_name}, página ${evidence.source.page}`}
-            >
-              <span>{evidence.title}</span>
-              <small>
-                {evidence.source.document_name} · página {evidence.source.page}
-              </small>
-              <small>{evidence.source.origin}</small>
-            </button>
-          ))}
-        </section>
+      <div className="decision-basis-glance">
+        <div>
+          <span>Motivo principal</span>
+          <strong>{data.reasons[0] || 'Confira as evidências antes de decidir.'}</strong>
+        </div>
+        {attentionPoint && !attentionPoint.empty && (
+          <div className="decision-attention-glance">
+            <span>Ponto de atenção</span>
+            <strong>{attentionPoint.title}</strong>
+          </div>
+        )}
+        <button
+          type="button"
+          className="decision-basis-toggle"
+          aria-expanded={showDecisionBasis}
+          aria-controls="decision-basis-details"
+          onClick={() => setShowDecisionBasis((current) => !current)}
+        >
+          {showDecisionBasis ? 'Ocultar análise' : 'Ver análise completa'}
+          <ChevronDown size={18} aria-hidden="true" />
+        </button>
       </div>
 
-      {review && (
-        <div className="review-message">
-          <TriangleAlert size={18} />
-          <p>Há evidências conflitantes ou insuficientes para uma recomendação conclusiva.</p>
-        </div>
-      )}
-      {data.missing_evidence.length > 0 && (
-        <div className="missing-evidence">
-          <h3>
-            <CircleHelp size={17} />
-            Ponto de atenção
-          </h3>
-          <p>{data.missing_evidence[0]}</p>
+      {showDecisionBasis && (
+        <div className="decision-brief-grid" id="decision-basis-details">
+          <section className="recommendation-rationale" aria-labelledby="reasons-heading">
+            <h3 id="reasons-heading">
+              {data.recommendation === 'DEFESA'
+                ? 'Fundamentos para a defesa'
+                : data.recommendation === 'ACORDO'
+                  ? 'Por que buscar acordo'
+                  : 'Por que revisar antes de decidir'}
+            </h3>
+            {data.reasons.slice(0, 3).map((reason) => (
+              <p key={reason}>
+                <Check size={16} />
+                <span>{reason}</span>
+              </p>
+            ))}
+          </section>
+          <section className="decision-points" aria-labelledby="decision-points-heading">
+            <h3 id="decision-points-heading">3 pontos antes de decidir</h3>
+            <div className="decision-points-list">
+              {decisionPoints.map((point) => (
+                <article className={`decision-point point-${point.id}`} key={point.id}>
+                  <div>
+                    <span>{point.label}</span>
+                    <small>{point.context}</small>
+                  </div>
+                  <strong>{point.title}</strong>
+                  {point.detail && <p>{point.detail}</p>}
+                  {point.source ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => onViewSource(point.source!)}
+                        aria-label={`Abrir fonte de ${point.label}: ${point.source.document_name}, página ${point.source.page}`}
+                      >
+                        {point.source.document_name} · página {point.source.page}
+                      </button>
+                      <small className="decision-point-origin">{point.source.origin}</small>
+                    </>
+                  ) : (
+                    <small className="decision-point-no-source">
+                      {point.empty
+                        ? 'Sem informação adicional no caso'
+                        : 'Fonte ainda não disponível'}
+                    </small>
+                  )}
+                </article>
+              ))}
+            </div>
+          </section>
         </div>
       )}
     </div>
   );
 }
 
-function nextActionCopy(decision: DecisionRecord | null, negotiation: NegotiationRecord | null) {
-  if (!decision) return 'Confira os motivos e escolha Seguir recomendação ou Divergir.';
+function nextActionCopy(
+  recommendation: RecommendationResponse,
+  decision: DecisionRecord | null,
+  negotiation: NegotiationRecord | null,
+) {
+  if (!decision)
+    return recommendation.recommendation === 'REVISAR'
+      ? 'Confira o ponto pendente. Depois, siga a recomendação de revisão ou divirja.'
+      : 'Confira o motivo principal e escolha Seguir recomendação ou Divergir.';
   if (decision.decision === 'ACORDO' && !negotiation) {
     return 'Decisão salva. Registre agora a proposta de acordo.';
   }
@@ -156,8 +205,18 @@ function nextActionCopy(decision: DecisionRecord | null, negotiation: Negotiatio
 export default function WorkspacePage() {
   const { caseId = '' } = useParams();
   const location = useLocation();
-  const returnTo = location.state?.caseList === '/processos' ? '/processos' : '/minha-fila';
-  const returnLabel = returnTo === '/processos' ? 'Enviados' : 'Para analisar';
+  const listLabels = {
+    '/minha-fila': 'Para analisar',
+    '/em-andamento': 'Em andamento',
+    '/finalizados': 'Finalizados',
+  } as const;
+  const requestedList =
+    location.state?.caseList === '/processos' ? '/finalizados' : location.state?.caseList;
+  const returnTo =
+    typeof requestedList === 'string' && requestedList in listLabels
+      ? (requestedList as keyof typeof listLabels)
+      : '/minha-fila';
+  const returnLabel = listLabels[returnTo];
   const loader = useCallback(async () => {
     const [caseDetail, recommendation, decision, negotiation] = await Promise.all([
       getCase(caseId),
@@ -169,7 +228,9 @@ export default function WorkspacePage() {
   }, [caseId]);
   const { data, loading, error, reload } = useAsync(loader);
   const [viewer, setViewer] = useState<{ document: CaseDocument; page: number } | null>(null);
-  const [activeTab, setActiveTab] = useState<'evidences' | 'documents' | 'details'>('evidences');
+  const [activeTab, setActiveTab] = useState<'summary' | 'evidences' | 'documents' | 'details'>(
+    location.state?.focusAction === 'missing-evidence' ? 'evidences' : 'summary',
+  );
   const [message, setMessage] = useState('');
   const [messageTone, setMessageTone] = useState<'success' | 'warning'>('success');
   useEffect(() => {
@@ -198,6 +259,12 @@ export default function WorkspacePage() {
     );
   if (!data) return null;
   const { caseDetail, recommendation, decision, negotiation } = data;
+  const copilotSuggestions = [
+    `Por que foi recomendado ${recommendation.recommendation.toLocaleLowerCase('pt-BR')}?`,
+    'Quais são os 3 pontos mais importantes?',
+    'O que favorece a defesa?',
+    'O que ainda preciso confirmar?',
+  ];
   function viewSource(source: SourceReference) {
     const document = recommendation.documents.find((item) => item.id === source.document_id);
     if (document && document.status !== 'AUSENTE') setViewer({ document, page: source.page });
@@ -257,59 +324,90 @@ export default function WorkspacePage() {
       )}
       <section className="workspace-next-action" aria-label="Próxima ação">
         <span>PRÓXIMA AÇÃO</span>
-        <strong>{nextActionCopy(decision, negotiation)}</strong>
+        <strong>{nextActionCopy(recommendation, decision, negotiation)}</strong>
       </section>
-      <div className="workspace-decision-overview">
-        <aside className="workspace-recommendation" aria-label="Recomendação e decisão">
-          <section className="panel decision-panel">
-            <RecommendationCard
-              data={recommendation}
-              claimValue={caseDetail.claim_value}
-              onViewSource={viewSource}
-              actions={
-                <DecisionActions
-                  key={`${caseId}-${decision?.id || 'pending'}`}
-                  recommendation={recommendation}
-                  decision={decision}
-                  negotiation={negotiation}
-                  onSaved={saved}
-                />
-              }
-            />
-          </section>
-          {decision?.decision === 'ACORDO' && (
-            <div id="negotiation-panel">
-              <NegotiationPanel
-                key={caseId}
-                recommendation={recommendation}
-                negotiation={negotiation}
-                onSaved={saved}
-              />
-            </div>
-          )}
-        </aside>
-      </div>
-      <nav className="workspace-content-tabs" aria-label="Conteúdo do processo">
+      <nav className="workspace-content-tabs" aria-label="Conteúdo do processo" role="tablist">
         <button
+          id="workspace-tab-summary"
+          role="tab"
+          aria-selected={activeTab === 'summary'}
+          aria-controls="workspace-panel-summary"
+          className={activeTab === 'summary' ? 'active' : ''}
+          onClick={() => setActiveTab('summary')}
+        >
+          Resumo
+        </button>
+        <button
+          id="workspace-tab-evidences"
+          role="tab"
+          aria-selected={activeTab === 'evidences'}
+          aria-controls="workspace-panel-evidences"
           className={activeTab === 'evidences' ? 'active' : ''}
           onClick={() => setActiveTab('evidences')}
         >
           Evidências
+          <span className="workspace-tab-count">{recommendation.evidence.length}</span>
         </button>
         <button
+          id="workspace-tab-documents"
+          role="tab"
+          aria-selected={activeTab === 'documents'}
+          aria-controls="workspace-panel-documents"
           className={activeTab === 'documents' ? 'active' : ''}
           onClick={() => setActiveTab('documents')}
         >
           Documentos
+          <span className="workspace-tab-count">{recommendation.documents.length}</span>
         </button>
         <button
+          id="workspace-tab-details"
+          role="tab"
+          aria-selected={activeTab === 'details'}
+          aria-controls="workspace-panel-details"
           className={activeTab === 'details' ? 'active' : ''}
           onClick={() => setActiveTab('details')}
         >
           Detalhes
         </button>
       </nav>
-      <section className="workspace-tab-content">
+      <section
+        className={`workspace-tab-content workspace-view-${activeTab}`}
+        id={`workspace-panel-${activeTab}`}
+        role="tabpanel"
+        aria-labelledby={`workspace-tab-${activeTab}`}
+      >
+        {activeTab === 'summary' && (
+          <div className="workspace-decision-overview">
+            <aside className="workspace-recommendation" aria-label="Recomendação e decisão">
+              <section className="panel decision-panel">
+                <RecommendationCard
+                  data={recommendation}
+                  claimValue={caseDetail.claim_value}
+                  onViewSource={viewSource}
+                  actions={
+                    <DecisionActions
+                      key={`${caseId}-${decision?.id || 'pending'}`}
+                      recommendation={recommendation}
+                      decision={decision}
+                      negotiation={negotiation}
+                      onSaved={saved}
+                    />
+                  }
+                />
+              </section>
+              {decision?.decision === 'ACORDO' && (
+                <div id="negotiation-panel">
+                  <NegotiationPanel
+                    key={caseId}
+                    recommendation={recommendation}
+                    negotiation={negotiation}
+                    onSaved={saved}
+                  />
+                </div>
+              )}
+            </aside>
+          </div>
+        )}
         {activeTab === 'evidences' && (
           <EvidencePanel key={caseId} recommendation={recommendation} onViewSource={viewSource} />
         )}
@@ -411,6 +509,31 @@ export default function WorkspacePage() {
           onClose={() => setViewer(null)}
         />
       )}
+      <PolicyCopilot
+        title="Copiloto deste caso"
+        contextLabel={`${caseDetail.case_number} · ${caseDetail.plaintiff}`}
+        sessionKey={`${caseDetail.case_id}:${decision?.id ?? 'sem-decisao'}:${negotiation?.updated_at ?? 'sem-negociacao'}`}
+        suggestions={copilotSuggestions}
+        notice="O copiloto explica os dados disponíveis; a decisão continua sendo sua. Cada pergunta é analisada de forma independente."
+        onAsk={(question) => {
+          const scenario = parseLawyerWhatIfScenario(question);
+          return policyCopilotProvider.respond({
+            audience: 'LAWYER',
+            question,
+            context: { caseDetail, recommendation, decision, negotiation },
+            ...(scenario ? { scenario } : {}),
+          });
+        }}
+        onOpenCitation={(citation) =>
+          viewSource({
+            document_id: citation.documentId,
+            document_name: citation.documentName,
+            page: citation.page,
+            origin: citation.origin,
+            ...(citation.excerpt ? { excerpt: citation.excerpt } : {}),
+          })
+        }
+      />
     </div>
   );
 }

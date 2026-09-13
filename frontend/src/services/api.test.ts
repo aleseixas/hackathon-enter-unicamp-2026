@@ -193,6 +193,24 @@ describe('demonstration API', () => {
     }
   });
 
+  it('preserves policy and model traceability in seeded and local administrative rows', async () => {
+    const seededRecommendation = await getRecommendation('caso-7');
+    const seededDashboard = await getAdminDashboard();
+    expect(seededDashboard.decisions.find((item) => item.case_id === 'caso-7')).toMatchObject({
+      policy_version: seededRecommendation.policy_version,
+      model_version: seededRecommendation.model_version,
+    });
+
+    await submitLawyerDecision({ case_id: 'caso-2', decision: 'ACORDO' });
+    const localRecommendation = await getRecommendation('caso-2');
+    const localDashboard = await getAdminDashboard();
+    expect(localDashboard.decisions.find((item) => item.case_id === 'caso-2')).toMatchObject({
+      is_local: true,
+      policy_version: localRecommendation.policy_version,
+      model_version: localRecommendation.model_version,
+    });
+  });
+
   it('recovers corrupted storage through reset and restores initial seeded records', async () => {
     window.localStorage.setItem(DEMO_STORAGE_KEY, '{broken');
     await expect(getCases()).rejects.toBeInstanceOf(ApiError);
