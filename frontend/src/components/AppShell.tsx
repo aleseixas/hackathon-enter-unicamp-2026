@@ -75,6 +75,9 @@ export default function AppShell() {
         { to: '/minha-fila', label: 'Para analisar', icon: ListFilter },
         { to: '/processos', label: 'Enviados', icon: Files },
       ];
+  const adminFilterParams = new URLSearchParams(location.search);
+  adminFilterParams.delete('view');
+  const adminFilterSearch = adminFilterParams.toString();
   const workspace = location.pathname.startsWith('/processos/');
   const currentLabel = workspace
     ? 'Análise do processo'
@@ -117,7 +120,7 @@ export default function AppShell() {
           {links.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
-              to={to}
+              to={admin && adminFilterSearch ? `${to}?${adminFilterSearch}` : to}
               onClick={() => setMobileOpen(false)}
               className={({ isActive }) =>
                 `nav-item ${isActive || (to === '/processos' && workspace) ? 'active' : ''}`

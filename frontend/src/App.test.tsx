@@ -456,12 +456,16 @@ describe('application business flows', () => {
     await user.click(await screen.findByRole('link', { name: 'Efetividade' }));
 
     expect(
-      await screen.findByRole('heading', { name: 'Da proposta a economia' }),
+      await screen.findByRole('heading', { name: 'Da proposta à economia' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('Propostas de acordo')).toBeInTheDocument();
-    expect(screen.getByText('Taxa de aceitacao')).toBeInTheDocument();
-    expect(screen.getAllByText('Custo sem politica').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Custo com politica').length).toBeGreaterThan(0);
+    expect(screen.getByText('Taxa de aceitação')).toBeInTheDocument();
+    expect(screen.getAllByText('Custo sem política').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Custo com política').length).toBeGreaterThan(0);
+    expect(
+      screen.getByRole('heading', { name: 'Do custo-base ao custo projetado' }),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Resultados' }));
     expect(
       screen.getByRole('heading', { name: 'Como as propostas terminaram' }),
     ).toBeInTheDocument();
