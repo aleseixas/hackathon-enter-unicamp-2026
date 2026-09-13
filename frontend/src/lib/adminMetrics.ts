@@ -6,7 +6,6 @@ export type AdminFilters = {
   period: AdminPeriod;
   firm: string;
   lawyer: string;
-  profile: string;
   uf: string;
   recommendation: '' | Recommendation;
   confidence: string;
@@ -17,7 +16,6 @@ export const emptyAdminFilters: AdminFilters = {
   period: 'all',
   firm: '',
   lawyer: '',
-  profile: '',
   uf: '',
   recommendation: '',
   confidence: '',
@@ -84,7 +82,6 @@ export function filterAdminRows(rows: AdminDecisionRow[], filters: AdminFilters)
       (cutoff == null || (Number.isFinite(createdAt) && createdAt >= cutoff)) &&
       (!filters.firm || row.firm_name === filters.firm) &&
       (!filters.lawyer || row.lawyer_name === filters.lawyer) &&
-      (!filters.profile || row.lawyer_profile_label === filters.profile) &&
       (!filters.uf || row.uf === filters.uf) &&
       (!filters.recommendation || row.recommendation === filters.recommendation) &&
       (!filters.confidence || row.confidence_band === filters.confidence) &&

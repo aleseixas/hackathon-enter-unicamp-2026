@@ -5,22 +5,15 @@ import {
   AlertTriangle,
   ArrowDownLeft,
   ArrowRight,
-  ArrowUpRight,
-  BarChart3,
-  Building2,
-  Check,
   CheckCheck,
   ChevronDown,
   CircleDollarSign,
   Clock3,
   Database,
-  FileCheck2,
   Filter,
-  Gauge,
   GitBranch,
   Handshake,
   Info,
-  Layers3,
   RefreshCw,
   Search,
   ShieldCheck,
@@ -34,10 +27,8 @@ import { Badge, ErrorState, LoadingState } from '../components/ui';
 import PolicyCopilot from '../components/PolicyCopilot';
 import {
   createEffectivenessTimeline,
-  createMonthlyEvolution,
   createOutcomeDistribution,
   createOverrideReasons,
-  createRecommendationDistribution,
   deriveAdminMetrics,
   emptyAdminFilters,
   filterAdminRows,
@@ -91,7 +82,7 @@ const sectionCopy: Record<AdminSection, { title: string; description: string }> 
   },
   adherence: {
     title: 'Aderência à política',
-    description: 'Acompanhe desvios, perfis comportamentais e pontos de atenção.',
+    description: 'Compare aderência, justificativas e resultados por advogado e escritório.',
   },
   effectiveness: {
     title: 'Efetividade da política',
@@ -175,7 +166,6 @@ const filterQueryKeys: (keyof AdminFilters)[] = [
   'period',
   'firm',
   'lawyer',
-  'profile',
   'uf',
   'recommendation',
   'confidence',
@@ -191,7 +181,6 @@ function readAdminFilters(searchParams: URLSearchParams): AdminFilters {
     period,
     firm: searchParams.get('firm') ?? '',
     lawyer: searchParams.get('lawyer') ?? '',
-    profile: searchParams.get('profile') ?? '',
     uf: searchParams.get('uf') ?? '',
     recommendation:
       recommendation === 'ACORDO' || recommendation === 'DEFESA' || recommendation === 'REVISAR'
@@ -222,11 +211,6 @@ function GlobalFilters({
       lawyers: [...new Set(rows.map((row) => row.lawyer_name))].sort((a, b) =>
         a.localeCompare(b, 'pt-BR'),
       ),
-      profiles: [
-        ...new Set(
-          rows.flatMap((row) => (row.lawyer_profile_label ? [row.lawyer_profile_label] : [])),
-        ),
-      ].sort((a, b) => a.localeCompare(b, 'pt-BR')),
       states: [...new Set(rows.map((row) => row.uf))].sort(),
       confidence: [
         ...new Set(rows.flatMap((row) => (row.confidence_band ? [row.confidence_band] : []))),
@@ -245,7 +229,6 @@ function GlobalFilters({
     period: `Últimos ${filters.period} dias`,
     firm: filters.firm,
     lawyer: filters.lawyer,
-    profile: filters.profile,
     uf: filters.uf,
     recommendation: filters.recommendation,
     confidence: `Confiança: ${filters.confidence}`,
@@ -307,18 +290,6 @@ function GlobalFilters({
           >
             <option value="">Todos</option>
             {options.lawyers.map((value) => (
-              <option key={value}>{value}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          <span>Perfil</span>
-          <select
-            value={filters.profile}
-            onChange={(event) => update('profile', event.target.value)}
-          >
-            <option value="">Todos</option>
-            {options.profiles.map((value) => (
               <option key={value}>{value}</option>
             ))}
           </select>
@@ -408,128 +379,6 @@ function SnapshotNote({ updatedAt }: { updatedAt: string }) {
   );
 }
 
-function DistributionChart({ data }: { data: AdminDashboard['distribution'] }) {
-  return (
-    <section
-      className="panel admin-panel admin-distribution-panel"
-      aria-labelledby="distribution-heading"
-    >
-      <div className="admin-panel-heading">
-        <div>
-          <span className="admin-section-kicker">DIRECIONAMENTO</span>
-          <h2 id="distribution-heading">Recomendações da política</h2>
-        </div>
-        <Layers3 size={19} aria-hidden="true" />
-      </div>
-      <p className="admin-panel-description">Distribuição no cenário de demonstração.</p>
-      {data.length ? (
-        <div
-          className="admin-distribution"
-          role="img"
-          aria-label={data
-            .map((item) => `${item.label}: ${count(item.value)}, ${percent(item.percentage)}`)
-            .join('. ')}
-        >
-          <div className="admin-distribution-total" aria-hidden="true">
-            {data.map((item, index) => (
-              <span
-                key={item.label}
-                className={`admin-chart-tone-${index % 3}`}
-                style={{ flexGrow: Math.max(0, item.percentage) }}
-              />
-            ))}
-          </div>
-          <div className="admin-distribution-rows" aria-hidden="true">
-            {data.map((item, index) => (
-              <div className="admin-distribution-row" key={item.label}>
-                <span className={`admin-chart-dot admin-chart-tone-${index % 3}`} />
-                <span className="admin-distribution-name">{item.label}</span>
-                <strong>{count(item.value)}</strong>
-                <span className="admin-distribution-percent">{percent(item.percentage)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <p className="admin-chart-empty">Sem distribuição disponível.</p>
-      )}
-    </section>
-  );
-}
-
-function EvolutionChart({ data }: { data: AdminDashboard['evolution'] }) {
-  const maximum = Math.max(1, ...data.flatMap((item) => [item.agreement, item.defense]));
-  return (
-    <section
-      className="panel admin-panel admin-evolution-panel"
-      aria-labelledby="evolution-heading"
-    >
-      <div className="admin-panel-heading">
-        <div>
-          <span className="admin-section-kicker">AO LONGO DO TEMPO</span>
-          <h2 id="evolution-heading">Evolução das decisões</h2>
-        </div>
-        <div className="admin-chart-legend">
-          <span>
-            <i className="admin-chart-tone-0" />
-            Acordo
-          </span>
-          <span>
-            <i className="admin-chart-tone-1" />
-            Defesa
-          </span>
-        </div>
-      </div>
-      <p className="admin-panel-description">
-        Volume de decisões por período, em números absolutos.
-      </p>
-      {data.length ? (
-        <div
-          className="admin-evolution"
-          role="img"
-          aria-label={data
-            .map(
-              (item) =>
-                `${item.label}: ${count(item.agreement)} acordos e ${count(item.defense)} defesas`,
-            )
-            .join('. ')}
-        >
-          <div className="admin-evolution-grid" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </div>
-          <div className="admin-evolution-columns" aria-hidden="true">
-            {data.map((item) => (
-              <div className="admin-evolution-period" key={item.label}>
-                <div className="admin-evolution-bars">
-                  <div
-                    className="admin-evolution-bar-wrap"
-                    style={{ height: `${(Math.max(0, item.agreement) / maximum) * 100}%` }}
-                  >
-                    <span>{count(item.agreement)}</span>
-                    <div className="admin-evolution-bar admin-chart-tone-0" />
-                  </div>
-                  <div
-                    className="admin-evolution-bar-wrap"
-                    style={{ height: `${(Math.max(0, item.defense) / maximum) * 100}%` }}
-                  >
-                    <span>{count(item.defense)}</span>
-                    <div className="admin-evolution-bar admin-chart-tone-1" />
-                  </div>
-                </div>
-                <span className="admin-evolution-label">{item.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <p className="admin-chart-empty">Sem evolução disponível.</p>
-      )}
-    </section>
-  );
-}
-
 function OverrideReasons({ data }: { data: AdminDashboard['override_reasons'] }) {
   return (
     <section className="panel admin-panel" aria-labelledby="override-heading">
@@ -572,16 +421,16 @@ function OverrideReasons({ data }: { data: AdminDashboard['override_reasons'] })
   );
 }
 
-type ProfileSummary = {
-  label: string;
-  description: string;
+type LawyerSummary = {
+  name: string;
+  firmName: string;
   decisions: number;
   adherenceRate: number;
   agreementRate: number;
-  overrideRate: number;
+  highConfidenceRate: number;
+  completeDocumentationRate: number;
   avgDecisionMinutes: number | null;
   avgFollowProbability: number | null;
-  firmCount: number;
 };
 
 type FirmSummary = {
@@ -589,8 +438,8 @@ type FirmSummary = {
   decisions: number;
   adherenceRate: number;
   avgDecisionMinutes: number | null;
-  profileCount: number;
-  dominantProfile: string;
+  avgFollowProbability: number | null;
+  lawyerCount: number;
 };
 
 const average = (total: number, countValue: number) => (countValue ? total / countValue : 0);
@@ -621,44 +470,45 @@ function scopedFinancials(data: AdminDashboard, rows: AdminDecisionRow[]) {
   };
 }
 
-function summarizeProfiles(rows: AdminDecisionRow[]): ProfileSummary[] {
-  const profiles = new Map<
+function summarizeLawyers(rows: AdminDecisionRow[]): LawyerSummary[] {
+  const lawyers = new Map<
     string,
     {
-      label: string;
-      description: string;
+      name: string;
+      firmName: string;
       decisions: number;
       adherent: number;
       agreements: number;
+      highConfidence: number;
+      completeDocumentation: number;
       decisionMinutesTotal: number;
       decisionMinutesCount: number;
       followProbabilityTotal: number;
       followProbabilityCount: number;
-      firms: Set<string>;
     }
   >();
 
   for (const row of rows) {
-    const label = row.lawyer_profile_label ?? 'Sem perfil identificado';
-    const description =
-      row.lawyer_profile_description ?? 'Comportamento sem descricao sintetica registrada.';
-    const key = `${label}::${description}`;
-    const current = profiles.get(key) ?? {
-      label,
-      description,
+    const key = `${row.lawyer_name}::${row.firm_name}`;
+    const current = lawyers.get(key) ?? {
+      name: row.lawyer_name,
+      firmName: row.firm_name,
       decisions: 0,
       adherent: 0,
       agreements: 0,
+      highConfidence: 0,
+      completeDocumentation: 0,
       decisionMinutesTotal: 0,
       decisionMinutesCount: 0,
       followProbabilityTotal: 0,
       followProbabilityCount: 0,
-      firms: new Set<string>(),
     };
 
     current.decisions += 1;
     current.adherent += row.adherent ? 1 : 0;
     current.agreements += row.decision === 'ACORDO' ? 1 : 0;
+    current.highConfidence += (row.confidence_score ?? 0) >= 0.8 ? 1 : 0;
+    current.completeDocumentation += normalize(row.completeness_band ?? '') === 'alta' ? 1 : 0;
     if (row.decision_minutes != null) {
       current.decisionMinutesTotal += row.decision_minutes;
       current.decisionMinutesCount += 1;
@@ -667,28 +517,27 @@ function summarizeProfiles(rows: AdminDecisionRow[]): ProfileSummary[] {
       current.followProbabilityTotal += row.follow_probability;
       current.followProbabilityCount += 1;
     }
-    current.firms.add(row.firm_name);
-    profiles.set(key, current);
+    lawyers.set(key, current);
   }
 
-  return [...profiles.values()]
-    .map((profile) => ({
-      label: profile.label,
-      description: profile.description,
-      decisions: profile.decisions,
-      adherenceRate: average(profile.adherent, profile.decisions),
-      agreementRate: average(profile.agreements, profile.decisions),
-      overrideRate: 1 - average(profile.adherent, profile.decisions),
-      avgDecisionMinutes: profile.decisionMinutesCount
-        ? average(profile.decisionMinutesTotal, profile.decisionMinutesCount)
+  return [...lawyers.values()]
+    .map((lawyer) => ({
+      name: lawyer.name,
+      firmName: lawyer.firmName,
+      decisions: lawyer.decisions,
+      adherenceRate: average(lawyer.adherent, lawyer.decisions),
+      agreementRate: average(lawyer.agreements, lawyer.decisions),
+      highConfidenceRate: average(lawyer.highConfidence, lawyer.decisions),
+      completeDocumentationRate: average(lawyer.completeDocumentation, lawyer.decisions),
+      avgDecisionMinutes: lawyer.decisionMinutesCount
+        ? average(lawyer.decisionMinutesTotal, lawyer.decisionMinutesCount)
         : null,
-      avgFollowProbability: profile.followProbabilityCount
-        ? average(profile.followProbabilityTotal, profile.followProbabilityCount)
+      avgFollowProbability: lawyer.followProbabilityCount
+        ? average(lawyer.followProbabilityTotal, lawyer.followProbabilityCount)
         : null,
-      firmCount: profile.firms.size,
     }))
     .sort(
-      (left, right) => right.decisions - left.decisions || right.adherenceRate - left.adherenceRate,
+      (left, right) => right.adherenceRate - left.adherenceRate || right.decisions - left.decisions,
     );
 }
 
@@ -701,7 +550,9 @@ function summarizeFirms(rows: AdminDecisionRow[]): FirmSummary[] {
       adherent: number;
       decisionMinutesTotal: number;
       decisionMinutesCount: number;
-      profiles: Map<string, number>;
+      followProbabilityTotal: number;
+      followProbabilityCount: number;
+      lawyers: Set<string>;
     }
   >();
 
@@ -712,7 +563,9 @@ function summarizeFirms(rows: AdminDecisionRow[]): FirmSummary[] {
       adherent: 0,
       decisionMinutesTotal: 0,
       decisionMinutesCount: 0,
-      profiles: new Map<string, number>(),
+      followProbabilityTotal: 0,
+      followProbabilityCount: 0,
+      lawyers: new Set<string>(),
     };
 
     current.decisions += 1;
@@ -721,29 +574,29 @@ function summarizeFirms(rows: AdminDecisionRow[]): FirmSummary[] {
       current.decisionMinutesTotal += row.decision_minutes;
       current.decisionMinutesCount += 1;
     }
-    const profile = row.lawyer_profile_label ?? 'Sem perfil identificado';
-    current.profiles.set(profile, (current.profiles.get(profile) ?? 0) + 1);
+    if (row.follow_probability != null) {
+      current.followProbabilityTotal += row.follow_probability;
+      current.followProbabilityCount += 1;
+    }
+    current.lawyers.add(row.lawyer_name);
     firms.set(row.firm_name, current);
   }
 
   return [...firms.values()]
-    .map((firm) => {
-      const dominantProfile =
-        [...firm.profiles.entries()].sort((left, right) => right[1] - left[1])[0]?.[0] ??
-        'Sem perfil dominante';
-      return {
-        name: firm.name,
-        decisions: firm.decisions,
-        adherenceRate: average(firm.adherent, firm.decisions),
-        avgDecisionMinutes: firm.decisionMinutesCount
-          ? average(firm.decisionMinutesTotal, firm.decisionMinutesCount)
-          : null,
-        profileCount: firm.profiles.size,
-        dominantProfile,
-      };
-    })
+    .map((firm) => ({
+      name: firm.name,
+      decisions: firm.decisions,
+      adherenceRate: average(firm.adherent, firm.decisions),
+      avgDecisionMinutes: firm.decisionMinutesCount
+        ? average(firm.decisionMinutesTotal, firm.decisionMinutesCount)
+        : null,
+      avgFollowProbability: firm.followProbabilityCount
+        ? average(firm.followProbabilityTotal, firm.followProbabilityCount)
+        : null,
+      lawyerCount: firm.lawyers.size,
+    }))
     .sort(
-      (left, right) => right.decisions - left.decisions || right.adherenceRate - left.adherenceRate,
+      (left, right) => right.adherenceRate - left.adherenceRate || right.decisions - left.decisions,
     );
 }
 
@@ -753,69 +606,38 @@ function adherenceSignal(rate: number, baseline: number) {
   return { label: 'Próximo da média', tone: 'is-neutral' };
 }
 
-function AdherenceHighlights({
-  rows,
-  overallAdherence,
-}: {
-  rows: AdminDecisionRow[];
-  overallAdherence: number;
-}) {
-  const profiles = summarizeProfiles(rows);
-  const firms = summarizeFirms(rows);
-  const topAdherentProfile = [...profiles].sort(
-    (left, right) => right.adherenceRate - left.adherenceRate || right.decisions - left.decisions,
-  )[0];
-  const highestDeviationFirm = [...firms].sort(
-    (left, right) => left.adherenceRate - right.adherenceRate || right.decisions - left.decisions,
-  )[0];
-  const mostNegotiatingProfile = [...profiles].sort(
-    (left, right) => right.agreementRate - left.agreementRate || right.decisions - left.decisions,
-  )[0];
+function AdherenceHighlights({ rows }: { rows: AdminDecisionRow[]; overallAdherence: number }) {
+  const metrics = deriveAdminMetrics(rows);
+  const items = [
+    {
+      label: 'Decisões aderentes',
+      value: metrics.decisions - metrics.overrides,
+      rate: metrics.adherenceRate,
+      tone: 'is-adherent',
+    },
+    {
+      label: 'Divergências',
+      value: metrics.overrides,
+      rate: metrics.overrideRate,
+      tone: 'is-override',
+    },
+  ];
 
   return (
-    <section className="admin-adherence-highlights" aria-label="Destaques da aderencia">
-      {topAdherentProfile && (
-        <article className="admin-highlight-card is-profile">
-          <div className="admin-highlight-rank">Perfil #1 em aderencia</div>
-          <div className="admin-highlight-head">
-            <strong>{topAdherentProfile.label}</strong>
-            <ShieldCheck size={18} aria-hidden="true" />
+    <div className="admin-adherence-volume">
+      {items.map((item) => (
+        <div key={item.label}>
+          <header>
+            <span>{item.label}</span>
+            <strong>{count(item.value)}</strong>
+            <b>{percent(item.rate)}</b>
+          </header>
+          <div aria-hidden="true">
+            <i className={item.tone} style={{ width: `${item.rate * 100}%` }} />
           </div>
-          <div className="admin-highlight-value">{percent(topAdherentProfile.adherenceRate)}</div>
-          <p>
-            {count(topAdherentProfile.decisions)} decisoes e{' '}
-            {percent(topAdherentProfile.overrideRate)} de override.
-          </p>
-        </article>
-      )}
-      {highestDeviationFirm && (
-        <article className="admin-highlight-card is-firm">
-          <div className="admin-highlight-rank">Maior desvio da política</div>
-          <div className="admin-highlight-head">
-            <strong>{highestDeviationFirm.name}</strong>
-            <GitBranch size={18} aria-hidden="true" />
-          </div>
-          <div className="admin-highlight-value">{percent(highestDeviationFirm.adherenceRate)}</div>
-          <p>
-            {adherenceSignal(highestDeviationFirm.adherenceRate, overallAdherence).label} com{' '}
-            {count(highestDeviationFirm.profileCount)} perfis ativos.
-          </p>
-        </article>
-      )}
-      {mostNegotiatingProfile && (
-        <article className="admin-highlight-card is-agreement">
-          <div className="admin-highlight-rank">Perfil mais negociador</div>
-          <div className="admin-highlight-head">
-            <strong>{mostNegotiatingProfile.label}</strong>
-            <Handshake size={18} aria-hidden="true" />
-          </div>
-          <div className="admin-highlight-value">
-            {percent(mostNegotiatingProfile.agreementRate)}
-          </div>
-          <p>Participacao media de decisoes em acordo dentro do perfil comportamental.</p>
-        </article>
-      )}
-    </section>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -833,25 +655,25 @@ function AdherenceHighlightsPanel({
     >
       <div className="admin-panel-heading">
         <div>
-          <span className="admin-section-kicker">LEITURA GERAL</span>
-          <h2 id="adherence-highlights-heading">Panorama da aderencia</h2>
+          <span className="admin-section-kicker">VOLUME DA POLÍTICA</span>
+          <h2 id="adherence-highlights-heading">Quantidade de aderência</h2>
         </div>
         <ShieldCheck size={19} aria-hidden="true" />
       </div>
       <p className="admin-panel-description">
-        Um resumo rapido dos sinais mais importantes da aderencia antes de abrir os detalhes.
+        Comparação direta entre decisões que seguiram a recomendação e divergências registradas.
       </p>
       <AdherenceHighlights rows={rows} overallAdherence={overallAdherence} />
     </section>
   );
 }
 
-function ProfileBehaviorPanel({ rows }: { rows: AdminDecisionRow[] }) {
-  const [order, setOrder] = useState<'risk' | 'volume' | 'adherence'>('risk');
+function LawyerBehaviorPanel({ rows }: { rows: AdminDecisionRow[] }) {
+  const [order, setOrder] = useState<'risk' | 'volume' | 'adherence'>('adherence');
   const [query, setQuery] = useState('');
   const baseline = deriveAdminMetrics(rows).adherenceRate;
-  const profiles = summarizeProfiles(rows)
-    .filter((profile) => normalize(profile.label).includes(normalize(query)))
+  const lawyers = summarizeLawyers(rows)
+    .filter((lawyer) => normalize(`${lawyer.name} ${lawyer.firmName}`).includes(normalize(query)))
     .sort((left, right) => {
       if (order === 'volume') return right.decisions - left.decisions;
       if (order === 'adherence') return right.adherenceRate - left.adherenceRate;
@@ -859,26 +681,26 @@ function ProfileBehaviorPanel({ rows }: { rows: AdminDecisionRow[] }) {
     });
   return (
     <section
-      className="panel admin-panel admin-adherence-panel admin-adherence-panel-profiles"
-      aria-labelledby="profile-behavior-heading"
+      className="panel admin-panel admin-adherence-panel admin-lawyer-panel"
+      aria-labelledby="lawyer-behavior-heading"
     >
       <div className="admin-panel-heading">
         <div>
-          <span className="admin-section-kicker">PERFIS COMPORTAMENTAIS</span>
-          <h2 id="profile-behavior-heading">Como os perfis mudam a aderencia</h2>
+          <span className="admin-section-kicker">COMPORTAMENTO MENSURÁVEL</span>
+          <h2 id="lawyer-behavior-heading">Indicadores por advogado</h2>
         </div>
-        <ShieldCheck size={19} aria-hidden="true" />
+        <Users size={21} aria-hidden="true" />
       </div>
       <p className="admin-panel-description">
-        Compare a aderência observada com a média do recorte. A amostra permanece visível para
-        evitar conclusões sobre grupos pouco representados.
+        Percentuais calculados a partir das decisões, sem rótulos de personalidade. A amostra fica
+        visível para evitar conclusões sobre poucos casos.
       </p>
       <div className="admin-analysis-toolbar">
         <label className="admin-inline-search">
           <Search size={14} aria-hidden="true" />
           <input
             type="search"
-            placeholder="Buscar perfil"
+            placeholder="Buscar advogado ou escritório"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
@@ -893,45 +715,57 @@ function ProfileBehaviorPanel({ rows }: { rows: AdminDecisionRow[] }) {
         </label>
       </div>
       <div className="admin-ranking-list">
-        {profiles.map((profile) => {
-          const delta = profile.adherenceRate - baseline;
+        {lawyers.map((lawyer) => {
+          const delta = lawyer.adherenceRate - baseline;
+          const indicators = [
+            { label: 'Aderência observada', value: lawyer.adherenceRate },
+            { label: 'Propensão estimada', value: lawyer.avgFollowProbability },
+            { label: 'Decisões em acordo', value: lawyer.agreementRate },
+            { label: 'Casos de alta confiança', value: lawyer.highConfidenceRate },
+          ];
           return (
-            <article className="admin-ranking-row" key={`${profile.label}-${profile.description}`}>
-              <div className="admin-ranking-copy">
-                <strong>{profile.label}</strong>
-                <span>{profile.description}</span>
-              </div>
-              <div className="admin-ranking-visual">
-                <div className="admin-ranking-values">
-                  <strong>{percent(profile.adherenceRate)}</strong>
-                  <span
-                    className={delta < -0.08 ? 'is-critical' : delta > 0.08 ? 'is-positive' : ''}
-                  >
+            <article className="admin-lawyer-row" key={`${lawyer.name}-${lawyer.firmName}`}>
+              <div className="admin-lawyer-heading">
+                <div>
+                  <strong>{lawyer.name}</strong>
+                  <span>{lawyer.firmName}</span>
+                </div>
+                <div>
+                  <strong>{count(lawyer.decisions)}</strong>
+                  <span>decisões</span>
+                </div>
+                <div>
+                  <strong className={delta < -0.08 ? 'is-critical' : ''}>
                     {delta >= 0 ? '+' : ''}
                     {(delta * 100).toFixed(1)} p.p.
-                  </span>
-                  <small>{count(profile.decisions)} decisões</small>
-                </div>
-                <div className="admin-ranking-track" aria-hidden="true">
-                  <i style={{ left: `${baseline * 100}%` }} />
-                  <span style={{ width: `${profile.adherenceRate * 100}%` }} />
-                </div>
-                <div className="admin-ranking-meta">
-                  <span>{percent(profile.overrideRate)} divergência</span>
-                  {profile.avgFollowProbability != null && (
-                    <span>{percent(profile.avgFollowProbability)} prevista</span>
-                  )}
-                  {profile.avgDecisionMinutes != null && (
-                    <span>{count(Math.round(profile.avgDecisionMinutes))} min</span>
-                  )}
-                  <span>{count(profile.firmCount)} escritórios</span>
+                  </strong>
+                  <span>vs. média</span>
                 </div>
               </div>
+              <div className="admin-lawyer-indicators">
+                {indicators.map((indicator) => (
+                  <div key={indicator.label}>
+                    <span>{indicator.label}</span>
+                    <strong>
+                      {indicator.value == null ? 'Indisponível' : percent(indicator.value)}
+                    </strong>
+                    <i aria-hidden="true">
+                      <b style={{ width: `${(indicator.value ?? 0) * 100}%` }} />
+                    </i>
+                  </div>
+                ))}
+              </div>
+              <footer>
+                <span>{percent(lawyer.completeDocumentationRate)} com documentação completa</span>
+                {lawyer.avgDecisionMinutes != null && (
+                  <span>{count(Math.round(lawyer.avgDecisionMinutes))} min em média</span>
+                )}
+              </footer>
             </article>
           );
         })}
       </div>
-      {!profiles.length && <p className="admin-chart-empty">Nenhum perfil encontrado.</p>}
+      {!lawyers.length && <p className="admin-chart-empty">Nenhum advogado encontrado.</p>}
     </section>
   );
 }
@@ -943,7 +777,7 @@ function FirmComparisonPanel({
   rows: AdminDecisionRow[];
   overallAdherence: number;
 }) {
-  const [order, setOrder] = useState<'risk' | 'volume' | 'adherence'>('risk');
+  const [order, setOrder] = useState<'risk' | 'volume' | 'adherence'>('adherence');
   const [query, setQuery] = useState('');
   const firms = summarizeFirms(rows)
     .filter((firm) => normalize(firm.name).includes(normalize(query)))
@@ -959,14 +793,14 @@ function FirmComparisonPanel({
     >
       <div className="admin-panel-heading">
         <div>
-          <span className="admin-section-kicker">ESCRITORIOS COMPARADOS</span>
-          <h2 id="firm-comparison-heading">Onde o comportamento muda</h2>
+          <span className="admin-section-kicker">COMPARAÇÃO OPERACIONAL</span>
+          <h2 id="firm-comparison-heading">Escritórios que mais aderiram</h2>
         </div>
         <GitBranch size={19} aria-hidden="true" />
       </div>
       <p className="admin-panel-description">
-        O mix de perfis ajuda a explicar a aderência, o tempo de decisão e os desvios observados em
-        cada escritório.
+        Ranking pela taxa observada, acompanhado do volume de decisões e da quantidade de advogados
+        avaliados.
       </p>
       <div className="admin-analysis-toolbar">
         <label className="admin-inline-search">
@@ -995,7 +829,7 @@ function FirmComparisonPanel({
             <article className="admin-ranking-row" key={firm.name}>
               <div className="admin-ranking-copy">
                 <strong>{firm.name}</strong>
-                <span>Perfil dominante: {firm.dominantProfile}</span>
+                <span>{count(firm.lawyerCount)} advogados avaliados</span>
               </div>
               <div className="admin-ranking-visual">
                 <div className="admin-ranking-values">
@@ -1017,7 +851,9 @@ function FirmComparisonPanel({
                   {firm.avgDecisionMinutes != null && (
                     <span>{count(Math.round(firm.avgDecisionMinutes))} min para decidir</span>
                   )}
-                  <span>{count(firm.profileCount)} perfis ativos</span>
+                  {firm.avgFollowProbability != null && (
+                    <span>{percent(firm.avgFollowProbability)} de propensão estimada</span>
+                  )}
                 </div>
               </div>
             </article>
@@ -1025,69 +861,6 @@ function FirmComparisonPanel({
         })}
       </div>
       {!firms.length && <p className="admin-chart-empty">Nenhum escritório encontrado.</p>}
-    </section>
-  );
-}
-
-function AdherenceModelCard({ rows }: { rows: AdminDecisionRow[] }) {
-  const profiles = summarizeProfiles(rows);
-  const firms = summarizeFirms(rows);
-  const topProfile = profiles[0];
-  const highestDeviationFirm = [...firms].sort(
-    (left, right) => left.adherenceRate - right.adherenceRate,
-  )[0];
-
-  return (
-    <section
-      className="panel admin-panel admin-adherence-panel admin-adherence-panel-model"
-      aria-labelledby="adherence-model-heading"
-    >
-      <div className="admin-panel-heading">
-        <div>
-          <span className="admin-section-kicker">O QUE ESTE MODELO TRAZ</span>
-          <h2 id="adherence-model-heading">Aderencia explicavel, nao aleatoria</h2>
-        </div>
-        <Layers3 size={19} aria-hidden="true" />
-      </div>
-      <p className="admin-panel-description">
-        Aqui a aderencia nao e apenas uma taxa final. Ela nasce de perfis comportamentais
-        consistentes e de diferencas estruturais entre escritorios.
-      </p>
-      <div className="admin-model-points">
-        <div className="admin-model-point">
-          <Check size={15} aria-hidden="true" />
-          <span>
-            Cada perfil altera propensao de seguir a politica, ritmo de decisao e override.
-          </span>
-        </div>
-        <div className="admin-model-point">
-          <Check size={15} aria-hidden="true" />
-          <span>
-            Os escritorios nao diferem so por volume, mas pelo mix de perfis que concentram.
-          </span>
-        </div>
-        <div className="admin-model-point">
-          <Check size={15} aria-hidden="true" />
-          <span>
-            As diferencas continuam auditaveis no nivel do caso, com justificativa e sinais.
-          </span>
-        </div>
-      </div>
-      {(topProfile || highestDeviationFirm) && (
-        <div className="admin-model-highlight">
-          {topProfile && (
-            <span>
-              Perfil mais recorrente: <strong>{topProfile.label}</strong> com{' '}
-              <strong>{percent(topProfile.adherenceRate)}</strong> de aderencia.
-            </span>
-          )}
-          {highestDeviationFirm && (
-            <span>
-              Maior desvio da política na amostra: <strong>{highestDeviationFirm.name}</strong>.
-            </span>
-          )}
-        </div>
-      )}
     </section>
   );
 }
@@ -1201,48 +974,6 @@ function EffectivenessTimeline({ data }: { data: AdminDashboard['effectiveness_t
           </div>
         ))}
       </div>
-    </section>
-  );
-}
-
-function RecentDecisions({ rows }: { rows: AdminDecisionRow[] }) {
-  const recentRows = [...rows]
-    .sort((left, right) => right.created_at.localeCompare(left.created_at))
-    .slice(0, 4);
-  return (
-    <section className="panel admin-panel admin-recent-panel" aria-labelledby="recent-heading">
-      <div className="admin-panel-heading">
-        <div>
-          <span className="admin-section-kicker">RASTREABILIDADE</span>
-          <h2 id="recent-heading">Últimas decisões</h2>
-        </div>
-        <Link className="admin-text-link" to="/admin/decisions">
-          Ver todas <ArrowUpRight size={16} aria-hidden="true" />
-        </Link>
-      </div>
-      <div className="admin-recent-list">
-        {recentRows.map((row) => (
-          <div className="admin-recent-row" key={row.id}>
-            <div className={`admin-activity-icon${row.adherent ? '' : ' is-override'}`}>
-              {row.adherent ? (
-                <Check size={16} aria-hidden="true" />
-              ) : (
-                <GitBranch size={16} aria-hidden="true" />
-              )}
-            </div>
-            <div className="admin-recent-content">
-              <strong>{row.lawyer_name}</strong>
-              <span>{row.case_number}</span>
-              <span className="admin-recent-meta">
-                {shortDate(row.created_at)}
-                {row.is_local && <LocalLabel />}
-              </span>
-            </div>
-            <Badge value={row.decision} />
-          </div>
-        ))}
-      </div>
-      {!rows.length && <p className="admin-chart-empty">Ainda não há decisões registradas.</p>}
     </section>
   );
 }
@@ -1520,12 +1251,6 @@ function DecisionTable({ rows }: { rows: AdminDecisionRow[] }) {
                             </p>
                           </div>
                           <dl>
-                            {row.lawyer_profile_label && (
-                              <div>
-                                <dt>Perfil</dt>
-                                <dd>{row.lawyer_profile_label}</dd>
-                              </div>
-                            )}
                             {row.confidence_band && (
                               <div>
                                 <dt>Confianca</dt>
@@ -1647,106 +1372,15 @@ function DecisionTable({ rows }: { rows: AdminDecisionRow[] }) {
   );
 }
 
-function DecisionStatusChart({ rows }: { rows: AdminDecisionRow[] }) {
-  const statuses = new Map<string, number>();
-  rows.forEach((row) => statuses.set(row.status, (statuses.get(row.status) ?? 0) + 1));
-  const data = [...statuses.entries()]
-    .map(([label, value]) => ({ label: humanizeToken(label), value }))
-    .sort((left, right) => right.value - left.value);
-  const maximum = Math.max(1, ...data.map((item) => item.value));
-  return (
-    <section className="panel admin-panel" aria-labelledby="decision-status-heading">
-      <div className="admin-panel-heading">
-        <div>
-          <span className="admin-section-kicker">FLUXO OPERACIONAL</span>
-          <h2 id="decision-status-heading">Decisões por status</h2>
-        </div>
-        <FileCheck2 size={19} aria-hidden="true" />
-      </div>
-      <p className="admin-panel-description">Distribuição dos registros no recorte atual.</p>
-      <div className="admin-status-bars">
-        {data.map((item, index) => (
-          <div key={item.label}>
-            <span>{item.label}</span>
-            <i>
-              <b
-                className={`admin-chart-tone-${index % 3}`}
-                style={{ width: `${(item.value / maximum) * 100}%` }}
-              />
-            </i>
-            <strong>{count(item.value)}</strong>
-            <small>{percent(item.value / Math.max(1, rows.length))}</small>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function ConfidenceAdherenceChart({ rows }: { rows: AdminDecisionRow[] }) {
-  const groups = new Map<string, { total: number; adherent: number; overrides: number }>();
-  rows.forEach((row) => {
-    const label = row.confidence_band ?? 'Sem classificação';
-    const current = groups.get(label) ?? { total: 0, adherent: 0, overrides: 0 };
-    current.total += 1;
-    current.adherent += row.adherent ? 1 : 0;
-    current.overrides += row.adherent ? 0 : 1;
-    groups.set(label, current);
-  });
-  const data = [...groups.entries()]
-    .map(([label, values]) => ({ ...values, label, rate: values.adherent / values.total }))
-    .sort((left, right) => right.rate - left.rate);
-  return (
-    <section className="panel admin-panel" aria-labelledby="confidence-adherence-heading">
-      <div className="admin-panel-heading">
-        <div>
-          <span className="admin-section-kicker">CONFIANÇA × ADERÊNCIA</span>
-          <h2 id="confidence-adherence-heading">Resposta à confiança da recomendação</h2>
-        </div>
-        <Target size={19} aria-hidden="true" />
-      </div>
-      <p className="admin-panel-description">
-        Taxa observada e divergências em cada faixa de confiança.
-      </p>
-      <div className="admin-confidence-grid">
-        {data.map((item) => (
-          <article key={item.label}>
-            <span>{item.label}</span>
-            <strong>{percent(item.rate)}</strong>
-            <div aria-hidden="true">
-              <i style={{ width: `${item.rate * 100}%` }} />
-            </div>
-            <small>
-              {count(item.overrides)} divergências · {count(item.total)} decisões
-            </small>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 function Decisions({ rows }: { rows: AdminDecisionRow[] }) {
-  type DecisionView = 'table' | 'status' | 'confidence' | 'values' | 'firms' | 'critical';
-  const [activeView, setActiveView] = useQueryView<DecisionView>('table', [
-    'table',
-    'status',
-    'confidence',
-    'values',
-    'firms',
-    'critical',
-  ]);
-  const overallAdherence = deriveAdminMetrics(rows).adherenceRate;
+  type DecisionView = 'table' | 'critical';
+  const [activeView, setActiveView] = useQueryView<DecisionView>('table', ['table', 'critical']);
   return (
     <>
       <ViewSwitcher
         label="Visualizações das decisões"
         options={[
           { id: 'table', label: 'Tabela' },
-          { id: 'status', label: 'Status' },
-          { id: 'confidence', label: 'Confiança × aderência' },
-          { id: 'values', label: 'Valores' },
-          { id: 'firms', label: 'Por escritório' },
           { id: 'critical', label: 'Prioridades' },
         ]}
         value={activeView}
@@ -1754,12 +1388,6 @@ function Decisions({ rows }: { rows: AdminDecisionRow[] }) {
       />
       <div className="admin-view-stage">
         {activeView === 'table' && <DecisionTable rows={rows} />}
-        {activeView === 'status' && <DecisionStatusChart rows={rows} />}
-        {activeView === 'confidence' && <ConfidenceAdherenceChart rows={rows} />}
-        {activeView === 'values' && <ValueComparisonChart rows={rows} />}
-        {activeView === 'firms' && (
-          <FirmComparisonPanel rows={rows} overallAdherence={overallAdherence} />
-        )}
         {activeView === 'critical' && <CriticalDecisions rows={rows} />}
       </div>
     </>
@@ -1767,15 +1395,13 @@ function Decisions({ rows }: { rows: AdminDecisionRow[] }) {
 }
 
 function Overview({ data, rows }: { data: AdminDashboard; rows: AdminDecisionRow[] }) {
-  type OverviewView = 'evolution' | 'distribution' | 'firms' | 'funnel' | 'recent';
+  type OverviewView = 'adherence' | 'firms' | 'savings';
   const metrics = deriveAdminMetrics(rows);
   const financials = scopedFinancials(data, rows);
-  const [activeView, setActiveView] = useQueryView<OverviewView>('evolution', [
-    'evolution',
-    'distribution',
+  const [activeView, setActiveView] = useQueryView<OverviewView>('adherence', [
+    'adherence',
     'firms',
-    'funnel',
-    'recent',
+    'savings',
   ]);
   return (
     <>
@@ -1813,51 +1439,42 @@ function Overview({ data, rows }: { data: AdminDashboard; rows: AdminDecisionRow
       <ViewSwitcher
         label="Visualizações da visão geral"
         options={[
-          { id: 'evolution', label: 'Evolução' },
-          { id: 'distribution', label: 'Distribuição' },
-          { id: 'firms', label: 'Aderência por escritório' },
-          { id: 'funnel', label: 'Funil de acordos' },
-          { id: 'recent', label: 'Últimas decisões' },
+          { id: 'adherence', label: 'Quantidade de aderência' },
+          { id: 'firms', label: 'Escritórios' },
+          { id: 'savings', label: 'Economia' },
         ]}
         value={activeView}
         onChange={(id) => setActiveView(id as OverviewView)}
       />
       <div className="admin-view-stage">
-        {activeView === 'evolution' && <EvolutionChart data={createMonthlyEvolution(rows)} />}
-        {activeView === 'distribution' && (
-          <DistributionChart data={createRecommendationDistribution(rows)} />
+        {activeView === 'adherence' && (
+          <AdherenceHighlightsPanel rows={rows} overallAdherence={metrics.adherenceRate} />
         )}
         {activeView === 'firms' && (
           <FirmComparisonPanel rows={rows} overallAdherence={metrics.adherenceRate} />
         )}
-        {activeView === 'funnel' && <NegotiationFunnel rows={rows} />}
-        {activeView === 'recent' && <RecentDecisions rows={rows} />}
+        {activeView === 'savings' && (
+          <SavingsFlowChart
+            data={[
+              { label: 'Custo sem política', value: financials.baselineCost },
+              { label: 'Economia estimada', value: financials.estimatedSavings },
+              { label: 'Custo com política', value: financials.projectedCost },
+            ]}
+          />
+        )}
       </div>
       <AttentionPanel rows={rows} />
     </>
   );
 }
 function Adherence({ rows }: { rows: AdminDecisionRow[] }) {
-  type AdherenceView =
-    | 'profiles'
-    | 'firms'
-    | 'heatmap'
-    | 'scatter'
-    | 'overrides'
-    | 'calibration'
-    | 'highlights'
-    | 'model';
+  type AdherenceView = 'firms' | 'lawyers' | 'overrides';
   const target = 0.7;
   const metrics = deriveAdminMetrics(rows);
-  const [activeView, setActiveView] = useQueryView<AdherenceView>('profiles', [
-    'profiles',
+  const [activeView, setActiveView] = useQueryView<AdherenceView>('firms', [
     'firms',
-    'heatmap',
-    'scatter',
+    'lawyers',
     'overrides',
-    'calibration',
-    'highlights',
-    'model',
   ]);
   return (
     <>
@@ -1893,31 +1510,19 @@ function Adherence({ rows }: { rows: AdminDecisionRow[] }) {
       <ViewSwitcher
         label="Visualizações da aderência"
         options={[
-          { id: 'profiles', label: 'Perfis' },
           { id: 'firms', label: 'Escritórios' },
-          { id: 'heatmap', label: 'Mapa perfil × escritório' },
-          { id: 'scatter', label: 'Volume × aderência' },
-          { id: 'overrides', label: 'Motivos' },
-          { id: 'calibration', label: 'Previsto × observado' },
-          { id: 'highlights', label: 'Destaques' },
-          { id: 'model', label: 'Como funciona' },
+          { id: 'lawyers', label: 'Advogados' },
+          { id: 'overrides', label: 'Justificativas' },
         ]}
         value={activeView}
         onChange={(id) => setActiveView(id as AdherenceView)}
       />
       <div className="admin-view-stage">
-        {activeView === 'highlights' && (
-          <AdherenceHighlightsPanel rows={rows} overallAdherence={metrics.adherenceRate} />
-        )}
-        {activeView === 'profiles' && <ProfileBehaviorPanel rows={rows} />}
         {activeView === 'firms' && (
           <FirmComparisonPanel rows={rows} overallAdherence={metrics.adherenceRate} />
         )}
-        {activeView === 'heatmap' && <AdherenceHeatmap rows={rows} />}
-        {activeView === 'scatter' && <BehaviorScatter rows={rows} />}
+        {activeView === 'lawyers' && <LawyerBehaviorPanel rows={rows} />}
         {activeView === 'overrides' && <OverrideReasons data={createOverrideReasons(rows)} />}
-        {activeView === 'calibration' && <CalibrationChart rows={rows} />}
-        {activeView === 'model' && <AdherenceModelCard rows={rows} />}
       </div>
       <div className="admin-end-link">
         <span>As análises mantêm o tamanho da amostra visível e podem ser auditadas por caso.</span>
@@ -1926,186 +1531,6 @@ function Adherence({ rows }: { rows: AdminDecisionRow[] }) {
         </Link>
       </div>
     </>
-  );
-}
-
-function AdherenceHeatmap({ rows }: { rows: AdminDecisionRow[] }) {
-  const profiles = summarizeProfiles(rows);
-  const firms = summarizeFirms(rows);
-  const baseline = deriveAdminMetrics(rows).adherenceRate;
-  const cells = new Map<string, { total: number; adherent: number }>();
-  rows.forEach((row) => {
-    const profile = row.lawyer_profile_label ?? 'Sem perfil identificado';
-    const key = `${row.firm_name}::${profile}`;
-    const current = cells.get(key) ?? { total: 0, adherent: 0 };
-    current.total += 1;
-    current.adherent += row.adherent ? 1 : 0;
-    cells.set(key, current);
-  });
-
-  return (
-    <section className="panel admin-panel" aria-labelledby="heatmap-heading">
-      <div className="admin-panel-heading">
-        <div>
-          <span className="admin-section-kicker">CRUZAMENTO COMPORTAMENTAL</span>
-          <h2 id="heatmap-heading">Aderência por perfil e escritório</h2>
-        </div>
-        <Building2 size={19} aria-hidden="true" />
-      </div>
-      <p className="admin-panel-description">
-        Cada célula combina taxa observada e quantidade de decisões. Células abaixo da média recebem
-        maior contraste.
-      </p>
-      {profiles.length && firms.length ? (
-        <div
-          className="admin-heatmap-scroll"
-          tabIndex={0}
-          role="region"
-          aria-label="Mapa de calor de aderência"
-        >
-          <table className="admin-heatmap">
-            <thead>
-              <tr>
-                <th>Escritório</th>
-                {profiles.map((profile) => (
-                  <th key={profile.label}>{profile.label}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {firms.map((firm) => (
-                <tr key={firm.name}>
-                  <th>{firm.name}</th>
-                  {profiles.map((profile) => {
-                    const cell = cells.get(`${firm.name}::${profile.label}`);
-                    const rate = cell ? cell.adherent / cell.total : null;
-                    const tone =
-                      rate == null
-                        ? 'is-empty'
-                        : rate <= baseline - 0.08
-                          ? 'is-critical'
-                          : rate >= baseline + 0.08
-                            ? 'is-positive'
-                            : 'is-neutral';
-                    return (
-                      <td key={profile.label} className={tone}>
-                        <strong>{rate == null ? '—' : percent(rate)}</strong>
-                        <span>{cell ? `${count(cell.total)} casos` : 'Sem amostra'}</span>
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <p className="admin-chart-empty">Sem dados suficientes para o cruzamento.</p>
-      )}
-    </section>
-  );
-}
-
-function BehaviorScatter({ rows }: { rows: AdminDecisionRow[] }) {
-  const profiles = summarizeProfiles(rows);
-  const maximum = Math.max(1, ...profiles.map((profile) => profile.decisions));
-  return (
-    <section className="panel admin-panel" aria-labelledby="scatter-heading">
-      <div className="admin-panel-heading">
-        <div>
-          <span className="admin-section-kicker">VOLUME × ADERÊNCIA</span>
-          <h2 id="scatter-heading">Onde o desvio ganha escala</h2>
-        </div>
-        <BarChart3 size={19} aria-hidden="true" />
-      </div>
-      <p className="admin-panel-description">
-        Perfis mais à esquerda aderem menos; pontos maiores representam mais decisões.
-      </p>
-      {profiles.length ? (
-        <>
-          <div
-            className="admin-scatter"
-            role="img"
-            aria-label="Dispersão de volume e aderência por perfil"
-          >
-            <div className="admin-scatter-grid" aria-hidden="true">
-              <i />
-              <i />
-              <i />
-            </div>
-            {profiles.map((profile, index) => (
-              <span
-                key={`${profile.label}-${profile.description}`}
-                className={`admin-scatter-point admin-chart-tone-${index % 3}`}
-                style={{
-                  left: `${Math.min(96, Math.max(4, profile.adherenceRate * 100))}%`,
-                  bottom: `${Math.min(90, 8 + (profile.decisions / maximum) * 78)}%`,
-                  width: `${14 + (profile.decisions / maximum) * 22}px`,
-                  height: `${14 + (profile.decisions / maximum) * 22}px`,
-                }}
-                title={`${profile.label}: ${percent(profile.adherenceRate)}, ${count(profile.decisions)} decisões`}
-              />
-            ))}
-            <span className="admin-scatter-axis is-x">Aderência →</span>
-            <span className="admin-scatter-axis is-y">Volume →</span>
-          </div>
-          <div className="admin-scatter-legend">
-            {profiles.map((profile, index) => (
-              <span key={`${profile.label}-${index}`}>
-                <i className={`admin-chart-tone-${index % 3}`} />
-                {profile.label}
-              </span>
-            ))}
-          </div>
-        </>
-      ) : (
-        <p className="admin-chart-empty">Sem perfis no recorte atual.</p>
-      )}
-    </section>
-  );
-}
-
-function CalibrationChart({ rows }: { rows: AdminDecisionRow[] }) {
-  const profiles = summarizeProfiles(rows).filter(
-    (profile) => profile.avgFollowProbability != null,
-  );
-  return (
-    <section className="panel admin-panel" aria-labelledby="calibration-heading">
-      <div className="admin-panel-heading">
-        <div>
-          <span className="admin-section-kicker">PREVISTO × OBSERVADO</span>
-          <h2 id="calibration-heading">Calibração do modelo comportamental</h2>
-        </div>
-        <Gauge size={19} aria-hidden="true" />
-      </div>
-      <p className="admin-panel-description">
-        Quanto menor a diferença, melhor a propensão prevista representa o comportamento observado.
-      </p>
-      <div className="admin-calibration-list">
-        {profiles.map((profile) => {
-          const predicted = profile.avgFollowProbability!;
-          const gap = profile.adherenceRate - predicted;
-          return (
-            <div className="admin-calibration-row" key={`${profile.label}-${profile.description}`}>
-              <strong>{profile.label}</strong>
-              <div className="admin-calibration-track" aria-hidden="true">
-                <span className="is-predicted" style={{ left: `${predicted * 100}%` }} />
-                <span className="is-observed" style={{ left: `${profile.adherenceRate * 100}%` }} />
-              </div>
-              <div>
-                <span>Prevista {percent(predicted)}</span>
-                <span>Observada {percent(profile.adherenceRate)}</span>
-                <strong className={Math.abs(gap) > 0.08 ? 'is-critical' : ''}>
-                  {gap >= 0 ? '+' : ''}
-                  {(gap * 100).toFixed(1)} p.p.
-                </strong>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      {!profiles.length && <p className="admin-chart-empty">Sem previsões no recorte atual.</p>}
-    </section>
   );
 }
 
@@ -2162,91 +1587,6 @@ function AttentionPanel({ rows }: { rows: AdminDecisionRow[] }) {
   );
 }
 
-function NegotiationFunnel({ rows }: { rows: AdminDecisionRow[] }) {
-  const metrics = deriveAdminMetrics(rows);
-  const maximum = Math.max(1, metrics.proposals);
-  const stages = [
-    { label: 'Propostas', value: metrics.proposals, tone: 'is-info' },
-    { label: 'Aceitas', value: metrics.accepted, tone: 'is-positive' },
-    { label: 'Contrapropostas', value: metrics.counteroffers, tone: 'is-warning' },
-    { label: 'Recusadas', value: metrics.rejected, tone: 'is-critical' },
-  ];
-  return (
-    <section className="panel admin-panel" aria-labelledby="funnel-heading">
-      <div className="admin-panel-heading">
-        <div>
-          <span className="admin-section-kicker">FUNIL DE NEGOCIAÇÃO</span>
-          <h2 id="funnel-heading">Destino das propostas</h2>
-        </div>
-        <Handshake size={19} aria-hidden="true" />
-      </div>
-      <p className="admin-panel-description">
-        Conversão e desfecho das propostas no recorte atual.
-      </p>
-      <div className="admin-funnel">
-        {stages.map((stage) => (
-          <div className="admin-funnel-row" key={stage.label}>
-            <span>{stage.label}</span>
-            <div>
-              <i className={stage.tone} style={{ width: `${(stage.value / maximum) * 100}%` }} />
-            </div>
-            <strong>{count(stage.value)}</strong>
-            <small>{percent(stage.value / maximum)}</small>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function ValueComparisonChart({ rows }: { rows: AdminDecisionRow[] }) {
-  const metrics = deriveAdminMetrics(rows);
-  const offered = metrics.averageOfferedValue ?? 0;
-  const closed = metrics.averageClosedValue ?? 0;
-  const maximum = Math.max(1, offered, closed);
-  return (
-    <section className="panel admin-panel" aria-labelledby="value-comparison-heading">
-      <div className="admin-panel-heading">
-        <div>
-          <span className="admin-section-kicker">VALORES NEGOCIADOS</span>
-          <h2 id="value-comparison-heading">Sugerido × realizado</h2>
-        </div>
-        <CircleDollarSign size={19} aria-hidden="true" />
-      </div>
-      <p className="admin-panel-description">
-        Comparação entre a oferta sugerida e o valor final dos acordos aceitos.
-      </p>
-      <div className="admin-value-comparison">
-        <div>
-          <span>Valor médio sugerido</span>
-          <strong>{money(offered, true)}</strong>
-          <i>
-            <b style={{ width: `${(offered / maximum) * 100}%` }} />
-          </i>
-        </div>
-        <div>
-          <span>Valor médio realizado</span>
-          <strong>{money(closed, true)}</strong>
-          <i>
-            <b className="is-realized" style={{ width: `${(closed / maximum) * 100}%` }} />
-          </i>
-        </div>
-      </div>
-      <div className="admin-value-summary">
-        <span>
-          Diferença média <strong>{money(metrics.averageValueDifference ?? 0, true)}</strong>
-        </span>
-        <span>
-          Desconto médio <strong>{percent(metrics.averageDiscountRate ?? 0)}</strong>
-        </span>
-        <span>
-          Diferença observada <strong>{money(metrics.observedNegotiationDifference, true)}</strong>
-        </span>
-      </div>
-    </section>
-  );
-}
-
 function CriticalDecisions({ rows }: { rows: AdminDecisionRow[] }) {
   const critical = rows
     .filter(
@@ -2289,17 +1629,13 @@ function CriticalDecisions({ rows }: { rows: AdminDecisionRow[] }) {
 }
 
 function Effectiveness({ data, rows }: { data: AdminDashboard; rows: AdminDecisionRow[] }) {
-  type EffectivenessView = 'savings' | 'outcomes' | 'timeline' | 'funnel' | 'values' | 'simulation';
+  type EffectivenessView = 'savings' | 'outcomes' | 'timeline';
   const metrics = deriveAdminMetrics(rows);
   const financials = scopedFinancials(data, rows);
-  const simulation = data.historical_simulation;
   const [activeView, setActiveView] = useQueryView<EffectivenessView>('savings', [
     'savings',
     'outcomes',
     'timeline',
-    'funnel',
-    'values',
-    'simulation',
   ]);
   const savingsPerAgreement = metrics.accepted ? financials.estimatedSavings / metrics.accepted : 0;
   const savingsFlow = [
@@ -2361,9 +1697,6 @@ function Effectiveness({ data, rows }: { data: AdminDashboard; rows: AdminDecisi
           { id: 'savings', label: 'Economia' },
           { id: 'outcomes', label: 'Resultados' },
           { id: 'timeline', label: 'Trajetória' },
-          { id: 'funnel', label: 'Funil' },
-          { id: 'values', label: 'Valores' },
-          { id: 'simulation', label: 'Simulação' },
         ]}
         value={activeView}
         onChange={(id) => setActiveView(id as EffectivenessView)}
@@ -2376,56 +1709,7 @@ function Effectiveness({ data, rows }: { data: AdminDashboard; rows: AdminDecisi
         {activeView === 'timeline' && (
           <EffectivenessTimeline data={createEffectivenessTimeline(rows)} />
         )}
-        {activeView === 'funnel' && <NegotiationFunnel rows={rows} />}
-        {activeView === 'values' && <ValueComparisonChart rows={rows} />}
       </div>
-      {activeView === 'simulation' && (
-        <section className="admin-simulation" aria-labelledby="simulation-heading">
-          <div className="admin-simulation-heading">
-            <div>
-              <span className="admin-section-kicker">UMA OUTRA PERSPECTIVA</span>
-              <h2 id="simulation-heading">Simulacao sobre a base historica</h2>
-              <p>Um cenario estimado para comparacao, separado dos resultados operacionais.</p>
-            </div>
-            <DemoLabel simulation />
-          </div>
-          <div className="admin-simulation-metrics">
-            <div>
-              <span>Custo de referencia</span>
-              <strong>{money(simulation.baseline_cost, true)}</strong>
-              <small>Referencia historica</small>
-            </div>
-            <div>
-              <span>Custo projetado</span>
-              <strong>{money(simulation.projected_cost, true)}</strong>
-              <small>No cenario simulado</small>
-            </div>
-            <div className="admin-simulation-saving">
-              <span>Economia estimada</span>
-              <strong>{money(simulation.estimated_savings, true)}</strong>
-              <small>{percent(financials.savingsRate)} de redução no custo</small>
-            </div>
-          </div>
-          <div className="admin-simulation-assumptions">
-            <div>
-              <Layers3 size={17} aria-hidden="true" />
-              <span>
-                Amostra <strong>{count(simulation.sample_size)} processos</strong>
-              </span>
-            </div>
-            <div>
-              <CheckCheck size={17} aria-hidden="true" />
-              <span>
-                Hipotese de aceitacao <strong>{percent(simulation.acceptance_assumption)}</strong>
-              </span>
-            </div>
-          </div>
-          <div className="admin-simulation-note">
-            <Info size={16} aria-hidden="true" />
-            <p>{simulation.description}</p>
-          </div>
-        </section>
-      )}
       <div className="admin-end-link">
         <span>Os resultados individuais continuam disponiveis no registro da operacao.</span>
         <Link className="admin-text-link" to="/admin/decisions">
